@@ -107,6 +107,15 @@ fn main() {
         }
         println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/../Frameworks");
         println!("cargo:rustc-link-arg=-Wl,-rpath,@loader_path/../Frameworks");
+
+        // Native chrome lives in a Swift package, built and linked statically.
+        swift_rs::SwiftLinker::new("26.0")
+            .with_package("HarborNative", "../macos/HarborNative")
+            .link();
+        // The package references the OS Swift runtime as @rpath/libswift*.dylib.
+        println!("cargo:rustc-link-arg=-Wl,-rpath,/usr/lib/swift");
+        println!("cargo:rerun-if-changed=../macos/HarborNative/Sources");
+        println!("cargo:rerun-if-changed=../macos/HarborNative/Package.swift");
     }
 
     if target_os == "linux" {

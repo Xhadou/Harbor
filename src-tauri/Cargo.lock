@@ -2630,6 +2630,7 @@ dependencies = [
  "sha1",
  "sha2",
  "socket2 0.5.10",
+ "swift-rs",
  "tar",
  "tauri",
  "tauri-build",

@@ -101,6 +101,8 @@ mod hdr_overlay;
 mod install_features;
 #[cfg(desktop)]
 mod installer_handoff;
+#[cfg(target_os = "macos")]
+mod mac_native;
 #[cfg(desktop)]
 mod media_controls;
 mod modal_overlay;
@@ -1179,6 +1181,7 @@ pub fn run() {
                         if let Err(e) = mpv_render_mac::make_resizable(ns_window_ptr) {
                             eprintln!("[harbor::mac] resizable failed: {}", e);
                         }
+                        mac_native::install(app.handle(), ns_window);
                     }
                 }
             }
@@ -1322,6 +1325,12 @@ pub fn run() {
             }
         })
         .invoke_handler(desktop_invoke_handler(tauri::generate_handler![
+            #[cfg(target_os = "macos")]
+            mac_native::mac_native_sidebar_set,
+            #[cfg(target_os = "macos")]
+            mac_native::mac_native_toolbar_set,
+            #[cfg(target_os = "macos")]
+            mac_native::mac_native_search_set,
             #[cfg(feature = "games")]
             games::games_pokemon,
             #[cfg(feature = "games")]
