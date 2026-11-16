@@ -1,0 +1,4 @@
+{
+  "identifier": "app.harbor.mac",
+  "bundle": { "macOS": { "minimumSystemVersion": "26.0" } }
+}

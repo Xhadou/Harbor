@@ -144,3 +144,5 @@ src-tauri/resources/music-module/
 
 # mac fork: keep design docs and plans
 !docs/superpowers/**/*.md
+macos/HarborNative/.build/
+!docs/mac-fork/*.md
