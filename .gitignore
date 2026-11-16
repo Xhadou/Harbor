@@ -149,3 +149,6 @@ macos/HarborNative/.build/
 
 # personal Harbor backups (account data, never commit)
 *.harbx
+
+# headless browser preview output
+.playwright-mcp/

@@ -1882,7 +1882,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
             style={isMacDesktop() ? { paddingInlineStart: "var(--mac-sidebar-inset)" } : undefined}
           >
             {homeAlive && (
-              <div {...parkLayerProps(homeTop)}>
+              <div {...parkLayerProps(homeTop)} data-mac-bleed>
                 <Profiled id="view.home">
                   <MemoSpooktoberHome active={homeTop} onReady={onReady} />
                 </Profiled>

@@ -5,7 +5,7 @@ import { useSearchActions, useSearchData, useSearchOpen } from "@/lib/search-con
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 import { NATIVE_SEARCH_KEY_EVENT, onNativeEvent, pushNativeState } from "./native-events";
-import { applyNativeLayout } from "./native-layout";
+import { applyNativeLayout, setNativeLayoutScale } from "./native-layout";
 import { setNativeSearchParts, useNativeSearchActive } from "./native-search-state";
 import { searchHiddenFor, toolbarPayload } from "./toolbar-payload";
 
@@ -43,6 +43,9 @@ export function NativeToolbarBridge({
   }, [visible, canGoBack, searchVisible]);
   useEffect(() => () => setNativeSearchParts({ allowed: false }), []);
   const nativeSearch = useNativeSearchActive();
+  useEffect(() => {
+    setNativeLayoutScale(settings.uiScale);
+  }, [settings.uiScale]);
 
   // Text and focus as the native field last reported them, to avoid echoing
   // its own changes back to it.

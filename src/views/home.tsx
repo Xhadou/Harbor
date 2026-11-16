@@ -1454,7 +1454,7 @@ export function Home({
   return (
     <main
       ref={scrollCb}
-      className="flex-1 overflow-y-auto overflow-x-hidden px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
+      className="mac-page flex-1 overflow-y-auto overflow-x-hidden px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
     >
       <ScrollRootContext.Provider value={scrollEl}>
         <div {...contentDrag} className="relative flex flex-col gap-12">
@@ -1509,7 +1509,10 @@ export function Home({
                   />
                 </Profiled>
                 {!editMode && (
-                  <div className="pointer-events-none absolute -bottom-3 end-5 z-20 flex justify-end [&>*]:pointer-events-auto">
+                  <div
+                    data-home-customize
+                    className="pointer-events-none absolute -bottom-3 end-5 z-20 flex justify-end [&>*]:pointer-events-auto"
+                  >
                     <CustomizeBar
                       editMode={editMode}
                       customization={homeRowsCustom}

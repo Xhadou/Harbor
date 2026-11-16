@@ -78,6 +78,70 @@ html[data-os="macos"] [data-mac-bleed] {
   margin-inline-start: calc(-1 * var(--mac-sidebar-inset));
 }
 
+html[data-os="macos"] {
+  /* Space between the sidebar (or window edge) and content at rest. */
+  --mac-gutter: 2rem;
+  /* Where content at rest starts on a page that runs under the sidebar. */
+  --mac-content-start: calc(var(--mac-sidebar-inset) + var(--mac-gutter));
+}
+
+/* The scroll container of a converted page. */
+html[data-os="macos"] [data-mac-bleed] .mac-page {
+  padding-inline-start: var(--mac-content-start);
+  padding-inline-end: var(--mac-gutter);
+}
+
+/* Full-bleed hero: artwork to the window's left, right and top edges, text
+   held clear of the sidebar. */
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {
+  margin-inline-start: calc(-1 * var(--mac-content-start));
+  margin-inline-end: calc(-1 * var(--mac-gutter));
+}
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-full .harbor-hero-content {
+  padding-inline-start: var(--mac-content-start);
+  padding-inline-end: var(--mac-gutter);
+}
+/* Keep the artwork alive on the left, where the glass sidebar sits over it:
+   a scrim that gathers behind the text block at the bottom-left instead of a
+   solid wall of canvas down the whole side. */
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-hero-shade="side"] {
+  background:
+    radial-gradient(
+      115% 85% at 0% 100%,
+      rgb(0 0 0 / 0.78) 0%,
+      rgb(0 0 0 / 0.56) 38%,
+      rgb(0 0 0 / 0.2) 62%,
+      transparent 80%
+    ),
+    linear-gradient(to right, rgb(0 0 0 / 0.28) 0%, transparent 45%);
+}
+/* Trim the last two pixel rows: under interface zoom the artwork can round a
+   pixel past its fade and leave a bright hairline above the first row. */
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-full .harbor-hero-stage {
+  clip-path: inset(0 0 2px 0);
+}
+/* A little air between the hero and the first row. */
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {
+  margin-bottom: -1.25rem;
+}
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-home-customize] {
+  bottom: 3.25rem;
+  inset-inline-end: var(--mac-gutter);
+}
+
+/* Rows: the heading and the first card rest at the content start, and the
+   cards scroll on under the sidebar. The shell itself has to reach the window
+   edge because it clips its own painting (content-visibility). */
+html[data-os="macos"] [data-mac-bleed] .harbor-row-shell {
+  margin-inline-start: calc(-1 * var(--mac-content-start));
+  padding-inline-start: var(--mac-content-start);
+}
+html[data-os="macos"] [data-mac-bleed] .harbor-row-track {
+  margin-inline-start: calc(-1 * var(--mac-content-start));
+  padding-inline-start: var(--mac-content-start);
+  scroll-padding-inline-start: var(--mac-content-start);
+}
+
 :root {
   color-scheme: dark;
   font-family: var(--font-sans);

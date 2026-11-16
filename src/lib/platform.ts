@@ -10,8 +10,18 @@ export function isWeb(): boolean {
 
 export type OsClass = "linux" | "macos" | "windows" | "android" | "web";
 
+/**
+ * Development only: lets the macOS layout be previewed in an ordinary browser
+ * (`localStorage["dev.os"] = "macos"`), where there is no native window to
+ * report insets. Compiled out of production builds.
+ */
+function devOsOverride(): OsClass | null {
+  if (!import.meta.env?.DEV || typeof localStorage === "undefined") return null;
+  return localStorage.getItem("dev.os") === "macos" ? "macos" : null;
+}
+
 function detectOs(): OsClass {
-  if (!isTauri()) return "web";
+  if (!isTauri()) return devOsOverride() ?? "web";
   const platform = nativePlatform();
   if (platform === "linux") return "linux";
   if (platform === "macos") return "macos";

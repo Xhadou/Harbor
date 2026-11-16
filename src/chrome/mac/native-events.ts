@@ -33,12 +33,12 @@ export function onNativeEvent<K extends NativeEventKind>(
 ): () => void {
   let disposed = false;
   let unlisten: (() => void) | null = null;
-  void listen<NativeEventPayloads[K]>(`mac-native://${kind}`, (event) =>
-    handler(event.payload),
-  ).then((off) => {
-    if (disposed) off();
-    else unlisten = off;
-  });
+  void listen<NativeEventPayloads[K]>(`mac-native://${kind}`, (event) => handler(event.payload))
+    .then((off) => {
+      if (disposed) off();
+      else unlisten = off;
+    })
+    .catch((e) => console.warn(`[harbor] cannot listen for ${kind}`, e));
   return () => {
     disposed = true;
     unlisten?.();

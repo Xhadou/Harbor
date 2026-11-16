@@ -53,3 +53,11 @@ test("layout insets leave a gutter beside a visible sidebar and none when hidden
     sidebar: "0px",
   });
 });
+
+test("layout insets are converted from screen points to CSS pixels under interface zoom", () => {
+  const layout = { titlebarInset: 52, sidebarWidth: 240, sidebarVisible: true };
+  assert.deepEqual(layoutInsets(layout, 0.95), { titlebar: "54.74px", sidebar: "269.47px" });
+  assert.deepEqual(layoutInsets(layout, 1), { titlebar: "52px", sidebar: "256px" });
+  // A missing or nonsensical scale means no zoom.
+  assert.deepEqual(layoutInsets(layout, 0), { titlebar: "52px", sidebar: "256px" });
+});
