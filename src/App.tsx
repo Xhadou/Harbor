@@ -60,7 +60,8 @@ import {
 import { synchronizeMediaServer } from "@/lib/media-server/sync";
 import { setNativeMemoryActive } from "@/lib/native-memory";
 import { useOverlayPinned } from "@/lib/overlay-pin";
-import { isMobileWeb, isRemoteRoute } from "@/lib/platform";
+import { isMacDesktop, isMobileWeb, isRemoteRoute, osClass } from "@/lib/platform";
+import { macLayout } from "@/lib/mac-chrome";
 import { makeSafeTauriUnlisten } from "@/lib/tauri-unlisten";
 import { activeLayout } from "@/lib/theme";
 import { useThemePreview } from "@/lib/theme-preview";
@@ -998,7 +999,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
     () => (preview ? preview.layout : activeLayout(settings.theme)),
     [preview, settings.theme],
   );
-  const layout = kid ? "sidebar" : baseLayout;
+  const layout = macLayout(kid ? "sidebar" : baseLayout, osClass());
   const themeHasTopbar =
     layout === "sidebar" ||
     layout === "dracula" ||
@@ -1850,7 +1851,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
               <MusicSurprisePrompt />
             </Suspense>
           )}
-          {!playerActive && <WindowResizeEdges />}
+          {!playerActive && !isMacDesktop() && <WindowResizeEdges />}
           {!playerActive && !pickerTop && !immersive && !chromeHidden && <QueueBasket />}
           <HybridTitleBar suppressed={playerActive || immersive || chromeHidden} />
           <div

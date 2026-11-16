@@ -1175,11 +1175,8 @@ pub fn run() {
                 if let Some(window) = app.handle().get_webview_window("main") {
                     if let Ok(ns_window) = window.ns_window() {
                         let ns_window_ptr = ns_window as i64;
-                        if let Err(e) = mpv_render_mac::install_window_rounding(ns_window_ptr) {
-                            eprintln!("[harbor::mac] rounding failed: {}", e);
-                        }
-                        if let Err(e) = mpv_render_mac::make_resizable(ns_window_ptr) {
-                            eprintln!("[harbor::mac] resizable failed: {}", e);
+                        if let Err(e) = mpv_render_mac::install_window_backing(ns_window_ptr) {
+                            eprintln!("[harbor::mac] window backing failed: {}", e);
                         }
                         mac_native::install(app.handle(), ns_window);
                     }

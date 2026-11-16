@@ -1,3 +1,5 @@
+import { macFullscreenMode } from "@/lib/mac-chrome";
+import { osClass } from "@/lib/platform";
 import { loadStoredSettings } from "@/lib/settings/load";
 
 export type FullscreenMode = "fullscreen" | "borderless" | "maximized";
@@ -71,7 +73,7 @@ export function normalizeFullscreenMode(value: string | null | undefined): Fulls
 }
 
 export function fullscreenMode(): FullscreenMode {
-  return normalizeFullscreenMode(loadStoredSettings().fullscreenMode);
+  return macFullscreenMode(normalizeFullscreenMode(loadStoredSettings().fullscreenMode), osClass());
 }
 
 export function isBorderlessFullscreen(): boolean {

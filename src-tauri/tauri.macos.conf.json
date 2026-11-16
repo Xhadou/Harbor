@@ -1,4 +1,29 @@
 {
   "identifier": "app.harbor.mac",
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Harbor",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 600,
+        "visible": false,
+        "decorations": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "transparent": false,
+        "backgroundColor": [0, 0, 0, 255],
+        "shadow": true,
+        "resizable": true,
+        "maximizable": true,
+        "minimizable": true,
+        "center": true,
+        "browserExtensionsEnabled": true,
+        "additionalBrowserArgs": "--disk-cache-size=104857600 --media-cache-size=52428800 --autoplay-policy=no-user-gesture-required --disable-features=HardwareMediaKeyHandling"
+      }
+    ]
+  },
   "bundle": { "macOS": { "minimumSystemVersion": "26.0" } }
 }

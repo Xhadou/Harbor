@@ -8,6 +8,8 @@ import {
 import { languageName } from "@/lib/subtitles/language";
 import { ORIGINAL_AUDIO_LANG } from "@/lib/player/audio-language";
 import { sanitizeSeekStep } from "@/lib/seek-step";
+import { coerceMacSettings } from "@/lib/mac-chrome";
+import { osClass } from "@/lib/platform";
 import { migrateModelId, providerTabFor } from "@/lib/ai-models";
 import {
   sanitizeFullscreenClockFormat,
@@ -169,6 +171,15 @@ export function loadStoredSettings(rawKey: string = STORAGE_KEY): Settings {
 }
 
 export function parseStoredSettings(raw: string | null): {
+  settings: Settings;
+  cacheable: boolean;
+} {
+  const parsed = parseStoredSettingsRaw(raw);
+  const settings = coerceMacSettings(parsed.settings, osClass());
+  return settings === parsed.settings ? parsed : { ...parsed, settings };
+}
+
+function parseStoredSettingsRaw(raw: string | null): {
   settings: Settings;
   cacheable: boolean;
 } {

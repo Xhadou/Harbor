@@ -71,6 +71,8 @@ function fixture() {
     return module.exports;
   }
   dependencies["./defaults"] = load("../src/lib/settings/defaults.ts");
+  dependencies["@/lib/platform"] = { osClass: () => "web" };
+  dependencies["@/lib/mac-chrome"] = load("../src/lib/mac-chrome.ts");
   const settings = load(
     "../src/lib/settings/load.ts",
   ) as typeof import("../src/lib/settings/load.ts");

@@ -37,7 +37,10 @@ const NS_VIEW_AUTORESIZE_HEIGHT: usize = 16;
 const NS_WINDOW_STYLE_BORDERLESS: usize = 0;
 const NS_BACKING_STORE_BUFFERED: usize = 2;
 const NS_WINDOW_BELOW: isize = -1;
-const WINDOW_CORNER_RADIUS: f64 = 14.0;
+// Rounds the video window to sit inside the system frame's corners. macOS 26
+// uses 16pt for a titled window with no toolbar, which is the state during
+// playback (the toolbar is hidden then).
+const VIDEO_CORNER_RADIUS: f64 = 16.0;
 
 const NSOPENGL_CONTEXT_PARAM_SURFACE_OPACITY: i32 = 236;
 
@@ -284,7 +287,7 @@ pub fn install(mpv_ctx: NonNull<mpv_handle>, ns_window_ptr: i64, edr: bool) -> R
             let _: () = msg_send![&*layer, setBackgroundColor: cg_black];
             let _: () = msg_send![&*layer, setOpaque: true];
             if video_window.is_some() {
-                let _: () = msg_send![&*layer, setCornerRadius: WINDOW_CORNER_RADIUS];
+                let _: () = msg_send![&*layer, setCornerRadius: VIDEO_CORNER_RADIUS];
                 let _: () = msg_send![&*layer, setMasksToBounds: true];
             }
         }
@@ -392,7 +395,9 @@ pub fn set_hdr_active(active: bool, bt2020: bool) {
     schedule_redraw();
 }
 
-pub fn install_window_rounding(ns_window_ptr: i64) -> Result<(), String> {
+/// Keeps the main window see-through so the mpv window ordered below it shows
+/// during playback. The system frame rounds the window; nothing is clipped here.
+pub fn install_window_backing(ns_window_ptr: i64) -> Result<(), String> {
     let _mtm = MainThreadMarker::new().ok_or_else(|| "must run on main thread".to_string())?;
     if ns_window_ptr == 0 {
         return Err("ns_window_ptr is zero".into());
@@ -408,9 +413,6 @@ pub fn install_window_rounding(ns_window_ptr: i64) -> Result<(), String> {
         if let Some(content_view) = ns_window.contentView() {
             let _: () = msg_send![&*content_view, setWantsLayer: true];
             if let Some(layer) = content_view.layer() {
-                let _: () = msg_send![&*layer, setCornerRadius: WINDOW_CORNER_RADIUS];
-                let _: () = msg_send![&*layer, setMasksToBounds: true];
-                // The window stays clear so the rounded corners show the desktop.
                 // Outside embedded playback the content layer needs a solid
                 // backing: the webview does not draw a background, so a clear
                 // backing can expose the desktop when macOS recomposites it.
@@ -420,22 +422,6 @@ pub fn install_window_rounding(ns_window_ptr: i64) -> Result<(), String> {
                 let _: () = msg_send![&*layer, setBackgroundColor: cg_black];
             }
         }
-    }
-    Ok(())
-}
-
-pub fn make_resizable(ns_window_ptr: i64) -> Result<(), String> {
-    let _mtm = MainThreadMarker::new().ok_or_else(|| "must run on main thread".to_string())?;
-    if ns_window_ptr == 0 {
-        return Err("ns_window_ptr is zero".into());
-    }
-    unsafe {
-        let raw_window: *mut AnyObject = ns_window_ptr as *mut AnyObject;
-        let ns_window: &NSWindow = &*(raw_window as *const NSWindow);
-        let current: usize = msg_send![ns_window, styleMask];
-        let resizable = 1usize << 3;
-        let miniaturizable = 1usize << 2;
-        let _: () = msg_send![ns_window, setStyleMask: current | resizable | miniaturizable];
     }
     Ok(())
 }

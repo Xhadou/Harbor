@@ -1,6 +1,8 @@
 import { useSettings } from "@/lib/settings";
 import { useT } from "@/lib/i18n";
 import { normalizeFullscreenMode, type FullscreenMode } from "@/lib/fullscreen-state";
+import { macFullscreenMode } from "@/lib/mac-chrome";
+import { osClass } from "@/lib/platform";
 import { SettingRow, SettingsWorkbench } from "../kit";
 import { Section, Segmented, ToggleRow } from "../shared";
 import { Anchored } from "../player-panel/choice";
@@ -10,26 +12,25 @@ import { VolumeHudPreview } from "../player-panel/volume-hud-preview";
 export function PlayerWindowOptions() {
   const { settings, update } = useSettings();
   const t = useT();
+  const os = osClass();
+  const mode = macFullscreenMode(normalizeFullscreenMode(settings.fullscreenMode), os);
   return (
     <>
       <Section title={t("Fullscreen")}>
-        <SettingsWorkbench
-          compact
-          preview={<FullscreenPreview mode={normalizeFullscreenMode(settings.fullscreenMode)} />}
-        >
+        <SettingsWorkbench compact preview={<FullscreenPreview mode={mode} />}>
           <Anchored id="set-what-fullscreen-does">
             <Anchored id="set-fullscreen-mode">
               <SettingRow wide label={t("What fullscreen does")}>
                 <select
                   aria-label={t("What fullscreen does")}
-                  value={normalizeFullscreenMode(settings.fullscreenMode)}
+                  value={mode}
                   onChange={(event) =>
                     update({ fullscreenMode: event.target.value as FullscreenMode })
                   }
                   className="h-11 w-full max-w-[300px] rounded-[8px] border border-edge-soft bg-elevated px-3 text-[15px] text-ink"
                 >
                   <option value="fullscreen">{t("True fullscreen")}</option>
-                  <option value="borderless">{t("Borderless window")}</option>
+                  {os !== "macos" && <option value="borderless">{t("Borderless window")}</option>}
                   <option value="maximized">{t("Maximize")}</option>
                 </select>
               </SettingRow>

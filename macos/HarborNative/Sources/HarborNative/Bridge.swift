@@ -16,9 +16,26 @@ final class HarborNativeController {
     let window: NSWindow
     private let callback: HarborNativeCallback
 
+    private var fullScreenObserver: NSObjectProtocol?
+
     init(window: NSWindow, callback: HarborNativeCallback) {
         self.window = window
         self.callback = callback
+        applyWindowFrame()
+        // Leaving full screen restores a saved style mask; make sure the web
+        // content still extends under the title bar afterwards.
+        fullScreenObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.didExitFullScreenNotification, object: window, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyWindowFrame() }
+        }
+    }
+
+    /// System frame with traffic lights, web content running under a clear title bar.
+    func applyWindowFrame() {
+        window.styleMask.insert(.fullSizeContentView)
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
     }
 
     func emit(_ kind: String, _ payload: some Encodable) {
@@ -61,6 +78,11 @@ public func harborNativeInstall(
     MainActor.assumeIsolated {
         let window = Unmanaged<NSWindow>.fromOpaque(windowPointer).takeUnretainedValue()
         HarborNativeController.shared = HarborNativeController(window: window, callback: callback)
+        NSLog(
+            "[HarborNative] installed: titled=%d fullSizeContent=%d trafficLights=%d",
+            window.styleMask.contains(.titled) ? 1 : 0,
+            window.styleMask.contains(.fullSizeContentView) ? 1 : 0,
+            window.standardWindowButton(.closeButton) != nil ? 1 : 0)
     }
 }
 

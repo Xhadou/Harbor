@@ -2,6 +2,7 @@ import { AppWindow, Frame, Move, PanelTop, PanelTopDashed } from "./icons";
 import { useEffect, useState, type ReactNode, useRef } from "react";
 import { getCustomThemes, subscribeCustomThemes } from "@/lib/custom-themes";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
 import {
   FEATURED_CUSTOM_THEMES,
   getThemeById,
@@ -220,11 +221,13 @@ function WindowTab() {
             "Choose whether your operating system draws the title bar, or Harbor draws its own.",
           )}
         >
-          <SettingGroup>
-            <NativeTitleBarRow />
-          </SettingGroup>
+          {!isMacDesktop() && (
+            <SettingGroup>
+              <NativeTitleBarRow />
+            </SettingGroup>
+          )}
           <SettingGroup label={t("Harbor's own bar")}>
-            <HybridBarRow />
+            {!isMacDesktop() && <HybridBarRow />}
             <TopbarAppearanceRow />
             {settings.topbarAppearance !== "transparent" && <TopbarScrollBlurRow />}
           </SettingGroup>
