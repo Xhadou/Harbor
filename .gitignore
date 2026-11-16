@@ -141,3 +141,6 @@ src-tauri/resources/music-module/
 /launch-harbor-dev.bat
 /run_dev.ps1
 /run_harbor_debug.bat
+
+# mac fork: keep design docs and plans
+!docs/superpowers/**/*.md
