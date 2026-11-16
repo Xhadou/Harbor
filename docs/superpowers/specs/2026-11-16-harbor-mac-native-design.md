@@ -29,6 +29,10 @@ freely. Upstream sync can be revisited later if it ever matters.
    a change of state.
 5. **A native player.** Player controls rebuilt in SwiftUI over the existing native
    libmpv video surface.
+6. **Liquid Glass (user request).** The app adopts macOS 26+'s Liquid Glass design
+   language using the real system materials: glass toolbar, a floating glass sidebar,
+   glass player controls, and system menus/popovers. Web content scrolls beneath the
+   glass so it refracts posters and backdrops the way native apps do.
 
 ## Non-goals
 
@@ -45,6 +49,9 @@ freely. Upstream sync can be revisited later if it ever matters.
 
 - Imitations of native controls drawn in HTML where a real AppKit/SwiftUI control exists
   (fake traffic lights, fake menus, fake search fields).
+- CSS-faked glass (`backdrop-filter` blur + gradients posing as Liquid Glass). Glass
+  comes only from `NSGlassEffectView` / SwiftUI `glassEffect`. Web surfaces that
+  aren't native stay plain and quiet rather than imitating it.
 - Bouncy, scaling, glowing, or attention-seeking motion. If in doubt, no animation.
 - Losing a player feature the user relies on today without saying so. Anything the
   native player doesn't do yet must still be reachable.
@@ -116,16 +123,24 @@ Each workstream gets its own implementation plan and ships independently.
    Turn system decorations on for macOS with a transparent/overlay title bar and real
    traffic lights; remove HTML window controls, `MacDots`, the HTML menu bar and resize
    edges on macOS. Native `NSToolbar` with an `NSSearchToolbarItem` drives the existing
-   search. Native app menu wired to existing actions. Also sets up the Swift package and
-   build plumbing the later workstreams use.
+   search; built against the macOS 26+ SDK, the toolbar gets Liquid Glass and the
+   scroll-edge effect automatically. **Native glass sidebar:** the React sidebar is
+   replaced on macOS by a SwiftUI navigation list inside a floating `NSGlassEffectView`
+   pane, layered over the left edge of the webview (web content gets a matching left
+   inset and scrolls underneath). Selecting an item tells the web app to route; the web
+   app tells the sidebar which item is active. Profile/account sits at the sidebar
+   foot as today. Native app menu wired to existing actions. Also sets up the Swift
+   package and build plumbing the later workstreams use.
 2. **Images and loading.** Measure first. Then: prefetch art one to two viewports ahead;
    prefetch a title's backdrop/logo on card hover/focus; route TMDB/Metahub art through
    a persistent disk cache served via a custom URL scheme (reuse/extend `thumb_cache.rs`)
    so revisits and relaunches are instant; placeholder color per card, short fade-in.
 3. **Scroll and motion.** Profile scroll on Home and a catalog in Safari Web Inspector /
    Instruments. Fix what's measured (blur layers, layout thrash, oversized images,
-   non-passive listeners). Strip decorative transitions from sidebar/nav; tone global
-   motion to short, ease-out, opacity/translate only; honor Reduce Motion.
+   non-passive listeners). Strip decorative transitions from nav; tone global
+   motion to short, ease-out, opacity/translate only; honor Reduce Motion. Remove the
+   web layer's fake-glass `backdrop-blur` from surfaces that native glass now covers,
+   and from any remaining web surface where profiling shows it costs frames.
 4. **Native player — mpv for everything (user decision).** On macOS every source plays
    through embedded libmpv: VOD, local files, home servers, and live TV/IPTV/DVR. The
    HTML5 `<video>` path and the `playerEngine: "auto"` fallback logic
@@ -133,7 +148,8 @@ Each workstream gets its own implementation plan and ships independently.
    the non-embedded/external mpv modes. Live TV, DVR and multiview must be re-verified
    on mpv. Audio-track switching (Hindi/dual audio) is a key use case and must work
    everywhere.
-   SwiftUI controls in an `NSHostingView` above the mpv surface:
+   SwiftUI controls, styled with `glassEffect`/`GlassEffectContainer`, in an
+   `NSHostingView` above the mpv surface:
    play/pause, scrubber with buffered ranges, time, volume, audio/subtitle track menus,
    subtitle delay/size, playback speed, full screen, next episode, skip intro/outro,
    stream switcher, episode list. Native keyboard handling and Now Playing/media keys.
@@ -160,7 +176,12 @@ Recorded before and after on the same machine and network, in the plan's verific
 - **Layout:** the Mac build supports one navigation layout, the default left sidebar the
   user runs today. Alternative chrome (dracula/nord/forest sidebars, stremio rail, minui
   dock, royal/top bars, hybrid title bar) is removed or disabled on macOS. The sidebar
-  stays React under a transparent title bar, inset below the traffic lights.
+  becomes native (see workstream 1), because real Liquid Glass can't be applied to HTML.
+- **Minimum macOS 26 (Tahoe).** Liquid Glass APIs require it; the user runs macOS 27
+  with Xcode 27.2.
+- **Web content under glass:** in-page controls (hero Play / Add to Watchlist, cards,
+  web modals) stay web and are restyled flat to sit comfortably next to glass, not to
+  imitate it. Harbor's in-app themes keep applying to web content only.
 - **Toolbar:** back/forward and the native search field. Notifications/account stay in
   the web UI for now.
 - **Data:** distinct bundle identifier, so the fork runs side by side with installed
@@ -175,6 +196,5 @@ Recorded before and after on the same machine and network, in the plan's verific
 - How the SwiftUI layer is stacked relative to the mpv child window and the webview.
 - Cache key/eviction details, URL scheme name, prefetch distances.
 - Exact motion tokens.
-- Minimum macOS version (my call: raise from 12 to 14 for modern SwiftUI, since this is a
-  personal build).
+- Exact glass variants/tints and sidebar dimensions, within Apple's HIG for macOS 26+.
 - Whether to delete non-mac platform code.
