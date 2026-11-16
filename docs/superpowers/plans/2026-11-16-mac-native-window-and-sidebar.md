@@ -23,7 +23,7 @@
 
 ## Review Focus
 
-1. **Video during mpv playback under the native frame.** Expect video to remain visible and correctly positioned (mpv draws in a child window *below* the main window, so the main window must stay non-opaque with a clear background, and CSS→screen geometry must still line up now that the content view extends under the title bar). Pinned by Task 3 Step 7.
+1. **Video during mpv playback under the native frame.** Expect video to remain visible and correctly positioned (mpv draws in a child window _below_ the main window, so the main window must stay non-opaque with a clear background, and CSS→screen geometry must still line up now that the content view extends under the title bar). Pinned by Task 3 Step 7.
 2. **Text editing in web inputs with a custom menu bar.** Expect ⌘C/⌘V/⌘X/⌘A/⌘Z to work in web text fields (settings, addon URL, search overlay), and menu accelerators not to swallow typing. A custom Tauri menu replaces the default one, so the Edit menu must be rebuilt. Pinned by Task 6 Steps 1 and 6.
 3. **Parental lock via the native sidebar.** Expect a gated item to open the PIN modal and never route directly. Pinned by Task 5 Step 1 (`gated` carried through) and Step 7.
 4. **Profile/kid/locale changes.** Expect the native sidebar's items and labels to update immediately when the profile, kid mode, nav customization, or UI language changes. Pinned by Task 5 Step 1 (pure mapping uses `t`) and Step 7.
@@ -34,22 +34,26 @@
 ### Task 1: Toolchain, fork identity, and a running baseline
 
 **Files:**
+
 - Create: `src-tauri/tauri.macos.conf.json`
 - Modify: `.gitignore` (append `macos/HarborNative/.build/`)
 - Create: `docs/mac-fork/BASELINE.md`
 
 **Interfaces:**
+
 - Produces: a working `pnpm tauri dev` on this Mac; `tauri.macos.conf.json` that later tasks extend.
 
 - [ ] **Step 1: Install toolchain**
 
 Run:
+
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source "$HOME/.cargo/env"
 corepack enable && corepack prepare pnpm@11.9.0 --activate
 brew install mpv
 ```
+
 Expected: `rustc --version`, `pnpm --version` (11.9.0), `ls /opt/homebrew/lib/libmpv.dylib` all succeed.
 
 - [ ] **Step 2: Install deps and fetch sidecars**
@@ -65,6 +69,7 @@ Expected: exits 0; `src-tauri/binaries/` contains `yt-dlp-*`, `ffmpeg-*`, `ffpro
   "bundle": { "macOS": { "minimumSystemVersion": "26.0" } }
 }
 ```
+
 (Tauri merges `tauri.macos.conf.json` over `tauri.conf.json` on macOS. Task 3 adds the window keys.)
 
 - [ ] **Step 4: Baseline run**
@@ -88,6 +93,7 @@ git commit -m "chore(mac): fork identity app.harbor.mac, macOS 26 floor, baselin
 ### Task 2: Swift package and Rust⇄Swift bridge
 
 **Files:**
+
 - Create: `macos/HarborNative/Package.swift`
 - Create: `macos/HarborNative/Sources/HarborNative/Bridge.swift` (C ABI entry points + callback)
 - Create: `macos/HarborNative/Sources/HarborNative/Payloads.swift` (Codable payload types)
@@ -98,6 +104,7 @@ git commit -m "chore(mac): fork identity app.harbor.mac, macOS 26 floor, baselin
 - Modify: `src-tauri/src/lib.rs` (declare `mod mac_native`, call install in the existing macOS setup block near line 1170, register commands)
 
 **Interfaces:**
+
 - Produces (C ABI, Swift `@_cdecl`, all called on the main thread only):
   - `harbor_native_abi_version() -> Int32` → returns `1`
   - `harbor_native_install(nsWindow: UnsafeMutableRawPointer, callback: @convention(c) (UnsafePointer<CChar>, UnsafePointer<CChar>) -> Void)` — `callback(kind, json)`
@@ -119,6 +126,7 @@ git commit -m "chore(mac): fork identity app.harbor.mac, macOS 26 floor, baselin
 - [ ] **Step 1: Write the failing Swift test**
 
 `PayloadsTests.swift`:
+
 - `testSidebarPayloadDecodes`: decoding `{"visible":true,"collapsed":false,"items":[{"id":"home","title":"Home","symbol":"house","section":"primary","active":true,"gated":false}]}` yields one item with `id == "home"`, `badge == nil`, `active == true`.
 - `testUnknownSymbolFallsBack`: `SidebarItem.resolvedSymbol(for: "not.a.real.symbol")` returns `"circle"`; for `"house"` returns `"house"` (uses `NSImage(systemSymbolName:accessibilityDescription:) != nil`).
 
@@ -139,6 +147,7 @@ Expected: PASS.
 - [ ] **Step 5: Write the failing Rust link test**
 
 In `src-tauri/src/mac_native/mod.rs`:
+
 ```rust
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
@@ -178,6 +187,7 @@ git commit -m "feat(mac): HarborNative Swift package and Rust<->Swift bridge"
 ### Task 3: Native window frame
 
 **Files:**
+
 - Modify: `src-tauri/tauri.macos.conf.json` (window keys)
 - Modify: `src-tauri/src/mpv_render_mac.rs:395-425` (`install_window_rounding`: no corner radius on macOS native frame)
 - Modify: `src/lib/settings/load.ts` (macOS coercion)
@@ -187,6 +197,7 @@ git commit -m "feat(mac): HarborNative Swift package and Rust<->Swift bridge"
 - Test: `tests/mac-chrome.test.ts`
 
 **Interfaces:**
+
 - Consumes: Task 2's `HarborNativeController`.
 - Produces (`src/lib/mac-chrome.ts`):
   - `export function coerceMacSettings<T extends { useNativeTitleBar: boolean; hybridTitleBar: boolean }>(s: T, os: OsClass): T` — on `"macos"` returns a copy with `useNativeTitleBar: true, hybridTitleBar: false`; otherwise returns `s` unchanged.
@@ -196,6 +207,7 @@ git commit -m "feat(mac): HarborNative Swift package and Rust<->Swift bridge"
 - [ ] **Step 1: Write the failing test**
 
 `tests/mac-chrome.test.ts`:
+
 - `coerceMacSettings forces native title bar on macOS`: input `{useNativeTitleBar:false, hybridTitleBar:true}`, os `"macos"` → `{useNativeTitleBar:true, hybridTitleBar:false}`; input object not mutated.
 - `coerceMacSettings leaves other platforms alone`: os `"windows"` → same object reference returned.
 - `macLayout forces sidebar on macOS`: `macLayout("royal","macos") === "sidebar"`, `macLayout("royal","linux") === "royal"`.
@@ -226,6 +238,7 @@ Run: `pnpm run check && pnpm run typecheck && cargo check --manifest-path src-ta
 - [ ] **Step 7: Verify by hand on macOS** (record results in `docs/mac-fork/BASELINE.md` under "Task 3")
 
 `pnpm tauri dev`, then confirm each:
+
 1. Real traffic lights at top-left; no HTML window buttons anywhere; no HTML dots.
 2. Double-click on the title-bar area zooms (or minimizes, per System Settings → Desktop & Dock).
 3. Double-click on the right window edge stretches that edge to the screen edge.
@@ -246,6 +259,7 @@ git commit -m "feat(mac): system window frame with traffic lights; single sideba
 ### Task 4: Liquid Glass toolbar — Back, sidebar toggle, native search
 
 **Files:**
+
 - Create: `macos/HarborNative/Sources/HarborNative/ToolbarController.swift`
 - Create: `src/chrome/mac/native-toolbar-bridge.tsx`
 - Create: `src/chrome/mac/native-events.ts` (typed `listen` wrapper for `mac-native://*`)
@@ -255,6 +269,7 @@ git commit -m "feat(mac): system window frame with traffic lights; single sideba
 - Test: `macos/HarborNative/Tests/HarborNativeTests/ToolbarTests.swift`, `tests/mac-native-toolbar.test.ts`
 
 **Interfaces:**
+
 - Consumes: Task 2 C ABI + events; `useView()` → `{ canGoBack, goBack }` (`src/lib/view.tsx:402-403`); `useSearchActions()` → `{ setOpen, setQuery, clear }` (`src/lib/search-context-state.ts:15-25`); `useSearchOpen()`.
 - Produces:
   - `src/chrome/mac/native-events.ts`: `export function onNativeEvent<K extends NativeEventKind>(kind: K, handler: (payload: NativeEventPayloads[K]) => void): () => void` and the `NativeEventKind`/`NativeEventPayloads` types mirroring Task 2's event list.
@@ -267,10 +282,12 @@ Decision: **no Forward button.** Harbor's view stack (`src/lib/view.tsx`) has no
 - [ ] **Step 1: Write the failing tests**
 
 Swift `ToolbarTests.swift`:
+
 - `testToolbarItemOrder`: `ToolbarController.itemIdentifiers` equals `[.toggleSidebar, .back, .flexibleSpace, .search]`.
 - `testSearchKeyMapping`: `ToolbarController.searchKey(for: #selector(NSResponder.moveUp(_:)))` is `"ArrowUp"`; for `moveDown` it is `"ArrowDown"`, for `insertNewline` `"Enter"`, for `cancelOperation` `"Escape"`, and for `moveLeft` `nil`.
 
 TS `tests/mac-native-toolbar.test.ts`:
+
 - `toolbar hidden during playback`: `toolbarPayload({playerActive:true, immersive:false, canGoBack:true})` → `{visible:false, canGoBack:true}`.
 - `toolbar hidden when immersive`: `immersive:true` → `visible:false`.
 - `toolbar visible otherwise`: `{false,false,false}` → `{visible:true, canGoBack:false}`.
@@ -314,6 +331,7 @@ git commit -m "feat(mac): Liquid Glass toolbar with back, sidebar toggle and nat
 ### Task 5: Floating Liquid Glass sidebar
 
 **Files:**
+
 - Create: `macos/HarborNative/Sources/HarborNative/SidebarView.swift` (SwiftUI list)
 - Create: `macos/HarborNative/Sources/HarborNative/SidebarHost.swift` (`NSGlassEffectView` hosting `NSHostingView<SidebarView>`, added to the window's `contentView` above the webview)
 - Create: `src/chrome/mac/nav-symbols.ts`
@@ -322,6 +340,7 @@ git commit -m "feat(mac): Liquid Glass toolbar with back, sidebar toggle and nat
 - Test: `tests/mac-native-sidebar.test.ts`, `macos/HarborNative/Tests/HarborNativeTests/SidebarTests.swift`
 
 **Interfaces:**
+
 - Consumes: `useSidebarNavigation()` → `{ entries }` where entry is `{ item: NavItem; primary: boolean; gated: boolean }` (`src/chrome/context-page-navigation.tsx:45`); `NavItem`/`NavItemId` (`src/chrome/nav-items.tsx`); `useView()` → `{ view, setView }`; `useT()`; `useUnseenReminderCount()` (`src/lib/reminders`); `ParentalPinModal` + `useParental().unlock` as used in `src/chrome/sidebar.tsx:183-195`; Task 2 `SidebarPayload`; Task 4 `onNativeEvent`.
 - Produces:
   - `src/chrome/mac/nav-symbols.ts`: `export const NAV_SYMBOLS: Record<NavItemId, string>` with exactly:
@@ -334,6 +353,7 @@ git commit -m "feat(mac): Liquid Glass toolbar with back, sidebar toggle and nat
 - [ ] **Step 1: Write the failing tests**
 
 `tests/mac-native-sidebar.test.ts`:
+
 - `every nav item has a symbol`: for each `id` of `NAV_ITEMS` (from `src/chrome/nav-items.tsx`), `NAV_SYMBOLS[id]` is a non-empty string.
 - `maps entries with translated titles`: given entries for `home` (primary) and `library` (not primary), `t = (k) => "T:" + k`, view `"home"` → `[{id:"home", title:"T:nav.home", symbol:"house", section:"primary", active:true, gated:false}, {id:"library", …, section:"collections", active:false}]`.
 - `rename wins over translation`: `renamed: {home: "Start"}` → title `"Start"`.
@@ -342,6 +362,7 @@ git commit -m "feat(mac): Liquid Glass toolbar with back, sidebar toggle and nat
 - `kid play entry`: `kid: true` → last item id `"kids-play"`.
 
 Swift `SidebarTests.swift`:
+
 - `testSectionsSplit`: `SidebarModel(payload:)` puts `primary` items in `primary` and `collections` items in `collections`, preserving order.
 - `testHiddenWhenCollapsed`: a payload with `collapsed: true` → `SidebarModel.isShown == false`; with `visible: false` → `false`; otherwise `true`.
 
@@ -352,7 +373,7 @@ Expected: FAIL.
 
 - [ ] **Step 3: Implement Swift**
 
-`SidebarModel` (`@Observable`) built from `SidebarPayload`. `SidebarView`: a SwiftUI `List` (`.listStyle(.sidebar)`, `.scrollContentBackground(.hidden)`) with two sections (primary, collections, no headers), rows using `Label(title, systemImage: resolvedSymbol)`, a lock glyph trailing for `gated`, and a badge for `badge`. Selection emits `sidebar-select {id}`; the highlight follows `active` from the payload, so the web stays the source of truth. `SidebarHost`: an `NSGlassEffectView` (default style, system corner radius) whose `contentView` is the `NSHostingView`; added to the window's `contentView` *above* the `WKWebView` with Auto Layout constraints per the values above. No hover or appear animations beyond system defaults.
+`SidebarModel` (`@Observable`) built from `SidebarPayload`. `SidebarView`: a SwiftUI `List` (`.listStyle(.sidebar)`, `.scrollContentBackground(.hidden)`) with two sections (primary, collections, no headers), rows using `Label(title, systemImage: resolvedSymbol)`, a lock glyph trailing for `gated`, and a badge for `badge`. Selection emits `sidebar-select {id}`; the highlight follows `active` from the payload, so the web stays the source of truth. `SidebarHost`: an `NSGlassEffectView` (default style, system corner radius) whose `contentView` is the `NSHostingView`; added to the window's `contentView` _above_ the `WKWebView` with Auto Layout constraints per the values above. No hover or appear animations beyond system defaults.
 
 - [ ] **Step 4: Implement TS**
 
@@ -361,6 +382,7 @@ Expected: FAIL.
 - [ ] **Step 5: Web content beside and under the glass**
 
 On macOS the main content column is laid out full width, so backgrounds pass under the glass. Acceptance criteria (the builder chooses the CSS):
+
 - At rest, no text, card or button sits under the sidebar: the first column of content starts at `var(--mac-sidebar-inset)`.
 - Horizontally scrolling rails (`src/components/row.tsx`) and the Home hero backdrop extend under the glass. Rails scroll their first card to the inset (`scroll-padding-inline-start`), so posters slide beneath the glass while scrolling.
 
@@ -391,6 +413,7 @@ git commit -m "feat(mac): floating Liquid Glass sidebar replaces React sidebar"
 ### Task 6: Native app menu
 
 **Files:**
+
 - Create: `src-tauri/src/mac_native/menu.rs`
 - Create: `src/chrome/mac/native-menu-bridge.tsx`
 - Modify: `src-tauri/src/mac_native/mod.rs` (`pub mod menu;`, build and set the menu during `install`)
@@ -398,6 +421,7 @@ git commit -m "feat(mac): floating Liquid Glass sidebar replaces React sidebar"
 - Test: `tests/mac-native-menu.test.ts`; Rust unit test in `menu.rs`
 
 **Interfaces:**
+
 - Consumes: `tauri::menu::{MenuBuilder, SubmenuBuilder, PredefinedMenuItem, MenuItemBuilder}`; Task 4 `onNativeEvent`, `toolbar-toggle-sidebar` handling (Task 5) and `mac_native_search_set`; `useView()`.
 - Produces:
   - Rust `pub fn menu_spec() -> Vec<(&'static str, Vec<MenuEntry>)>` (pure data, unit-testable), where `MenuEntry` is `Action { id: &'static str, label: &'static str, accel: Option<&'static str> }`, `Predefined(&'static str)` or `Separator`; plus `pub fn install_menu(app: &AppHandle)`, which builds the Tauri menu from the spec and emits `mac-native://menu {action: id}` on click.
@@ -412,10 +436,12 @@ git commit -m "feat(mac): floating Liquid Glass sidebar replaces React sidebar"
 - [ ] **Step 1: Write the failing tests**
 
 Rust (in `menu.rs`):
+
 - `edit_menu_has_clipboard_items`: the `"Edit"` entry of `menu_spec()` contains `Predefined` `"copy"`, `"paste"`, `"cut"`, `"select_all"`, `"undo"`, `"redo"`.
 - `accelerators_unique`: no two `Action`s share an `accel`.
 
 TS `tests/mac-native-menu.test.ts`:
+
 - `go items map to views`: `menuCommand("go-home")` → `{kind:"view", view:"home"}`; likewise discover, movies, shows, library.
 - `settings maps to settings view`: `menuCommand("settings")` → `{kind:"view", view:"settings"}`.
 - `others`: `"back"` → `{kind:"back"}`, `"toggle-sidebar"` → `{kind:"toggle-sidebar"}`, `"find"` → `{kind:"find"}`, `"nope"` → `null`.
@@ -451,6 +477,7 @@ git commit -m "feat(mac): native app menu with Edit, View, Go and Window menus"
 ### Task 7: Side-by-side run and workstream sign-off
 
 **Files:**
+
 - Modify: `docs/mac-fork/BASELINE.md`
 
 - [ ] **Step 1: Run alongside installed Harbor**

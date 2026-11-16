@@ -160,6 +160,7 @@ Each workstream gets its own implementation plan and ships independently.
 ### Success measures
 
 Recorded before and after on the same machine and network, in the plan's verification:
+
 - Home: time from a card entering the viewport to its image painted; count of blank
   cards visible during a fast scroll.
 - Detail: click-to-backdrop-painted time, cold and warm cache.
