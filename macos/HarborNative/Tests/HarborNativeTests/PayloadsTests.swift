@@ -22,7 +22,10 @@ final class PayloadsTests: XCTestCase {
         let focusOnly = try JSONDecoder().decode(
             SearchPayload.self, from: Data(#"{"focused":true}"#.utf8))
         XCTAssertNil(focusOnly.text)
-        XCTAssertTrue(focusOnly.focused)
+        XCTAssertEqual(focusOnly.focused, true)
+        let textOnly = try JSONDecoder().decode(
+            SearchPayload.self, from: Data(#"{"text":"dune"}"#.utf8))
+        XCTAssertNil(textOnly.focused)
         let cleared = try JSONDecoder().decode(
             SearchPayload.self, from: Data(#"{"text":"","focused":false}"#.utf8))
         XCTAssertEqual(cleared.text, "")

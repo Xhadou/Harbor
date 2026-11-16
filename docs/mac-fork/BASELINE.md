@@ -106,3 +106,44 @@ Accessibility permission. With `pnpm tauri dev` running:
 
 Known interim state until Tasks 4 and 5: the React sidebar's top-left content
 sits under the traffic lights.
+
+## Task 4 — Liquid Glass toolbar (2026-11-17)
+
+### Checked by the build and the running app
+
+- Startup logs: `installed: … toolbarItems=4` and
+  `web bridge connected: toolbar visible=1 titlebarInset=52`. The toolbar exists,
+  the web app reaches Swift through Rust, and Swift reports a 52 pt inset back.
+- Tests: Swift `ToolbarTests` (7) and `PayloadsTests` (3), `tests/mac-native-toolbar.test.ts` (6).
+
+### Decisions that differ from the plan
+
+- Leaving the search field does not close search. The plan closed it when the
+  field lost focus with empty text, but clicking a recent search also takes focus
+  from the field, and the close would race the click. Search closes with Escape
+  or by clicking outside the results.
+- The search field is hidden on the views where Harbor already hid its search
+  pill (Music, Games, Addons, Settings, pickers, kid profiles), so behaviour there
+  is unchanged.
+- The web Back button in the top bar is not shown on macOS; the toolbar's Back
+  replaces it. The Live TV root keeps its own back-to-Home button.
+- The web content area is pushed down by the toolbar height (a top margin), so
+  content does not scroll underneath the toolbar. The plan asked for this inset;
+  it means the toolbar sits over the app background, not over posters.
+- Arrow down in the search field moves keyboard focus into the web results;
+  from there the arrow keys and Return work as they do in the web UI. Arrow up
+  does not return to the field (click it or press the search hotkey).
+- Toolbar item labels and tooltips are English only.
+
+### Still to check by hand
+
+1. Glass toolbar with sidebar toggle, Back and a search field.
+2. Typing shows results live; ↓ moves into results; Return opens the top or
+   focused result; Esc closes.
+3. Back is disabled on Home and works after opening a title.
+4. During playback the toolbar is hidden and the traffic lights still work.
+5. The search hotkey focuses the native field.
+6. Double-clicking an empty part of the toolbar zooms the window.
+7. The web top bar's remaining buttons (downloads, notifications, bookmarks,
+   Together) sit just below the toolbar and are clickable.
+8. Legibility of the toolbar over the app background in each theme you use.

@@ -7,8 +7,6 @@ import AppKit
 public typealias HarborNativeCallback =
     @convention(c) (UnsafePointer<CChar>, UnsafePointer<CChar>) -> Void
 
-struct EmptyPayload: Codable, Equatable, Sendable {}
-
 @MainActor
 final class HarborNativeController {
     static var shared: HarborNativeController?
@@ -17,11 +15,19 @@ final class HarborNativeController {
     private let callback: HarborNativeCallback
 
     private var fullScreenObserver: NSObjectProtocol?
+    private(set) var toolbar: ToolbarController!
+    private var lastLayout: LayoutPayload?
+    private var webConnected = false
 
     init(window: NSWindow, callback: HarborNativeCallback) {
         self.window = window
         self.callback = callback
         applyWindowFrame()
+        toolbar = ToolbarController(
+            window: window,
+            emit: { [weak self] kind, payload in self?.emit(kind, payload) },
+            layoutChanged: { [weak self] in self?.emitLayout() })
+        emitLayout(force: true)
         // Leaving full screen restores a saved style mask; make sure the web
         // content still extends under the title bar afterwards.
         fullScreenObserver = NotificationCenter.default.addObserver(
@@ -45,9 +51,34 @@ final class HarborNativeController {
         }
     }
 
+    /// Reports the space native chrome takes so the web app can inset its content.
+    /// `force` repeats an unchanged value, for a web app that has just (re)loaded.
+    func emitLayout(force: Bool = false) {
+        guard let toolbar else { return }
+        let layout = LayoutPayload(
+            titlebarInset: toolbar.titlebarInset, sidebarWidth: 0, sidebarVisible: false)
+        guard force || layout != lastLayout else { return }
+        lastLayout = layout
+        emit("layout", layout)
+    }
+
     func setSidebar(_ payload: SidebarPayload) {}
-    func setToolbar(_ payload: ToolbarPayload) {}
-    func setSearch(_ payload: SearchPayload) {}
+
+    func setToolbar(_ payload: ToolbarPayload) {
+        if !webConnected {
+            webConnected = true
+            NSLog(
+                "[HarborNative] web bridge connected: toolbar visible=%d titlebarInset=%.0f",
+                payload.visible ? 1 : 0, toolbar.titlebarInset)
+        }
+        toolbar.apply(payload)
+        // The web app sends this on mount, when it may have missed earlier events.
+        emitLayout(force: true)
+    }
+
+    func setSearch(_ payload: SearchPayload) {
+        toolbar.apply(payload)
+    }
 }
 
 func encodeJSON(_ payload: some Encodable) -> String? {
@@ -79,10 +110,11 @@ public func harborNativeInstall(
         let window = Unmanaged<NSWindow>.fromOpaque(windowPointer).takeUnretainedValue()
         HarborNativeController.shared = HarborNativeController(window: window, callback: callback)
         NSLog(
-            "[HarborNative] installed: titled=%d fullSizeContent=%d trafficLights=%d",
+            "[HarborNative] installed: titled=%d fullSizeContent=%d trafficLights=%d toolbarItems=%d",
             window.styleMask.contains(.titled) ? 1 : 0,
             window.styleMask.contains(.fullSizeContentView) ? 1 : 0,
-            window.standardWindowButton(.closeButton) != nil ? 1 : 0)
+            window.standardWindowButton(.closeButton) != nil ? 1 : 0,
+            window.toolbar?.items.count ?? 0)
     }
 }
 

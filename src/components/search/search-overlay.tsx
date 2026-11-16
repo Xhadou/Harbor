@@ -5,6 +5,8 @@ import { isTauri } from "@tauri-apps/api/core";
 import { createPortal } from "react-dom";
 import { TvModalClose } from "@/components/tv-modal-close";
 import { tvFocus } from "@/lib/keyboard-navigation";
+import { NATIVE_SEARCH_KEY_EVENT, type NativeSearchKeyDetail } from "@/chrome/mac/native-events";
+import { useNativeSearchActive } from "@/chrome/mac/native-search-state";
 import { useT } from "@/lib/i18n";
 import type { Meta } from "@/lib/cinemeta";
 import { useSearch } from "@/lib/search-context";
@@ -63,6 +65,9 @@ export function SearchOverlay() {
     setAiHold,
   } = useSearch();
   const inputRef = useRef<HTMLInputElement>(null);
+  // On macOS the toolbar's native field is the input; it forwards these keys.
+  const nativeSearch = useNativeSearchActive();
+  const onNativeKey = useRef<(detail: NativeSearchKeyDetail) => void>(() => {});
   const panelRef = useRef<HTMLDivElement>(null);
   const resultsBodyRef = useRef<HTMLDivElement>(null);
   const scrollMemory = useRef({ key: "", top: 0 });
@@ -167,6 +172,14 @@ export function SearchOverlay() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, explore.length]);
+
+  useEffect(() => {
+    if (!open || !nativeSearch) return;
+    const onKey = (e: Event) =>
+      onNativeKey.current((e as CustomEvent<NativeSearchKeyDetail>).detail);
+    window.addEventListener(NATIVE_SEARCH_KEY_EVENT, onKey);
+    return () => window.removeEventListener(NATIVE_SEARCH_KEY_EVENT, onKey);
+  }, [open, nativeSearch]);
 
   // Modal Tab trap: cycle input -> actions -> results in DOM order. Native Tab
   // can skip result stops and drop focus onto the page behind the scrim, after
@@ -328,6 +341,46 @@ export function SearchOverlay() {
   const urlInput = !!trimmed && !magnetInput && isDirectVideoUrl(trimmed);
   const directInput = magnetInput || urlInput;
 
+  // What Enter does in the search input. Returns whether it acted.
+  const submitQuery = (shift: boolean): boolean => {
+    if (storeQuery !== null) {
+      panelRef.current?.querySelector<HTMLAnchorElement>(".steam-store-result-title")?.focus();
+      return true;
+    }
+    if (shift) {
+      if (!query.trim()) return false;
+      if (!aiMode) setAiMode(true);
+      setAiRunSignal((n) => n + 1);
+      return true;
+    }
+    if (aiMode) {
+      if (!query.trim()) return false;
+      setAiRunSignal((n) => n + 1);
+      return true;
+    }
+    if (personMatch) {
+      pushExplore({ kind: "person", id: personMatch.id, name: personMatch.name });
+      return true;
+    }
+    if (currentResults?.topMatch) {
+      const meta = currentResults.topMatch.meta;
+      commit();
+      openMeta(meta);
+      return true;
+    }
+    return false;
+  };
+  onNativeKey.current = ({ key, shift }) => {
+    if (key === "Escape") handleModalClose();
+    else if (key === "Enter") submitQuery(shift);
+    else if (key === "ArrowDown") {
+      const first = resultsBodyRef.current?.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (first) tvFocus(first);
+    }
+  };
+
   return createPortal(
     <div
       ref={panelRef}
@@ -361,70 +414,42 @@ export function SearchOverlay() {
             data-tv-focus-container
             className="flex shrink-0 items-center gap-3 border-b border-edge-soft/60 px-6"
           >
-            <Search
-              size={22}
-              className={`shrink-0 transition-colors ${aiMode ? "text-accent" : "text-ink-muted"}`}
-              strokeWidth={1.9}
-            />
-            <div className="relative min-w-0 flex-1">
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleModalClose();
-                    return;
-                  }
-                  if (e.key === "Enter" && storeQuery !== null) {
-                    e.preventDefault();
-                    panelRef.current
-                      ?.querySelector<HTMLAnchorElement>(".steam-store-result-title")
-                      ?.focus();
-                    return;
-                  }
-                  if (e.key === "Enter" && e.shiftKey) {
-                    if (!query.trim()) return;
-                    e.preventDefault();
-                    if (!aiMode) setAiMode(true);
-                    setAiRunSignal((n) => n + 1);
-                    return;
-                  }
-                  if (e.key !== "Enter") return;
-                  if (aiMode) {
-                    if (query.trim()) {
-                      e.preventDefault();
-                      setAiRunSignal((n) => n + 1);
-                    }
-                    return;
-                  }
-                  if (personMatch) {
-                    e.preventDefault();
-                    pushExplore({ kind: "person", id: personMatch.id, name: personMatch.name });
-                    return;
-                  }
-                  if (currentResults?.topMatch) {
-                    e.preventDefault();
-                    const meta = currentResults.topMatch.meta;
-                    commit();
-                    openMeta(meta);
-                  }
-                }}
-                placeholder={
-                  storeQuery !== null
-                    ? t("games.storeSearch.empty")
-                    : aiMode
-                      ? ""
-                      : t("Search movies, shows, people, genres, years...")
-                }
-                className="h-16 w-full bg-transparent text-[20px] text-ink placeholder:text-ink-subtle focus:outline-none sm:text-[22px]"
-                spellCheck={false}
-                autoComplete="off"
-                data-tv-text-auto="true"
+            {!nativeSearch && (
+              <Search
+                size={22}
+                className={`shrink-0 transition-colors ${aiMode ? "text-accent" : "text-ink-muted"}`}
+                strokeWidth={1.9}
               />
+            )}
+            <div className={`relative min-w-0 flex-1 ${nativeSearch ? "h-16" : ""}`}>
+              {!nativeSearch && (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleModalClose();
+                      return;
+                    }
+                    if (e.key === "Enter" && submitQuery(e.shiftKey)) e.preventDefault();
+                  }}
+                  placeholder={
+                    storeQuery !== null
+                      ? t("games.storeSearch.empty")
+                      : aiMode
+                        ? ""
+                        : t("Search movies, shows, people, genres, years...")
+                  }
+                  className="h-16 w-full bg-transparent text-[20px] text-ink placeholder:text-ink-subtle focus:outline-none sm:text-[22px]"
+                  spellCheck={false}
+                  autoComplete="off"
+                  data-tv-text-auto="true"
+                />
+              )}
               {aiMode && storeQuery === null && (
                 <AiExampleHint
                   hidden={query.trim().length > 0}

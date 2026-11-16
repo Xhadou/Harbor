@@ -22,6 +22,8 @@ import {
 import { useT } from "@/lib/i18n";
 import { useActiveKid } from "@/lib/profiles";
 import { useSearchActions } from "@/lib/search-context";
+import { isMacDesktop } from "@/lib/platform";
+import { searchHiddenFor } from "@/chrome/mac/toolbar-payload";
 import { useSettings } from "@/lib/settings";
 import { usePlaylists } from "@/lib/iptv/playlists-store";
 import { useTogether } from "@/lib/together/provider";
@@ -100,13 +102,9 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
   const onLiveRoot = topKind === "live" && liveHasSources;
   const sidebarHidden = connecting || view === "settings" || onLiveRoot || topKind === "picker";
   const inSettings = view === "settings";
-  const hideSearch =
-    view === "music" ||
-    view === "games" ||
-    view === "addons" ||
-    connecting ||
-    topKind === "picker" ||
-    inSettings;
+  // macOS has the native toolbar's search field and Back button instead.
+  const mac = isMacDesktop();
+  const hideSearch = mac || searchHiddenFor({ view, topKind, connecting, kid: !!kid });
   const sidebarOffset =
     layout === "stremio"
       ? "ps-[80px]"
@@ -123,6 +121,7 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
     <header
       data-cleannav={settings.topbarAppearance === "transparent" ? "on" : undefined}
       className={`pointer-events-none fixed inset-x-0 top-0 ${connecting ? "z-[130]" : "z-[55]"} h-20`}
+      style={mac ? { top: "var(--mac-titlebar-inset)" } : undefined}
     >
       {!inSettings && settings.topbarScrollBlur && settings.topbarAppearance !== "transparent" && (
         <div
@@ -172,13 +171,13 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
               </span>
             </div>
           )}
-          {!onLiveRoot && !connecting && <BackChrome />}
+          {!onLiveRoot && !connecting && !mac && <BackChrome />}
         </div>
         <div
           {...dragProps}
           className={`pointer-events-auto min-w-0 max-w-full transition-[width] duration-200 ease-out ${searchWidth}`}
         >
-          {!hideSearch && !kid && !hybridBar && <SearchPill />}
+          {!hideSearch && !hybridBar && <SearchPill />}
         </div>
         <div
           {...dragProps}

@@ -63,6 +63,12 @@
 }
 
 :root {
+  /* Space taken by native macOS chrome; set from Swift's layout reports. */
+  --mac-titlebar-inset: 0px;
+  --mac-sidebar-inset: 0px;
+}
+
+:root {
   color-scheme: dark;
   font-family: var(--font-sans);
   font-feature-settings: "cv11", "ss01";
@@ -3368,6 +3374,16 @@ html[data-theme-layout="minui"] .harbor-together-pill {
 
 .harbor-search-scrim-out {
   animation: harbor-search-scrim-out 150ms ease-in both;
+}
+
+/* macOS: search is typed in the native toolbar field, so results simply fade
+   in below it instead of scaling out of a web search box. */
+html[data-os="macos"] .harbor-search-panel-in {
+  animation: harbor-search-scrim-in 120ms ease-out both;
+}
+
+html[data-os="macos"] .harbor-search-panel-out {
+  animation: harbor-search-scrim-out 120ms ease-in both;
 }
 
 .harbor-search-section {

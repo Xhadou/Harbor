@@ -62,6 +62,7 @@ import { setNativeMemoryActive } from "@/lib/native-memory";
 import { useOverlayPinned } from "@/lib/overlay-pin";
 import { isMacDesktop, isMobileWeb, isRemoteRoute, osClass } from "@/lib/platform";
 import { macLayout } from "@/lib/mac-chrome";
+import { NativeToolbarBridge } from "@/chrome/mac/native-toolbar-bridge";
 import { makeSafeTauriUnlisten } from "@/lib/tauri-unlisten";
 import { activeLayout } from "@/lib/theme";
 import { useThemePreview } from "@/lib/theme-preview";
@@ -1854,8 +1855,13 @@ function Shell({ onReady }: { onReady?: () => void }) {
           {!playerActive && !isMacDesktop() && <WindowResizeEdges />}
           {!playerActive && !pickerTop && !immersive && !chromeHidden && <QueueBasket />}
           <HybridTitleBar suppressed={playerActive || immersive || chromeHidden} />
+          {isMacDesktop() && (
+            <NativeToolbarBridge playerActive={playerActive} immersive={immersive} />
+          )}
           <div
             className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${playerActive ? "invisible" : ""}`}
+            // A margin, not padding: the views inside are absolutely positioned.
+            style={isMacDesktop() ? { marginTop: "var(--mac-titlebar-inset)" } : undefined}
           >
             {homeAlive && (
               <div {...parkLayerProps(homeTop)}>
@@ -2330,7 +2336,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
                 <WindowControls />
               </div>
             )}
-            {!immersive && !settingsTop && (
+            {!immersive && !settingsTop && !isMacDesktop() && (
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 z-30 h-24 bg-gradient-to-b from-canvas/85 via-canvas/40 to-transparent"
