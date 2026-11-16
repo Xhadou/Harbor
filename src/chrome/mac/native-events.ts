@@ -21,6 +21,7 @@ export type NativeEventPayloads = {
   "search-end": Record<string, never>;
   "search-key": { key: NativeSearchKey; shift: boolean };
   layout: NativeLayout;
+  menu: { action: string };
 };
 
 export type NativeEventKind = keyof NativeEventPayloads;

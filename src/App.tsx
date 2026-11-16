@@ -62,6 +62,7 @@ import { setNativeMemoryActive } from "@/lib/native-memory";
 import { useOverlayPinned } from "@/lib/overlay-pin";
 import { isMacDesktop, isMobileWeb, isRemoteRoute, osClass } from "@/lib/platform";
 import { macLayout } from "@/lib/mac-chrome";
+import { NativeMenuBridge } from "@/chrome/mac/native-menu-bridge";
 import { NativeSidebarBridge } from "@/chrome/mac/native-sidebar-bridge";
 import { NativeToolbarBridge } from "@/chrome/mac/native-toolbar-bridge";
 import { sidebarVisible } from "@/chrome/mac/sidebar-items";
@@ -1861,6 +1862,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
           {isMacDesktop() && (
             <>
               <NativeToolbarBridge playerActive={playerActive} immersive={immersive} />
+              <NativeMenuBridge playerActive={playerActive} />
               <NativeSidebarBridge
                 visible={sidebarVisible({
                   settingsTop,

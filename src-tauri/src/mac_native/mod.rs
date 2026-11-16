@@ -5,6 +5,8 @@
 //! C ABI, and Swift reports user actions through one callback that this module
 //! re-emits to the web app as `mac-native://<kind>` events.
 
+pub mod menu;
+
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::sync::OnceLock;
 
@@ -64,6 +66,9 @@ pub fn install(app: &AppHandle, ns_window: *mut c_void) {
             return;
         }
         harbor_native_install(ns_window, on_native_event);
+    }
+    if let Err(e) = menu::install_menu(app) {
+        eprintln!("[harbor::mac-native] menu install failed: {e}");
     }
 }
 

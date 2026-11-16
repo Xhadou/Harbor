@@ -195,3 +195,28 @@ toolbar button brings it back). Navigation editing is still in Settings.
    the state survives relaunch.
 6. Hidden in Settings, the player, the stream picker and immersive mode.
 7. The account menu in the top bar opens, switches profile, and opens Settings.
+
+## Task 6 — native app menu (2026-11-17)
+
+- Menu bar: Harbor, Edit, View, Go, Window, as listed in the plan. It installs
+  without error at startup (no `menu install failed` in the log).
+- Tests: Rust `mac_native::menu` (4), `tests/mac-native-menu.test.ts` (3).
+- Hotkey clashes: none with Harbor's defaults. Every default binding in
+  `src/lib/hotkeys.ts` is a plain key or uses Control; none uses ⌘. A binding
+  you set yourself to ⌘, ⌘F ⌘[ ⌘1–5 or ⌃⌘S would lose to the menu.
+- Menu commands are ignored while the player is up, so a stray ⌘1 cannot
+  change the page underneath a playing video.
+
+### Still to check by hand
+
+1. ⌘A, ⌘C, ⌘X, ⌘V and ⌘Z in a web text field; typing letters is never swallowed.
+2. Each Go item and ⌘[ navigates; ⌘, opens Settings; ⌘F focuses search; ⌃⌘S
+   toggles the sidebar.
+
+## Direction change (2026-11-17)
+
+After seeing the running app, the owner asked for the look to be rebuilt after
+the Apple TV app on macOS, keeping all of Harbor's features. Tasks 1–6 are
+committed; Task 7 (side-by-side run, backup restore, sign-off) and the final
+code review were not run. The window frame, Rust⇄Swift bridge, menu and
+navigation plumbing carry over; the toolbar and sidebar layout will be redone.
