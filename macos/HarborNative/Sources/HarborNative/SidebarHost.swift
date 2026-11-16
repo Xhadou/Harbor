@@ -17,6 +17,7 @@ final class SidebarHost: NSObject {
     let model = SidebarModel()
     let search: SearchFieldController
     private let glass = NSGlassEffectView()
+    private var mount: GlassMount!
     private let onToggle: () -> Void
     private let layoutChanged: () -> Void
 
@@ -81,21 +82,21 @@ final class SidebarHost: NSObject {
 
         glass.contentView = pane
         glass.cornerRadius = 18
-        glass.isHidden = true
-        glass.translatesAutoresizingMaskIntoConstraints = false
-        guard let content = window.contentView else { return }
-        content.addSubview(glass, positioned: .above, relativeTo: nil)
-        NSLayoutConstraint.activate([
-            glass.topAnchor.constraint(equalTo: content.topAnchor, constant: Self.margin),
-            glass.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: Self.margin),
-            glass.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -Self.margin),
-            glass.widthAnchor.constraint(equalToConstant: Self.width),
-        ])
+        mount = GlassMount(glass, in: window.contentView) { glass, content in
+            [
+                glass.topAnchor.constraint(equalTo: content.topAnchor, constant: Self.margin),
+                glass.leadingAnchor.constraint(
+                    equalTo: content.leadingAnchor, constant: Self.margin),
+                glass.bottomAnchor.constraint(
+                    equalTo: content.bottomAnchor, constant: -Self.margin),
+                glass.widthAnchor.constraint(equalToConstant: Self.width),
+            ]
+        }
     }
 
     func apply(_ payload: SidebarPayload) {
         model.apply(payload)
-        glass.isHidden = !model.isShown
+        mount.setMounted(model.isShown)
         layoutChanged()
     }
 

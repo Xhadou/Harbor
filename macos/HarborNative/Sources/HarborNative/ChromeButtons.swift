@@ -16,15 +16,18 @@ final class ChromeButtons: NSObject {
     private let emit: (String, any Encodable) -> Void
     private let back = GlassButton(symbol: "chevron.backward", label: "Back")
     private let toggle = GlassButton(symbol: "sidebar.left", label: "Show Sidebar")
+    private var backMount: GlassMount!
+    private var toggleMount: GlassMount!
     private var backLeadingConstraint: NSLayoutConstraint?
+    private var backLeadingValue: CGFloat = 0
     private var chromeVisible = true
     private var canGoBack = false
     private var sidebarShown = false
     private var sidebarWanted = false
 
-    var isBackShown: Bool { !back.isHidden }
-    var isFloatingToggleShown: Bool { !toggle.isHidden }
-    var backLeading: CGFloat { backLeadingConstraint?.constant ?? 0 }
+    var isBackShown: Bool { backMount.isMounted }
+    var isFloatingToggleShown: Bool { toggleMount.isMounted }
+    var backLeading: CGFloat { backLeadingValue }
 
     init(window: NSWindow, emit: @escaping (String, any Encodable) -> Void) {
         self.emit = emit
@@ -34,22 +37,25 @@ final class ChromeButtons: NSObject {
         toggle.button.target = self
         toggle.button.action = #selector(toggleSidebar(_:))
 
-        guard let content = window.contentView else { return }
-        for view in [back, toggle] {
-            view.translatesAutoresizingMaskIntoConstraints = false
-            content.addSubview(view, positioned: .above, relativeTo: nil)
-            NSLayoutConstraint.activate([
+        func square(_ view: NSView, _ content: NSView) -> [NSLayoutConstraint] {
+            [
                 view.topAnchor.constraint(equalTo: content.topAnchor, constant: Self.top),
                 view.widthAnchor.constraint(equalToConstant: Self.size),
                 view.heightAnchor.constraint(equalToConstant: Self.size),
-            ])
+            ]
         }
-        toggle.leadingAnchor.constraint(
-            equalTo: content.leadingAnchor, constant: Self.afterTrafficLights
-        ).isActive = true
-        let leading = back.leadingAnchor.constraint(equalTo: content.leadingAnchor)
-        leading.isActive = true
-        backLeadingConstraint = leading
+        toggleMount = GlassMount(toggle, in: window.contentView) { view, content in
+            square(view, content) + [
+                view.leadingAnchor.constraint(
+                    equalTo: content.leadingAnchor, constant: Self.afterTrafficLights)
+            ]
+        }
+        backMount = GlassMount(back, in: window.contentView) { [weak self] view, content in
+            let leading = view.leadingAnchor.constraint(
+                equalTo: content.leadingAnchor, constant: self?.backLeadingValue ?? 0)
+            self?.backLeadingConstraint = leading
+            return square(view, content) + [leading]
+        }
         refresh()
     }
 
@@ -67,16 +73,18 @@ final class ChromeButtons: NSObject {
     }
 
     private func refresh() {
-        back.isHidden = !(chromeVisible && canGoBack)
         // Only offered where the user hid the sidebar, not where the view has none.
-        toggle.isHidden = !(chromeVisible && sidebarWanted && !sidebarShown)
+        let showToggle = chromeVisible && sidebarWanted && !sidebarShown
         if sidebarShown {
-            backLeadingConstraint?.constant = SidebarHost.margin + SidebarHost.width + 12
-        } else if toggle.isHidden {
-            backLeadingConstraint?.constant = Self.afterTrafficLights
+            backLeadingValue = SidebarHost.margin + SidebarHost.width + 12
+        } else if showToggle {
+            backLeadingValue = Self.afterTrafficLights + Self.size + Self.gap
         } else {
-            backLeadingConstraint?.constant = Self.afterTrafficLights + Self.size + Self.gap
+            backLeadingValue = Self.afterTrafficLights
         }
+        toggleMount.setMounted(showToggle)
+        backMount.setMounted(chromeVisible && canGoBack)
+        backLeadingConstraint?.constant = backLeadingValue
     }
 
     @objc func goBack(_ sender: Any?) {
@@ -111,5 +119,39 @@ final class GlassButton: NSGlassEffectView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) is not used")
+    }
+}
+
+/// Puts a glass view into the window's content view only while it should be
+/// seen. A hidden `NSGlassEffectView` can still leave a faint outline of its
+/// shape (seen when rendering off-screen), which must never sit over a video,
+/// so the view is taken out of the hierarchy instead of being hidden.
+@MainActor
+final class GlassMount {
+    let view: NSGlassEffectView
+    private weak var container: NSView?
+    private let constraints: (NSView, NSView) -> [NSLayoutConstraint]
+
+    var isMounted: Bool { view.superview != nil }
+
+    /// `constraints` receives the glass view and the container it was added to.
+    init(
+        _ view: NSGlassEffectView, in container: NSView?,
+        constraints: @escaping (NSView, NSView) -> [NSLayoutConstraint]
+    ) {
+        self.view = view
+        self.container = container
+        self.constraints = constraints
+        view.translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    func setMounted(_ mounted: Bool) {
+        guard mounted != isMounted, let container else { return }
+        if mounted {
+            container.addSubview(view, positioned: .above, relativeTo: nil)
+            NSLayoutConstraint.activate(constraints(view, container))
+        } else {
+            view.removeFromSuperview()
+        }
     }
 }

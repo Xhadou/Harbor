@@ -220,3 +220,78 @@ the Apple TV app on macOS, keeping all of Harbor's features. Tasks 1–6 are
 committed; Task 7 (side-by-side run, backup restore, sign-off) and the final
 code review were not run. The window frame, Rust⇄Swift bridge, menu and
 navigation plumbing carry over; the toolbar and sidebar layout will be redone.
+
+## Apple TV-style redesign: shell, Home, title page (2026-11-17)
+
+Design: `docs/superpowers/specs/2026-11-17-harbor-apple-tv-design.md`.
+
+### What changed
+
+- **No system toolbar.** A toolbar captures every click across the top of the
+  window, which is what forced Harbor's own buttons onto a second row. It is
+  replaced by a floating glass Back button (shown only when there is somewhere
+  to go back to) and a sidebar toggle.
+- **Sidebar:** full-height floating glass pane holding the traffic lights'
+  zone and toggle, a search field, three groups (unlabelled, Library, More),
+  and a foot with the profile and a Settings button. Clicking the profile
+  opens Harbor's own account menu beside the foot.
+- **Layout contract:** pages sit beside the sidebar unless they opt in with
+  `data-mac-bleed` (`"absolute"` for absolutely positioned pages). An opted-in
+  page marks its padded blocks with `mac-pad`. Home and the title page are
+  converted; rows scroll on under the sidebar.
+- **One look:** macOS pins a near-black palette, the system font and the
+  full-bleed hero (`coerceMacSettings`). Harbor's theme picker has no effect on
+  macOS.
+- **Interface scale:** Swift reports screen points; they are divided by
+  Harbor's interface scale before becoming CSS lengths. With the owner's 95%
+  scale, content previously started 13 pt under the sidebar's edge.
+
+### How it was checked
+
+The display was locked for most of this work, and macOS refuses window
+captures while locked. Two stand-ins were used:
+
+- **Browser preview** for the web pages. Open the dev server
+  (`http://localhost:1420`) in a browser, run
+  `localStorage["dev.os"] = "macos"`, reload, then set
+  `--mac-sidebar-inset` (269.47px at 95% scale) and `--mac-titlebar-inset` on
+  `<html>`. Looked at: Home at rest and scrolled, a row scrolled sideways under
+  the sidebar, the title page top and body, and an unconverted page
+  (Collections).
+- **Off-screen render** for the native pane and buttons:
+  `SNAPSHOT_OUT=/path/out.png swift test --package-path macos/HarborNative --filter SnapshotProbe`.
+  It shows arrangement only; glass draws as a flat fill.
+- Startup logs of the real app after the last rebuild:
+  `installed: titled=1 fullSizeContent=1 trafficLights=1`,
+  `web bridge connected: controls visible=1`,
+  `sidebar connected: shown=1 items=16`, no layout conflicts.
+- Tests: Swift 20 (+1 opt-in), Rust `mac_native` 7, and the `mac-*` JS files.
+  `pnpm test`: 8243 pass, 5 fail. The same 5 files fail on the untouched
+  `beta-branch` commit (`0dc3528d`): collection-publication,
+  membership-actions, membership-operations, page-collection-membership,
+  stremio-history.
+
+### Not yet seen in the real window
+
+1. The glass itself over artwork, and legibility of sidebar text on bright art.
+2. Traffic lights at their new position (22, 24) inside the pane's top zone.
+3. Typing in the sidebar search field, ↓ into results, Esc; results panel
+   position beside the sidebar.
+4. The account menu opening from the profile row, and its position.
+5. Hiding the sidebar: floating toggle appears, Back moves beside it, pages
+   reflow; state survives relaunch.
+6. Dragging the window by the pane's top zone and by Harbor's top bar;
+   double-click to zoom.
+7. The player: Harbor's top-left player controls may sit under the traffic
+   lights, which are now always present.
+8. Kid profile and parental lock (no account row, PIN on gated items).
+
+### Known gaps
+
+- Only Home and the title page are converted. Every other page is placed
+  beside the sidebar and works as before.
+- Poster cards still scale on hover; the design calls for calmer motion.
+- Wide web dialogs are centred on the window, not on the area beside the sidebar.
+- Sidebar group headings follow Harbor's language; button tooltips are English.
+- From the first plan: Task 7 (side-by-side run with installed Harbor) and a
+  whole-branch code review have not been done.
