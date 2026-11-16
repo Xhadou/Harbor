@@ -146,3 +146,6 @@ src-tauri/resources/music-module/
 !docs/superpowers/**/*.md
 macos/HarborNative/.build/
 !docs/mac-fork/*.md
+
+# personal Harbor backups (account data, never commit)
+*.harbx
