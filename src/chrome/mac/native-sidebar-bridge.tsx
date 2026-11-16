@@ -1,11 +1,20 @@
 import { useEffect, useRef } from "react";
+import { AccountMenu } from "@/chrome/account-menu/account-menu";
 import { useSidebarNavigation } from "@/chrome/context-page-navigation";
 import { useT } from "@/lib/i18n";
+import { useParental } from "@/lib/parental";
+import { useProfiles } from "@/lib/profiles";
 import { useUnseenReminderCount } from "@/lib/reminders";
 import { useView, type View } from "@/lib/view";
 import { onNativeEvent, pushNativeJson } from "./native-events";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
-import { findSidebarTarget, KIDS_PLAY_ID, toNativeSidebarItems } from "./sidebar-items";
+import { setNativeSearchParts } from "./native-search-state";
+import {
+  buildNativeSidebar,
+  findSidebarTarget,
+  KIDS_PLAY_ID,
+  profileInitials,
+} from "./sidebar-items";
 
 /**
  * Drives the native macOS sidebar from Harbor's own navigation model and
@@ -18,19 +27,33 @@ export function NativeSidebarBridge({ visible }: { visible: boolean }) {
   const reminderCount = useUnseenReminderCount();
   const { go, pinModal } = useGatedNavigation();
   const toggleSidebar = useSidebarToggle();
+  const { activeProfile } = useProfiles();
+  const { locked } = useParental();
+  const collapsed = settings.sidebarCollapsed;
 
+  const profileName = activeProfile?.name ?? "";
   const payload = JSON.stringify({
     visible,
-    collapsed: settings.sidebarCollapsed,
-    items: toNativeSidebarItems(entries, view, t, {
+    collapsed,
+    ...buildNativeSidebar(entries, view, t, {
       renamed: customization.renamed,
       kid: !!kid,
       reminderCount,
+      customOrder: customization.order.length > 0,
     }),
+    // Under parental lock the profile cannot be switched, as in the React sidebar.
+    account: locked ? null : { name: profileName, initials: profileInitials(profileName) },
   });
   useEffect(() => {
     pushNativeJson("mac_native_sidebar_set", payload);
   }, [payload]);
+  useEffect(() => {
+    setNativeSearchParts({ sidebarShown: visible && !collapsed });
+  }, [visible, collapsed]);
+  useEffect(() => () => setNativeSearchParts({ sidebarShown: false }), []);
+
+  // The account menu is Harbor's own; the native profile row only opens it.
+  const accountAnchor = useRef<HTMLDivElement>(null);
 
   const latest = useRef({ entries, go, setView, toggleSidebar });
   useEffect(() => {
@@ -50,11 +73,36 @@ export function NativeSidebarBridge({ visible }: { visible: boolean }) {
         if (target) now.go(target.view as View, target.gated);
       }),
       onNativeEvent("toolbar-toggle-sidebar", () => latest.current.toggleSidebar()),
+      onNativeEvent("sidebar-account", () => {
+        accountAnchor.current
+          ?.querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]')
+          ?.click();
+      }),
     ];
     return () => {
       for (const stop of stops) stop();
     };
   }, []);
 
-  return pinModal;
+  return (
+    <>
+      {pinModal}
+      {!locked && (
+        <div
+          ref={accountAnchor}
+          className="fixed bottom-3 z-[70]"
+          style={{ insetInlineStart: "var(--mac-sidebar-inset)" }}
+        >
+          <AccountMenu
+            trigger="avatar"
+            placement="up"
+            align="start"
+            showSettings
+            onOpenSettings={() => setView("settings")}
+            triggerClassName="pointer-events-none block h-px w-px overflow-hidden opacity-0"
+          />
+        </div>
+      )}
+    </>
+  );
 }

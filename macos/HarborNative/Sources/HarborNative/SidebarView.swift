@@ -6,13 +6,23 @@ import SwiftUI
 @MainActor
 @Observable
 final class SidebarModel {
-    private(set) var primary: [SidebarItem] = []
-    private(set) var collections: [SidebarItem] = []
+    struct Group: Identifiable {
+        var section: SidebarSection
+        var items: [SidebarItem]
+        var id: String { section.id }
+    }
+
+    private(set) var groups: [Group] = []
+    private(set) var account: SidebarAccount?
+    private(set) var settings: SidebarItem?
     private(set) var isShown = false
+    /// The web app wants a sidebar on this view (it may still be collapsed).
+    private(set) var isWanted = false
     @ObservationIgnored var onSelect: (String) -> Void = { _ in }
+    @ObservationIgnored var onAccount: () -> Void = {}
 
     var activeID: String? {
-        (primary + collections).first(where: \.active)?.id
+        groups.lazy.flatMap(\.items).first(where: \.active)?.id
     }
 
     init() {}
@@ -23,8 +33,22 @@ final class SidebarModel {
     }
 
     func apply(_ payload: SidebarPayload) {
-        primary = payload.items.filter { $0.section == "primary" }
-        collections = payload.items.filter { $0.section != "primary" }
+        // Listed sections first, in order; anything else keeps its own group so
+        // an item the web app adds later is never dropped.
+        var order = (payload.sections ?? []).map(\.id)
+        for item in payload.items where !order.contains(item.section) {
+            order.append(item.section)
+        }
+        let titles = Dictionary(
+            (payload.sections ?? []).map { ($0.id, $0.title) }, uniquingKeysWith: { first, _ in first })
+        groups = order.compactMap { id in
+            let items = payload.items.filter { $0.section == id }
+            guard !items.isEmpty else { return nil }
+            return Group(section: SidebarSection(id: id, title: titles[id] ?? nil), items: items)
+        }
+        account = payload.account
+        settings = payload.settings
+        isWanted = payload.visible
         // Hidden outright when collapsed: no icon rail.
         isShown = payload.visible && !payload.collapsed
     }
@@ -34,18 +58,26 @@ final class SidebarModel {
     func select(_ id: String) {
         onSelect(id)
     }
+
+    func openAccount() {
+        onAccount()
+    }
 }
 
-struct SidebarView: View {
+/// The grouped navigation list.
+struct SidebarList: View {
     let model: SidebarModel
 
     var body: some View {
         List(selection: selection) {
-            Section {
-                ForEach(model.primary) { row($0) }
-            }
-            Section {
-                ForEach(model.collections) { row($0) }
+            ForEach(model.groups) { group in
+                Section {
+                    ForEach(group.items) { row($0) }
+                } header: {
+                    if let title = group.section.title {
+                        Text(title)
+                    }
+                }
             }
         }
         .listStyle(.sidebar)
@@ -76,5 +108,49 @@ struct SidebarView: View {
         }
         .badge(item.badge ?? 0)
         .tag(item.id)
+    }
+}
+
+/// The foot of the sidebar: the profile on the left, Settings on the right.
+struct SidebarFoot: View {
+    let model: SidebarModel
+
+    var body: some View {
+        HStack(spacing: 8) {
+            if let account = model.account {
+                Button(action: model.openAccount) {
+                    HStack(spacing: 8) {
+                        Text(account.initials)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 26, height: 26)
+                            .background(Circle().fill(Color.accentColor))
+                        Text(account.name)
+                            .font(.system(size: 13, weight: .medium))
+                            .lineLimit(1)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Account: \(account.name)")
+            }
+            Spacer(minLength: 0)
+            if let settings = model.settings {
+                Button {
+                    model.select(settings.id)
+                } label: {
+                    Image(systemName: settings.gated ? "lock.fill" : "gearshape")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(settings.active ? Color.accentColor : Color.secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(settings.title)
+                .accessibilityLabel(settings.title)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }

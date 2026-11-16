@@ -7,7 +7,7 @@ struct SidebarItem: Codable, Equatable, Identifiable, Sendable {
     var id: String
     var title: String
     var symbol: String
-    /// "primary" or "collections".
+    /// Id of the `SidebarSection` this row belongs to.
     var section: String
     var active: Bool
     var gated: Bool
@@ -19,13 +19,32 @@ struct SidebarItem: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+struct SidebarSection: Codable, Equatable, Sendable {
+    var id: String
+    /// Small heading above the group; nil for the first, unlabelled group.
+    var title: String?
+}
+
+struct SidebarAccount: Codable, Equatable, Sendable {
+    var name: String
+    var initials: String
+}
+
 struct SidebarPayload: Codable, Equatable, Sendable {
     var visible: Bool
     var collapsed: Bool
     var items: [SidebarItem]
+    /// Order and headings of the groups. Sections with no items are skipped.
+    var sections: [SidebarSection]? = nil
+    /// Profile shown at the foot; nil hides it (parental lock).
+    var account: SidebarAccount? = nil
+    /// The Settings entry, shown as a button at the foot instead of a row.
+    var settings: SidebarItem? = nil
 }
 
+/// State of the floating window controls (Back, sidebar toggle, search field).
 struct ToolbarPayload: Codable, Equatable, Sendable {
+    /// False while the player or an immersive view owns the whole window.
     var visible: Bool
     var canGoBack: Bool
     /// False on views where the web app offers no global search.
@@ -63,7 +82,4 @@ struct LayoutPayload: Codable, Equatable, Sendable {
     var sidebarWidth: Double
     var sidebarVisible: Bool
 
-    static func titlebarInset(frame: NSRect, contentLayout: NSRect) -> Double {
-        max(0, Double(frame.height - contentLayout.height))
-    }
 }

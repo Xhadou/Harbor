@@ -6,12 +6,13 @@ import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 import { NATIVE_SEARCH_KEY_EVENT, onNativeEvent, pushNativeState } from "./native-events";
 import { applyNativeLayout } from "./native-layout";
-import { setNativeSearchActive } from "./native-search-state";
+import { setNativeSearchParts, useNativeSearchActive } from "./native-search-state";
 import { searchHiddenFor, toolbarPayload } from "./toolbar-payload";
 
 /**
- * Keeps the native macOS toolbar and Harbor's own state in step. Harbor stays
- * the source of truth: the toolbar is told what to show and reports what the
+ * Keeps the native macOS window controls (Back, the sidebar toggle and the
+ * sidebar's search field) and Harbor's own state in step. Harbor stays the
+ * source of truth: the controls are told what to show and report what the
  * user did.
  */
 export function NativeToolbarBridge({
@@ -38,9 +39,10 @@ export function NativeToolbarBridge({
 
   useEffect(() => {
     pushNativeState("mac_native_toolbar_set", { visible, canGoBack, searchVisible });
-    setNativeSearchActive(searchVisible);
+    setNativeSearchParts({ allowed: searchVisible });
   }, [visible, canGoBack, searchVisible]);
-  useEffect(() => () => setNativeSearchActive(false), []);
+  useEffect(() => () => setNativeSearchParts({ allowed: false }), []);
+  const nativeSearch = useNativeSearchActive();
 
   // Text and focus as the native field last reported them, to avoid echoing
   // its own changes back to it.
@@ -86,10 +88,10 @@ export function NativeToolbarBridge({
   useEffect(() => {
     if (!open) {
       pushNativeState("mac_native_search_set", { focused: false });
-    } else if (searchVisible && !nativeFocused.current) {
+    } else if (nativeSearch && !nativeFocused.current) {
       pushNativeState("mac_native_search_set", { focused: true });
     }
-  }, [open, searchVisible]);
+  }, [open, nativeSearch]);
 
   // The search hotkey used to live in the web search pill, which macOS no
   // longer renders.

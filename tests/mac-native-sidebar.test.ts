@@ -7,9 +7,10 @@ import test from "node:test";
 
 import { NAV_SYMBOLS } from "../src/chrome/mac/nav-symbols";
 import {
+  buildNativeSidebar,
   findSidebarTarget,
+  profileInitials,
   sidebarVisible,
-  toNativeSidebarItems,
 } from "../src/chrome/mac/sidebar-items";
 
 const entry = (id: string, primary: boolean, gated = false) => ({
@@ -18,7 +19,7 @@ const entry = (id: string, primary: boolean, gated = false) => ({
   gated,
 });
 const t = (key: string) => `T:${key}`;
-const opts = { renamed: {}, kid: false, reminderCount: 0 };
+const opts = { renamed: {}, kid: false, reminderCount: 0, customOrder: false };
 
 test("every nav item has a symbol", () => {
   const source = readFileSync(new URL("../src/chrome/nav-items.tsx", import.meta.url), "utf8");
@@ -30,9 +31,9 @@ test("every nav item has a symbol", () => {
   }
 });
 
-test("maps entries with translated titles", () => {
-  const items = toNativeSidebarItems(
-    [entry("home", true), entry("library", false)],
+test("maps entries into Apple TV-style groups with translated titles", () => {
+  const { items, sections } = buildNativeSidebar(
+    [entry("home", true), entry("library", false), entry("music", false)],
     "home",
     t,
     opts,
@@ -42,7 +43,7 @@ test("maps entries with translated titles", () => {
       id: "home",
       title: "T:nav.home",
       symbol: "house",
-      section: "primary",
+      section: "browse",
       active: true,
       gated: false,
     },
@@ -50,15 +51,90 @@ test("maps entries with translated titles", () => {
       id: "library",
       title: "T:nav.library",
       symbol: "books.vertical",
-      section: "collections",
+      section: "library",
+      active: false,
+      gated: false,
+    },
+    {
+      id: "music",
+      title: "T:nav.music",
+      symbol: "music.note",
+      section: "more",
       active: false,
       gated: false,
     },
   ]);
+  assert.deepEqual(sections, [
+    { id: "browse", title: null },
+    { id: "library", title: "T:Library" },
+    { id: "more", title: "T:More" },
+  ]);
+});
+
+const harborDefaultOrder = [
+  "home",
+  "discover",
+  "catalogs",
+  "plugins",
+  "movies",
+  "shows",
+  "anime",
+  "manga",
+  "ebook",
+  "music",
+  "games",
+  "live",
+  "calendar",
+  "library",
+  "collections",
+  "downloads",
+  "addons",
+].map((id) => entry(id, false));
+
+test("without a custom order, each group uses the designed order", () => {
+  const { items } = buildNativeSidebar(harborDefaultOrder, "home", t, opts);
+  const ids = (section: string) => items.filter((i) => i.section === section).map((i) => i.id);
+  assert.deepEqual(ids("browse"), ["home", "discover", "movies", "shows", "anime", "live"]);
+  assert.deepEqual(ids("library"), ["library", "collections", "downloads", "calendar"]);
+  assert.deepEqual(ids("more"), [
+    "catalogs",
+    "music",
+    "games",
+    "manga",
+    "ebook",
+    "addons",
+    "plugins",
+  ]);
+});
+
+test("a custom navigation order is kept inside each group", () => {
+  const { items } = buildNativeSidebar(harborDefaultOrder, "home", t, {
+    ...opts,
+    customOrder: true,
+  });
+  const ids = (section: string) => items.filter((i) => i.section === section).map((i) => i.id);
+  assert.deepEqual(ids("library"), ["calendar", "library", "collections", "downloads"]);
+});
+
+test("settings moves to the foot instead of the list", () => {
+  const { items, settings } = buildNativeSidebar(
+    [entry("home", true), entry("settings", false, true)],
+    "settings",
+    t,
+    opts,
+  );
+  assert.deepEqual(
+    items.map((i) => i.id),
+    ["home"],
+  );
+  assert.equal(settings?.id, "settings");
+  assert.equal(settings?.active, true);
+  assert.equal(settings?.gated, true);
+  assert.equal(buildNativeSidebar([entry("home", true)], "home", t, opts).settings, null);
 });
 
 test("rename wins over translation", () => {
-  const items = toNativeSidebarItems([entry("home", true)], "home", t, {
+  const { items } = buildNativeSidebar([entry("home", true)], "home", t, {
     ...opts,
     renamed: { home: "Start" },
   });
@@ -66,30 +142,36 @@ test("rename wins over translation", () => {
 });
 
 test("gated carried through", () => {
-  const items = toNativeSidebarItems([entry("settings", false, true)], "home", t, opts);
+  const { items } = buildNativeSidebar([entry("addons", false, true)], "home", t, opts);
   assert.equal(items[0].gated, true);
 });
 
 test("calendar badge", () => {
-  const withBadge = toNativeSidebarItems([entry("calendar", false)], "home", t, {
+  const withBadge = buildNativeSidebar([entry("calendar", false)], "home", t, {
     ...opts,
     reminderCount: 3,
-  });
+  }).items;
   assert.equal(withBadge[0].badge, 3);
-  const without = toNativeSidebarItems([entry("calendar", false)], "home", t, opts);
+  const without = buildNativeSidebar([entry("calendar", false)], "home", t, opts).items;
   assert.equal("badge" in without[0], false);
 });
 
 test("kid play entry", () => {
-  const items = toNativeSidebarItems([entry("kids", true)], "kids", t, { ...opts, kid: true });
+  const { items } = buildNativeSidebar([entry("kids", true)], "kids", t, { ...opts, kid: true });
   assert.deepEqual(items.at(-1), {
     id: "kids-play",
     title: "Play",
     symbol: "play.circle",
-    section: "primary",
+    section: "browse",
     active: false,
     gated: false,
   });
+});
+
+test("initials come from the first letters of a profile name", () => {
+  assert.equal(profileInitials("Pratyush"), "PR");
+  assert.equal(profileInitials("guest 6988"), "G6");
+  assert.equal(profileInitials("  "), "?");
 });
 
 test("a selected id resolves to its view and whether a PIN is needed", () => {

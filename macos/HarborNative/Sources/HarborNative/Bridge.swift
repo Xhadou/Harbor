@@ -15,7 +15,7 @@ final class HarborNativeController {
     private let callback: HarborNativeCallback
 
     private var fullScreenObserver: NSObjectProtocol?
-    private(set) var toolbar: ToolbarController!
+    private(set) var chrome: ChromeButtons!
     private(set) var sidebar: SidebarHost!
     private var lastLayout: LayoutPayload?
     private var webConnected = false
@@ -25,16 +25,15 @@ final class HarborNativeController {
         self.window = window
         self.callback = callback
         applyWindowFrame()
+        let emit: (String, any Encodable) -> Void = { [weak self] kind, payload in
+            self?.emit(kind, payload)
+        }
         sidebar = SidebarHost(
             window: window,
-            onSelect: { [weak self] id in
-                self?.emit("sidebar-select", SidebarSelectPayload(id: id))
-            },
-            layoutChanged: { [weak self] in self?.emitLayout() })
-        toolbar = ToolbarController(
-            window: window,
-            emit: { [weak self] kind, payload in self?.emit(kind, payload) },
-            layoutChanged: { [weak self] in self?.emitLayout() })
+            emit: emit,
+            onToggle: { emit("toolbar-toggle-sidebar", EmptyPayload()) },
+            layoutChanged: { [weak self] in self?.sidebarChanged() })
+        chrome = ChromeButtons(window: window, emit: emit)
         emitLayout(force: true)
         // Leaving full screen restores a saved style mask; make sure the web
         // content still extends under the title bar afterwards.
@@ -46,10 +45,16 @@ final class HarborNativeController {
     }
 
     /// System frame with traffic lights, web content running under a clear title bar.
+    /// There is deliberately no toolbar: see `ChromeButtons`.
     func applyWindowFrame() {
         window.styleMask.insert(.fullSizeContentView)
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
+    }
+
+    private func sidebarChanged() {
+        chrome?.sidebarChanged(wanted: sidebar.isWanted, shown: sidebar.isShown)
+        emitLayout()
     }
 
     func emit(_ kind: String, _ payload: some Encodable) {
@@ -62,9 +67,9 @@ final class HarborNativeController {
     /// Reports the space native chrome takes so the web app can inset its content.
     /// `force` repeats an unchanged value, for a web app that has just (re)loaded.
     func emitLayout(force: Bool = false) {
-        guard let toolbar, let sidebar else { return }
+        guard let sidebar else { return }
         let layout = LayoutPayload(
-            titlebarInset: toolbar.titlebarInset,
+            titlebarInset: Double(SidebarHost.topZone),
             sidebarWidth: sidebar.isShown ? Double(SidebarHost.width) : 0,
             sidebarVisible: sidebar.isShown)
         guard force || layout != lastLayout else { return }
@@ -86,16 +91,16 @@ final class HarborNativeController {
         if !webConnected {
             webConnected = true
             NSLog(
-                "[HarborNative] web bridge connected: toolbar visible=%d titlebarInset=%.0f",
-                payload.visible ? 1 : 0, toolbar.titlebarInset)
+                "[HarborNative] web bridge connected: controls visible=%d", payload.visible ? 1 : 0)
         }
-        toolbar.apply(payload)
+        chrome.apply(payload)
+        sidebar.search.isHidden = !payload.searchVisible
         // The web app sends this on mount, when it may have missed earlier events.
         emitLayout(force: true)
     }
 
     func setSearch(_ payload: SearchPayload) {
-        toolbar.apply(payload)
+        sidebar.search.apply(payload)
     }
 }
 
@@ -128,11 +133,10 @@ public func harborNativeInstall(
         let window = Unmanaged<NSWindow>.fromOpaque(windowPointer).takeUnretainedValue()
         HarborNativeController.shared = HarborNativeController(window: window, callback: callback)
         NSLog(
-            "[HarborNative] installed: titled=%d fullSizeContent=%d trafficLights=%d toolbarItems=%d",
+            "[HarborNative] installed: titled=%d fullSizeContent=%d trafficLights=%d",
             window.styleMask.contains(.titled) ? 1 : 0,
             window.styleMask.contains(.fullSizeContentView) ? 1 : 0,
-            window.standardWindowButton(.closeButton) != nil ? 1 : 0,
-            window.toolbar?.items.count ?? 0)
+            window.standardWindowButton(.closeButton) != nil ? 1 : 0)
     }
 }
 

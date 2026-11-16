@@ -63,9 +63,19 @@
 }
 
 :root {
-  /* Space taken by native macOS chrome; set from Swift's layout reports. */
+  /* Space taken by native macOS chrome; set from Swift's layout reports.
+     --mac-sidebar-inset: where content at rest starts beside the floating sidebar.
+     --mac-titlebar-inset: height of the floating controls zone at the top. */
   --mac-titlebar-inset: 0px;
   --mac-sidebar-inset: 0px;
+}
+
+/* macOS layout contract. Pages are placed beside the floating sidebar by the
+   app shell. A page converted to the Apple TV-style layout opts in with
+   data-mac-bleed: its box then runs under the sidebar, and it uses the two
+   lengths above itself so artwork passes under the glass while text does not. */
+html[data-os="macos"] [data-mac-bleed] {
+  margin-inline-start: calc(-1 * var(--mac-sidebar-inset));
 }
 
 :root {

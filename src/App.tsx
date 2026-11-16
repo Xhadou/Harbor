@@ -1877,15 +1877,9 @@ function Shell({ onReady }: { onReady?: () => void }) {
           )}
           <div
             className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${playerActive ? "invisible" : ""}`}
-            // Margins, not padding: the views inside are absolutely positioned.
-            style={
-              isMacDesktop()
-                ? {
-                    marginTop: "var(--mac-titlebar-inset)",
-                    marginInlineStart: "var(--mac-sidebar-inset)",
-                  }
-                : undefined
-            }
+            // macOS: pages sit beside the floating sidebar unless they opt in to
+            // run under it with `data-mac-bleed` (see index.css).
+            style={isMacDesktop() ? { paddingInlineStart: "var(--mac-sidebar-inset)" } : undefined}
           >
             {homeAlive && (
               <div {...parkLayerProps(homeTop)}>
@@ -2360,7 +2354,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
                 <WindowControls />
               </div>
             )}
-            {!immersive && !settingsTop && !isMacDesktop() && (
+            {!immersive && !settingsTop && (
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 z-30 h-24 bg-gradient-to-b from-canvas/85 via-canvas/40 to-transparent"

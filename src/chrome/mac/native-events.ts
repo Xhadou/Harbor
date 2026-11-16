@@ -14,6 +14,7 @@ export type NativeLayout = {
 
 export type NativeEventPayloads = {
   "sidebar-select": { id: string };
+  "sidebar-account": Record<string, never>;
   "toolbar-back": Record<string, never>;
   "toolbar-toggle-sidebar": Record<string, never>;
   "search-text": { text: string };

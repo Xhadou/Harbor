@@ -1,14 +1,18 @@
 import { useSyncExternalStore } from "react";
 
-// Whether the native toolbar search field is currently the search input. When
-// it is not (toolbar hidden, or not on macOS) the overlay keeps its own input.
+// Whether the sidebar's native search field is currently the search input.
+// That needs both: Harbor offers search on this view, and the sidebar that
+// holds the field is on screen. Otherwise the overlay keeps its own input.
 
+const parts = { allowed: false, sidebarShown: false };
 let active = false;
 const listeners = new Set<() => void>();
 
-export function setNativeSearchActive(next: boolean): void {
-  if (active === next) return;
-  active = next;
+export function setNativeSearchParts(next: Partial<typeof parts>): void {
+  Object.assign(parts, next);
+  const now = parts.allowed && parts.sidebarShown;
+  if (active === now) return;
+  active = now;
   for (const listener of listeners) listener();
 }
 

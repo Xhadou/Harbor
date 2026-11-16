@@ -18,21 +18,50 @@ final class SidebarTests: XCTestCase {
             backing: .buffered, defer: true)
     }
 
-    func testSectionsSplit() {
+    private func layout() throws -> LayoutPayload {
+        let event = try XCTUnwrap(EventLog.events.last { $0.kind == "layout" })
+        return try JSONDecoder().decode(LayoutPayload.self, from: Data(event.json.utf8))
+    }
+
+    override func setUp() {
+        EventLog.events = []
+    }
+
+    func testItemsAreGroupedBySectionInTheOrderSectionsAreListed() {
         let model = SidebarModel(
             payload: SidebarPayload(
                 visible: true, collapsed: false,
                 items: [
-                    item("home", "primary"), item("library", "collections"),
-                    item("movies", "primary", active: true), item("addons", "collections"),
+                    item("home", "browse"), item("library", "library"),
+                    item("movies", "browse", active: true), item("addons", "more"),
+                ],
+                sections: [
+                    SidebarSection(id: "browse", title: nil),
+                    SidebarSection(id: "library", title: "Library"),
+                    SidebarSection(id: "more", title: "More"),
                 ]))
-        XCTAssertEqual(model.primary.map(\.id), ["home", "movies"])
-        XCTAssertEqual(model.collections.map(\.id), ["library", "addons"])
+        XCTAssertEqual(model.groups.map(\.section.id), ["browse", "library", "more"])
+        XCTAssertEqual(model.groups[0].items.map(\.id), ["home", "movies"])
+        XCTAssertEqual(model.groups[1].section.title, "Library")
+        XCTAssertEqual(model.groups[2].items.map(\.id), ["addons"])
         XCTAssertEqual(model.activeID, "movies")
     }
 
+    func testEmptySectionsAndUnlistedSectionsAreHandled() {
+        let model = SidebarModel(
+            payload: SidebarPayload(
+                visible: true, collapsed: false,
+                items: [item("home", "browse"), item("odd", "elsewhere")],
+                sections: [
+                    SidebarSection(id: "browse", title: nil),
+                    SidebarSection(id: "library", title: "Library"),
+                ]))
+        // No empty "Library" heading; an item in an unknown section is not lost.
+        XCTAssertEqual(model.groups.map(\.section.id), ["browse", "elsewhere"])
+    }
+
     func testHiddenWhenCollapsed() {
-        let items = [item("home", "primary")]
+        let items = [item("home", "browse")]
         XCTAssertFalse(
             SidebarModel(payload: SidebarPayload(visible: true, collapsed: true, items: items))
                 .isShown)
@@ -45,33 +74,41 @@ final class SidebarTests: XCTestCase {
     }
 
     func testSidebarVisibilityIsReportedInLayout() throws {
-        EventLog.events = []
         let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
         controller.setSidebar(
-            SidebarPayload(visible: true, collapsed: false, items: [item("home", "primary")]))
-        var layout = try XCTUnwrap(EventLog.events.last { $0.kind == "layout" })
-        var payload = try JSONDecoder().decode(LayoutPayload.self, from: Data(layout.json.utf8))
-        XCTAssertTrue(payload.sidebarVisible)
-        XCTAssertEqual(payload.sidebarWidth, 240)
+            SidebarPayload(visible: true, collapsed: false, items: [item("home", "browse")]))
+        XCTAssertTrue(try layout().sidebarVisible)
+        XCTAssertEqual(try layout().sidebarWidth, 240)
 
         controller.setSidebar(
-            SidebarPayload(visible: true, collapsed: true, items: [item("home", "primary")]))
-        layout = try XCTUnwrap(EventLog.events.last { $0.kind == "layout" })
-        payload = try JSONDecoder().decode(LayoutPayload.self, from: Data(layout.json.utf8))
-        XCTAssertFalse(payload.sidebarVisible)
+            SidebarPayload(visible: true, collapsed: true, items: [item("home", "browse")]))
+        XCTAssertFalse(try layout().sidebarVisible)
     }
 
     func testSelectingARowReportsItWithoutMovingTheHighlight() {
-        EventLog.events = []
         let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
         controller.setSidebar(
             SidebarPayload(
                 visible: true, collapsed: false,
-                items: [item("home", "primary", active: true), item("library", "collections")]))
+                items: [item("home", "browse", active: true), item("library", "library")]))
         EventLog.events = []
         controller.sidebar.model.select("library")
         XCTAssertEqual(EventLog.kinds(), ["sidebar-select"])
         XCTAssertEqual(EventLog.events[0].json, #"{"id":"library"}"#)
         XCTAssertEqual(controller.sidebar.model.activeID, "home")
+    }
+
+    func testFootReportsAccountAndSettingsClicks() {
+        let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
+        controller.setSidebar(
+            SidebarPayload(
+                visible: true, collapsed: false, items: [item("home", "browse")],
+                account: SidebarAccount(name: "Pratyush", initials: "PR"),
+                settings: item("settings", "foot")))
+        XCTAssertEqual(controller.sidebar.model.account?.initials, "PR")
+        EventLog.events = []
+        controller.sidebar.model.openAccount()
+        controller.sidebar.model.select("settings")
+        XCTAssertEqual(EventLog.kinds(), ["sidebar-account", "sidebar-select"])
     }
 }
