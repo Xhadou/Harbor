@@ -1878,8 +1878,9 @@ function Shell({ onReady }: { onReady?: () => void }) {
           <div
             className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${playerActive ? "invisible" : ""}`}
             // macOS: pages sit beside the floating sidebar unless they opt in to
-            // run under it with `data-mac-bleed` (see index.css).
-            style={isMacDesktop() ? { paddingInlineStart: "var(--mac-sidebar-inset)" } : undefined}
+            // run under it with `data-mac-bleed` (see index.css). A margin, so
+            // absolutely positioned pages are held clear of it as well.
+            style={isMacDesktop() ? { marginInlineStart: "var(--mac-sidebar-inset)" } : undefined}
           >
             {homeAlive && (
               <div {...parkLayerProps(homeTop)} data-mac-bleed>

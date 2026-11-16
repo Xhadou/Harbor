@@ -77,6 +77,11 @@
 html[data-os="macos"] [data-mac-bleed] {
   margin-inline-start: calc(-1 * var(--mac-sidebar-inset));
 }
+/* The same for a page that is absolutely positioned inside the shell. */
+html[data-os="macos"] [data-mac-bleed="absolute"] {
+  margin-inline-start: 0;
+  inset-inline-start: calc(-1 * var(--mac-sidebar-inset));
+}
 
 html[data-os="macos"] {
   /* Space between the sidebar (or window edge) and content at rest. */
@@ -85,21 +90,25 @@ html[data-os="macos"] {
   --mac-content-start: calc(var(--mac-sidebar-inset) + var(--mac-gutter));
 }
 
-/* The scroll container of a converted page. */
-html[data-os="macos"] [data-mac-bleed] .mac-page {
+/* Search results open beside the sidebar that holds the search field, not
+   centred under it. */
+html[data-os="macos"] [data-search-overlay="true"] {
+  inset-inline-start: var(--mac-sidebar-inset);
+}
+
+/* A padded block of a converted page (its scroll container, a text column):
+   starts at the content start instead of at the window edge. */
+html[data-os="macos"] [data-mac-bleed] .mac-pad {
   padding-inline-start: var(--mac-content-start);
-  padding-inline-end: var(--mac-gutter);
 }
 
 /* Full-bleed hero: artwork to the window's left, right and top edges, text
    held clear of the sidebar. */
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {
   margin-inline-start: calc(-1 * var(--mac-content-start));
-  margin-inline-end: calc(-1 * var(--mac-gutter));
 }
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full .harbor-hero-content {
   padding-inline-start: var(--mac-content-start);
-  padding-inline-end: var(--mac-gutter);
 }
 /* Keep the artwork alive on the left, where the glass sidebar sits over it:
    a scrim that gathers behind the text block at the bottom-left instead of a
@@ -126,7 +135,7 @@ html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {
 }
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-home-customize] {
   bottom: 3.25rem;
-  inset-inline-end: var(--mac-gutter);
+  inset-inline-end: 3rem;
 }
 
 /* Rows: the heading and the first card rest at the content start, and the

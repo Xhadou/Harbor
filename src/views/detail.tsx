@@ -2660,6 +2660,7 @@ export function DetailView({
   return (
     <main
       ref={scrollRef}
+      data-mac-bleed="absolute"
       className="harbor-detail-enter absolute inset-0 z-30 overflow-y-auto bg-canvas"
     >
       <section className="relative">
@@ -2695,7 +2696,7 @@ export function DetailView({
           <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/55 via-45% to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-canvas/85 via-canvas/35 to-transparent" />
 
-          <div className="absolute inset-x-0 bottom-0 px-12 pb-14">
+          <div className="mac-pad absolute inset-x-0 bottom-0 px-12 pb-14">
             <div
               ref={meta.type === "movie" && !liveContext ? movieContextRef : undefined}
               className={awardsInDescription ? "max-w-3xl" : undefined}
@@ -3062,7 +3063,7 @@ export function DetailView({
         </div>
       </section>
 
-      <div {...contentDrag} className="flex flex-col gap-16 px-12 pb-24 pt-14">
+      <div {...contentDrag} className="mac-pad flex flex-col gap-16 px-12 pb-24 pt-14">
         {(overview || hasHeroAside) && (
           <div
             className={`grid min-w-0 grid-cols-1 items-start gap-8 xl:gap-10 ${heroGridColumns}`}

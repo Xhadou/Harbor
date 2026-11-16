@@ -1454,7 +1454,7 @@ export function Home({
   return (
     <main
       ref={scrollCb}
-      className="mac-page flex-1 overflow-y-auto overflow-x-hidden px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
+      className="mac-pad flex-1 overflow-y-auto overflow-x-hidden px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
     >
       <ScrollRootContext.Provider value={scrollEl}>
         <div {...contentDrag} className="relative flex flex-col gap-12">
