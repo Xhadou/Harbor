@@ -43,6 +43,10 @@ struct SearchPayload: Codable, Equatable, Sendable {
 
 struct EmptyPayload: Codable, Equatable, Sendable {}
 
+struct SidebarSelectPayload: Codable, Equatable, Sendable {
+    var id: String
+}
+
 struct SearchTextPayload: Codable, Equatable, Sendable {
     var text: String
 }

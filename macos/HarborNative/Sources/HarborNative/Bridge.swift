@@ -16,13 +16,21 @@ final class HarborNativeController {
 
     private var fullScreenObserver: NSObjectProtocol?
     private(set) var toolbar: ToolbarController!
+    private(set) var sidebar: SidebarHost!
     private var lastLayout: LayoutPayload?
     private var webConnected = false
+    private var sidebarConnected = false
 
     init(window: NSWindow, callback: HarborNativeCallback) {
         self.window = window
         self.callback = callback
         applyWindowFrame()
+        sidebar = SidebarHost(
+            window: window,
+            onSelect: { [weak self] id in
+                self?.emit("sidebar-select", SidebarSelectPayload(id: id))
+            },
+            layoutChanged: { [weak self] in self?.emitLayout() })
         toolbar = ToolbarController(
             window: window,
             emit: { [weak self] kind, payload in self?.emit(kind, payload) },
@@ -54,15 +62,25 @@ final class HarborNativeController {
     /// Reports the space native chrome takes so the web app can inset its content.
     /// `force` repeats an unchanged value, for a web app that has just (re)loaded.
     func emitLayout(force: Bool = false) {
-        guard let toolbar else { return }
+        guard let toolbar, let sidebar else { return }
         let layout = LayoutPayload(
-            titlebarInset: toolbar.titlebarInset, sidebarWidth: 0, sidebarVisible: false)
+            titlebarInset: toolbar.titlebarInset,
+            sidebarWidth: sidebar.isShown ? Double(SidebarHost.width) : 0,
+            sidebarVisible: sidebar.isShown)
         guard force || layout != lastLayout else { return }
         lastLayout = layout
         emit("layout", layout)
     }
 
-    func setSidebar(_ payload: SidebarPayload) {}
+    func setSidebar(_ payload: SidebarPayload) {
+        sidebar.apply(payload)
+        if !sidebarConnected {
+            sidebarConnected = true
+            NSLog(
+                "[HarborNative] sidebar connected: shown=%d items=%d",
+                sidebar.isShown ? 1 : 0, payload.items.count)
+        }
+    }
 
     func setToolbar(_ payload: ToolbarPayload) {
         if !webConnected {

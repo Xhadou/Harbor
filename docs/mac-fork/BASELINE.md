@@ -147,3 +147,51 @@ sits under the traffic lights.
 7. The web top bar's remaining buttons (downloads, notifications, bookmarks,
    Together) sit just below the toolbar and are clickable.
 8. Legibility of the toolbar over the app background in each theme you use.
+
+## Task 5 — floating Liquid Glass sidebar (2026-11-17)
+
+### Checked by the build and the running app
+
+- Startup log: `sidebar connected: shown=1 items=17`, with no Auto Layout
+  conflicts logged. The glass pane is in the window and received Harbor's
+  navigation items.
+- Tests: Swift `SidebarTests` (4), `tests/mac-native-sidebar.test.ts` (8).
+
+### Not done: content under the glass
+
+The plan asked for Home rails and the hero backdrop to extend under the
+sidebar so posters refract through it. That is **not built**. The web content
+area starts to the right of the sidebar, as it did beside the React sidebar,
+so the glass currently sits over the app background.
+
+Reason: Harbor has 87 separate scrolling views, each with its own padding, and
+extending them under the pane needs per-view layout work that cannot be judged
+without looking at the result. It belongs with workstream 3 (scroll and motion).
+
+### Decisions that differ from the plan
+
+- The account menu moved to the top bar on macOS. The plan said the top bar
+  already had an account button; in this layout it does not, and the profile
+  chip at the sidebar foot was the only way to switch profile or sign out.
+- The sidebar highlight uses the system's list selection, driven by the web
+  app's active view. Clicking a row reports the click and the highlight moves
+  only when the web app confirms, so a refused PIN leaves it where it was.
+
+### Dropped from the React sidebar on macOS
+
+Brand wordmark, right-click navigation menu, hidden-tabs tray, Big Picture
+entry, and the collapsed icon rail (collapsing now hides the sidebar; the
+toolbar button brings it back). Navigation editing is still in Settings.
+
+### Still to check by hand
+
+1. Floating glass sidebar with SF Symbol icons, no hover animations.
+2. Each item navigates and the highlight follows, also after Back or a search result.
+3. With parental lock on, a gated item asks for the PIN and only then routes;
+   Cancel changes nothing.
+4. Kid profile, renaming or hiding a tab in Settings, and changing the UI
+   language each update the sidebar at once.
+5. The toolbar's sidebar button hides and shows it and the content follows;
+   the state survives relaunch.
+6. Hidden in Settings, the player, the stream picker and immersive mode.
+7. The account menu in the top bar opens, switches profile, and opens Settings.

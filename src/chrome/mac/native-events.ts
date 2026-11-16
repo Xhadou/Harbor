@@ -49,7 +49,11 @@ export type NativeStateCommand =
   | "mac_native_search_set";
 
 export function pushNativeState(command: NativeStateCommand, payload: unknown): void {
-  void invoke(command, { payload: JSON.stringify(payload) }).catch((e) =>
+  pushNativeJson(command, JSON.stringify(payload));
+}
+
+export function pushNativeJson(command: NativeStateCommand, json: string): void {
+  void invoke(command, { payload: json }).catch((e) =>
     console.warn(`[harbor] ${command} failed`, e),
   );
 }

@@ -5,6 +5,8 @@ import { UiIcon } from "@/components/ui-icon";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { BackChrome } from "@/chrome/back-chrome";
+import { AccountMenu } from "@/chrome/account-menu/account-menu";
+import { useParental } from "@/lib/parental";
 import { HarborMark } from "@/components/icons/harbor-mark";
 import { TogetherPopover, TogetherModalShell } from "@/components/together-modal";
 import { DownloadsButton } from "@/components/downloads-popover";
@@ -77,6 +79,7 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
   const liveHasSources = usePlaylists().length > 0;
   const { settings } = useSettings();
   const kid = useActiveKid();
+  const { locked } = useParental();
   const t = useT();
   const [closeConfirm, setCloseConfirm] = useState(false);
   const preview = useThemePreview();
@@ -105,8 +108,9 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
   // macOS has the native toolbar's search field and Back button instead.
   const mac = isMacDesktop();
   const hideSearch = mac || searchHiddenFor({ view, topKind, connecting, kid: !!kid });
-  const sidebarOffset =
-    layout === "stremio"
+  const sidebarOffset = mac
+    ? ""
+    : layout === "stremio"
       ? "ps-[80px]"
       : settings.sidebarCollapsed
         ? "ps-[84px]"
@@ -121,7 +125,11 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
     <header
       data-cleannav={settings.topbarAppearance === "transparent" ? "on" : undefined}
       className={`pointer-events-none fixed inset-x-0 top-0 ${connecting ? "z-[130]" : "z-[55]"} h-20`}
-      style={mac ? { top: "var(--mac-titlebar-inset)" } : undefined}
+      style={
+        mac
+          ? { top: "var(--mac-titlebar-inset)", insetInlineStart: "var(--mac-sidebar-inset)" }
+          : undefined
+      }
     >
       {!inSettings && settings.topbarScrollBlur && settings.topbarAppearance !== "transparent" && (
         <div
@@ -193,6 +201,16 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
               {!kid && <BookmarksButton />}
               {!onLiveRoot && !kid && <TogetherButton />}
             </div>
+          )}
+          {/* The native sidebar has no profile chip, so the account menu lives here. */}
+          {mac && !inSettings && !locked && (
+            <AccountMenu
+              trigger="pill"
+              placement="down"
+              align="end"
+              showSettings
+              onOpenSettings={() => setView("settings")}
+            />
           )}
           {IS_TAURI && !settings.useNativeTitleBar && !settings.hybridTitleBar && (
             <div className="ms-1 flex shrink-0 items-center gap-2">

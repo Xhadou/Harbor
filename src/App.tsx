@@ -62,7 +62,9 @@ import { setNativeMemoryActive } from "@/lib/native-memory";
 import { useOverlayPinned } from "@/lib/overlay-pin";
 import { isMacDesktop, isMobileWeb, isRemoteRoute, osClass } from "@/lib/platform";
 import { macLayout } from "@/lib/mac-chrome";
+import { NativeSidebarBridge } from "@/chrome/mac/native-sidebar-bridge";
 import { NativeToolbarBridge } from "@/chrome/mac/native-toolbar-bridge";
+import { sidebarVisible } from "@/chrome/mac/sidebar-items";
 import { makeSafeTauriUnlisten } from "@/lib/tauri-unlisten";
 import { activeLayout } from "@/lib/theme";
 import { useThemePreview } from "@/lib/theme-preview";
@@ -1767,7 +1769,8 @@ function Shell({ onReady }: { onReady?: () => void }) {
             !playerActive &&
             !standaloneLive &&
             !pickerTop &&
-            layout === "sidebar" && <Sidebar />}
+            layout === "sidebar" &&
+            !isMacDesktop() && <Sidebar />}
           {!settingsTop &&
             !playerActive &&
             !standaloneLive &&
@@ -1856,12 +1859,31 @@ function Shell({ onReady }: { onReady?: () => void }) {
           {!playerActive && !pickerTop && !immersive && !chromeHidden && <QueueBasket />}
           <HybridTitleBar suppressed={playerActive || immersive || chromeHidden} />
           {isMacDesktop() && (
-            <NativeToolbarBridge playerActive={playerActive} immersive={immersive} />
+            <>
+              <NativeToolbarBridge playerActive={playerActive} immersive={immersive} />
+              <NativeSidebarBridge
+                visible={sidebarVisible({
+                  settingsTop,
+                  playerActive,
+                  standaloneLive,
+                  pickerTop,
+                  immersive,
+                  chromeHidden,
+                })}
+              />
+            </>
           )}
           <div
             className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${playerActive ? "invisible" : ""}`}
-            // A margin, not padding: the views inside are absolutely positioned.
-            style={isMacDesktop() ? { marginTop: "var(--mac-titlebar-inset)" } : undefined}
+            // Margins, not padding: the views inside are absolutely positioned.
+            style={
+              isMacDesktop()
+                ? {
+                    marginTop: "var(--mac-titlebar-inset)",
+                    marginInlineStart: "var(--mac-sidebar-inset)",
+                  }
+                : undefined
+            }
           >
             {homeAlive && (
               <div {...parkLayerProps(homeTop)}>
