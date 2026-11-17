@@ -515,3 +515,45 @@ which clears a stale field after a page reload (a minor finding).
 
 - Whether the `swift-rs` build dependency compiles on Windows and Linux hosts.
 - How the converted pages look in the real window.
+
+## Loading speed (2026-11-17)
+
+The owner: loading feels slow everywhere, above all content filling in when
+new rows and posters scroll into view, and it has to be "lightning fast".
+
+### Measured in the real dev app, window in front
+
+A temporary in-page probe (removed) scrolled a page at speed and timed each
+row and poster from entering the viewport to having content.
+
+| Page                                                       | Rows: cards after entering | Posters: image after entering                                       | Frames       |
+| ---------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------- | ------------ |
+| Home, artwork already cached                               | median 48 ms, max 417 ms   | median 52 ms, p90 140 ms, max 214 ms                                | about 55 fps |
+| Shows, not visited before, plus two rows scrolled sideways | median 0 ms, max 404 ms    | median 528 ms, p75 883 ms, p90 1.1 s, max 2.8 s; 27 of 160 over 1 s | 60 fps       |
+
+On the Shows run only 4 image requests appear in the page's own network
+timings for 160 posters, none slower than 200 ms. So the half-second-plus wait
+per poster is **not** the image download as the page sees it; it is spent
+before or outside it. Not yet explained. Two leads:
+
+- how a poster gets its image inside the real app (the browser preview loads
+  artwork straight from the image host and shows it at once; the real app may
+  go through Harbor's own fetch or cache path);
+- per-title lookups fired while scrolling: 100 Cinemeta requests with a median
+  of 4.6 s each, 175 Wikidata requests up to 9 s, 76 TMDB API requests.
+
+A measurement taken while the window is hidden is worthless: macOS throttles
+it to about one frame a second.
+
+### Other numbers
+
+- Browser preview against the dev server: Home's hero in 1.3 s, a first visit
+  to a page 350–450 ms, a revisit about 50 ms.
+- Dev app cold start, window to web app connected: 1.3–6.4 s.
+
+### Production build: not made yet
+
+`pnpm tauri build --bundles app` stalled twice in `scripts/capstan-stage.mjs`
+on "fetching jdk-17.0.21+9" (an open connection to GitHub's download host, no
+progress for 30 minutes). Nothing has been compared against a production
+build, so how much of the slowness is the development build is unknown.
