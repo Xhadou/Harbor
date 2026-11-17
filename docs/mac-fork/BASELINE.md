@@ -397,4 +397,16 @@ Left as it is:
 
 - Kid profile and the PIN prompt in the real window: reaching them means
   creating a profile or a PIN in the owner's data.
-- The player's top row while fullscreen: the stream was still connecting.
+
+### Third pass (2026-11-17)
+
+- **Dragging by the web top bar**: the owner tried it with a real mouse and it
+  works. The jumps seen earlier were the synthetic input.
+- **The player's top row in fullscreen**: measured in the running app with a
+  temporary in-page step (no mouse or keyboard input, removed afterwards).
+  Windowed: padding 92/10 px, first control at x 92. Fullscreen (1470×923):
+  Harbor's normal 28/16 px, first control at x 28, traffic lights hidden.
+  Back to windowed: 92/10 px again. The capture itself still showed the
+  loader over the row, so this is a measurement, not a look at the controls.
+- Seen on the source list page: the native Back button and the page's own
+  Back button are both shown. Not changed.
