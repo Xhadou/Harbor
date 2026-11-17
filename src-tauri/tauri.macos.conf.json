@@ -13,9 +13,17 @@
         "decorations": true,
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
-        "trafficLightPosition": { "x": 22, "y": 32 },
+        "trafficLightPosition": {
+          "x": 22,
+          "y": 32
+        },
         "transparent": false,
-        "backgroundColor": [0, 0, 0, 255],
+        "backgroundColor": [
+          0,
+          0,
+          0,
+          255
+        ],
         "shadow": true,
         "resizable": true,
         "maximizable": true,
@@ -26,5 +34,14 @@
       }
     ]
   },
-  "bundle": { "macOS": { "minimumSystemVersion": "26.0" } }
+  "bundle": {
+    "macOS": {
+      "minimumSystemVersion": "26.0"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": []
+    }
+  }
 }
