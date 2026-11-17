@@ -349,10 +349,52 @@ send, or clicked a web button.
 - Trailers in a wide format carry their own black bars, visible at the top
   and bottom of the hero while the trailer plays.
 
+### Second pass, with real mouse and keyboard input (2026-11-17)
+
+Input was sent to the dev window with a small CGEvent helper (kept in the
+session scratchpad, not in the repo). It refuses to send anything unless the
+Harbor dev app is frontmost and its main window is on screen.
+
+Seen and fine:
+
+- Clicking the sidebar search field focuses it and opens the results panel.
+- Typing shows results; the field's clear button empties it.
+- Escape closes search with the field focused; Enter opens the top match.
+- Double-clicking the sidebar's top zone zooms the window and restores it.
+- Fullscreen from the player hides the traffic lights; leaving brings them back.
+- Parental-lock state of the sidebar, in the off-screen render only
+  (`SNAPSHOT_STATE=locked`): lock marks on gated rows, no profile row.
+
+Found and fixed:
+
+- **Arrow keys broke the search results.** The second Down moved keyboard
+  focus onto the click-away layer behind the results. Focused, that layer
+  loses its absolute positioning, so the dimming vanished and focus then
+  left the panel. The layer is now marked `data-tv-skip`.
+- **The sidebar's top zone did not move the window.** `mouseDownCanMoveWindow`
+  only works for windows movable by their background. The zone now calls
+  `performDrag` itself, and a double-click follows the system title-bar
+  setting (zoom, minimise or nothing). Measured: +60/+40 pt drag and back.
+- **The middle third of the top bar was not a drag area** on macOS, because
+  the empty search column had no height. It now fills the bar.
+
+Not settled:
+
+- **Dragging by the web top bar.** With synthetic input the window sometimes
+  jumps so its corner lands on the pointer instead of following it. The
+  installed upstream Harbor did the same on one of two tries, so this looks
+  like the test input racing Tauri's asynchronous drag start, not this fork.
+  Needs one try with a real mouse.
+
+Left as it is:
+
+- The search field keeps its text after search closes, like Harbor's own
+  search; clicking the field reopens the same results.
+- macOS shows its own small Siri tab beside the window while the search field
+  has focus.
+
 ### Still not checked
 
-- Typing in the native search field and its arrow/Enter/Escape keys (needs
-  the keyboard; only the event path was exercised).
-- Dragging the window by the pane's top zone; double-click to zoom.
-- Kid profile and parental lock.
-- The fullscreen player.
+- Kid profile and the PIN prompt in the real window: reaching them means
+  creating a profile or a PIN in the owner's data.
+- The player's top row while fullscreen: the stream was still connecting.

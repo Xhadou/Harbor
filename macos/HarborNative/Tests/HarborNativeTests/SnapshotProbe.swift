@@ -27,8 +27,12 @@ final class SnapshotProbe: XCTestCase {
         backdrop.layer?.backgroundColor = NSColor(red: 0.45, green: 0.2, blue: 0.1, alpha: 1).cgColor
         window.contentView = backdrop
         let controller = HarborNativeController(window: window, callback: { _, _ in })
+        // SNAPSHOT_STATE=locked renders the parental-lock state: gated rows, no profile row.
+        let locked = ProcessInfo.processInfo.environment["SNAPSHOT_STATE"] == "locked"
         func item(_ id: String, _ title: String, _ symbol: String, _ section: String, active: Bool = false, badge: Int? = nil) -> SidebarItem {
-            SidebarItem(id: id, title: title, symbol: symbol, section: section, active: active, gated: false, badge: badge)
+            SidebarItem(
+                id: id, title: title, symbol: symbol, section: section, active: active,
+                gated: locked && ["discover", "addons"].contains(id), badge: badge)
         }
         controller.setToolbar(ToolbarPayload(visible: true, canGoBack: true, searchVisible: true))
         controller.setSidebar(
@@ -57,7 +61,7 @@ final class SnapshotProbe: XCTestCase {
                     SidebarSection(id: "library", title: "Library"),
                     SidebarSection(id: "more", title: "More"),
                 ],
-                account: SidebarAccount(name: "Pratyush", initials: "PR"),
+                account: locked ? nil : SidebarAccount(name: "Pratyush", initials: "PR"),
                 settings: item("settings", "Settings", "gearshape", "foot")))
         window.layoutIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.6))

@@ -177,7 +177,9 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
         </div>
         <div
           {...dragProps}
-          className={`pointer-events-auto min-w-0 max-w-full transition-[width] duration-200 ease-out ${searchWidth}`}
+          // macOS has no search pill here; fill the height so the middle of
+          // the bar still drags the window like the columns beside it.
+          className={`pointer-events-auto min-w-0 max-w-full transition-[width] duration-200 ease-out ${searchWidth} ${mac ? "h-full" : ""}`}
         >
           {!hideSearch && !hybridBar && <SearchPill />}
         </div>

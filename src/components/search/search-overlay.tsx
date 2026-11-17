@@ -394,6 +394,7 @@ export function SearchOverlay() {
       <TvModalClose onClose={handleModalClose} label={t("Close search")} />
       <button
         tabIndex={-1}
+        data-tv-skip="true"
         aria-label={t("Close search")}
         onMouseDown={beginDragOrClose}
         className={`harbor-search-backdrop no-press absolute -inset-6 cursor-default ${

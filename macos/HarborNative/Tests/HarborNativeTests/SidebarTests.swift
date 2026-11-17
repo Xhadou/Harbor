@@ -112,3 +112,16 @@ final class SidebarTests: XCTestCase {
         XCTAssertEqual(EventLog.kinds(), ["sidebar-account", "sidebar-select"])
     }
 }
+
+final class TitleBarDoubleClickTests: XCTestCase {
+    func testFollowsTheSystemTitleBarSetting() {
+        XCTAssertEqual(TitleBarDoubleClick(setting: "Minimize"), .minimize)
+        XCTAssertEqual(TitleBarDoubleClick(setting: "None"), .none)
+        XCTAssertEqual(TitleBarDoubleClick(setting: "Maximize"), .zoom)
+    }
+
+    func testZoomsWhenTheSettingIsUnsetOrUnknown() {
+        XCTAssertEqual(TitleBarDoubleClick(setting: nil), .zoom)
+        XCTAssertEqual(TitleBarDoubleClick(setting: "Fill"), .zoom)
+    }
+}

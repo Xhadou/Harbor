@@ -78,6 +78,11 @@ function searchHarness() {
   let element;
   return {
     state,
+    tree() {
+      ri = si = ei = 0;
+      pending = [];
+      return exports.SearchOverlay();
+    },
     render() {
       ri = si = ei = 0;
       pending = [];
@@ -126,4 +131,24 @@ test("a new query or profile cannot inherit another search position", () => {
   h.render().scroll(700);
   h.state.profile = "second";
   assert.equal(h.render().element.scrollTop, 0);
+});
+
+function findNode(node, match) {
+  if (!node || typeof node !== "object") return null;
+  if (match(node)) return node;
+  for (const child of [node.props?.children].flat(Infinity)) {
+    const found = findNode(child, match);
+    if (found) return found;
+  }
+  return null;
+}
+
+test("the click-away layer behind the results is not a keyboard navigation stop", () => {
+  const backdrop = findNode(searchHarness().tree(), (node) =>
+    node.props?.className?.includes("harbor-search-backdrop"),
+  );
+  assert.ok(backdrop, "backdrop rendered");
+  // Arrow-key navigation skips [data-tv-skip]; focused, the layer loses its
+  // absolute positioning and stops covering the page.
+  assert.equal(backdrop.props["data-tv-skip"], "true");
 });

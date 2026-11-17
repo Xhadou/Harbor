@@ -105,16 +105,44 @@ final class SidebarHost: NSObject {
     }
 }
 
-/// Empty area that moves the window when dragged and zooms it on double-click,
-/// like the title bar it sits under.
+/// Empty area that behaves like the title bar it sits under: drag it to move
+/// the window, double-click it for the user's title-bar action.
+///
+/// `mouseDownCanMoveWindow` is not enough here: it only moves windows that are
+/// movable by their background, which Harbor's is not.
 final class WindowDragView: NSView {
-    override var mouseDownCanMoveWindow: Bool { true }
-
-    override func mouseUp(with event: NSEvent) {
+    override func mouseDown(with event: NSEvent) {
+        guard let window else { return }
         if event.clickCount == 2 {
-            window?.performZoom(nil)
+            TitleBarDoubleClick.current.perform(on: window)
         } else {
-            super.mouseUp(with: event)
+            window.performDrag(with: event)
+        }
+    }
+}
+
+/// What double-clicking a title bar does, from System Settings › Desktop & Dock.
+enum TitleBarDoubleClick: Equatable {
+    case zoom, minimize, none
+
+    init(setting: String?) {
+        switch setting {
+        case "Minimize": self = .minimize
+        case "None": self = .none
+        default: self = .zoom
+        }
+    }
+
+    static var current: TitleBarDoubleClick {
+        TitleBarDoubleClick(setting: UserDefaults.standard.string(forKey: "AppleActionOnDoubleClick"))
+    }
+
+    @MainActor
+    func perform(on window: NSWindow) {
+        switch self {
+        case .zoom: window.zoom(nil)
+        case .minimize: window.miniaturize(nil)
+        case .none: break
         }
     }
 }
