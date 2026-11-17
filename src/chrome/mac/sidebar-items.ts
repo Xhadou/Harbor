@@ -119,6 +119,22 @@ export function findSidebarTarget(
   return entry ? { view: entry.item.view, gated: entry.gated } : null;
 }
 
+/**
+ * What a "Go" command from the menu bar may do. The menu always lists its
+ * pages, but the sidebar may have dropped one: for a kid profile, behind the
+ * parental lock, or just by preference.
+ */
+export function menuNavigation(
+  entries: readonly SidebarEntryLike[],
+  view: string,
+  state: { locked: boolean; kid: boolean },
+): "go" | "pin" | "ignore" {
+  const entry = entries.find((candidate) => candidate.item.view === view);
+  if (entry) return entry.gated ? "pin" : "go";
+  if (state.kid) return "ignore";
+  return state.locked ? "pin" : "go";
+}
+
 /** Same conditions the React sidebar is rendered under, plus hidden chrome. */
 export function sidebarVisible(state: {
   settingsTop: boolean;

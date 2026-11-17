@@ -11,7 +11,9 @@ import {
   findSidebarTarget,
   profileInitials,
   sidebarVisible,
+  menuNavigation,
 } from "../src/chrome/mac/sidebar-items";
+import { NativeTextEcho } from "../src/chrome/mac/native-text-echo";
 
 const entry = (id: string, primary: boolean, gated = false) => ({
   item: { id, label: `nav.${id}`, view: id },
@@ -194,4 +196,46 @@ test("native sidebar shows where the React sidebar did, and never over hidden ch
   for (const key of Object.keys(shown)) {
     assert.equal(sidebarVisible({ ...shown, [key]: true }), false, key);
   }
+});
+
+const menuEntries = [
+  { item: { id: "home", label: "Home", view: "home" }, primary: true, gated: false },
+  { item: { id: "settings", label: "Settings", view: "settings" }, primary: false, gated: true },
+];
+
+test("a menu command for a page the sidebar still lists follows that page's gate", () => {
+  const open = { locked: false, kid: false };
+  assert.equal(menuNavigation(menuEntries, "home", open), "go");
+  assert.equal(menuNavigation(menuEntries, "settings", { locked: true, kid: false }), "pin");
+});
+
+test("a menu command for a page hidden by the parental lock asks for the PIN", () => {
+  assert.equal(menuNavigation(menuEntries, "movies", { locked: true, kid: false }), "pin");
+});
+
+test("a menu command for a page a kid profile does not have is ignored", () => {
+  assert.equal(menuNavigation(menuEntries, "movies", { locked: false, kid: true }), "ignore");
+  assert.equal(menuNavigation(menuEntries, "movies", { locked: true, kid: true }), "ignore");
+});
+
+test("a menu command for a page hidden only by preference still opens it", () => {
+  assert.equal(menuNavigation(menuEntries, "movies", { locked: false, kid: false }), "go");
+});
+
+test("text the native field already reported is not sent back to it", () => {
+  const echo = new NativeTextEcho();
+  echo.reported("a");
+  echo.reported("ab");
+  // Effects for both keystrokes run late, in order.
+  assert.equal(echo.shouldSend("a"), false);
+  assert.equal(echo.shouldSend("ab"), false);
+});
+
+test("text Harbor chose itself is sent to the native field once", () => {
+  const echo = new NativeTextEcho();
+  echo.reported("du");
+  assert.equal(echo.shouldSend("du"), false);
+  assert.equal(echo.shouldSend("dune part two"), true);
+  assert.equal(echo.shouldSend("dune part two"), false);
+  assert.equal(echo.shouldSend(""), true);
 });

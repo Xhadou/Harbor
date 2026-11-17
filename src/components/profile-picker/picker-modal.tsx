@@ -1,3 +1,4 @@
+import { useCoverNativeChrome } from "@/chrome/mac/use-native-chrome-cover";
 import { ChevronDown, Plus, X } from "@/views/settings/icons";
 import { Lock, Pencil } from "lucide-react";
 import { loadPickerBg } from "@/lib/theme-storage";
@@ -43,6 +44,7 @@ export function ProfilePickerModal() {
     closePicker,
     sessionUnlockedIds,
   } = useProfiles();
+  useCoverNativeChrome("profile-picker", pickerOpen);
 
   const { settings } = useSettings();
   const isNuvio = settings.accountProvider === "nuvio";

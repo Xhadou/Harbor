@@ -3,6 +3,7 @@ import { AccountMenu } from "@/chrome/account-menu/account-menu";
 import { useSidebarNavigation } from "@/chrome/context-page-navigation";
 import { useT } from "@/lib/i18n";
 import { useParental } from "@/lib/parental";
+import { useSearchActions } from "@/lib/search-context";
 import { useProfiles } from "@/lib/profiles";
 import { useUnseenReminderCount } from "@/lib/reminders";
 import { useView, type View } from "@/lib/view";
@@ -57,15 +58,19 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
   // The account menu is Harbor's own; the native profile row only opens it.
   const accountAnchor = useRef<HTMLDivElement>(null);
 
-  const latest = useRef({ entries, go, setView, toggleSidebar });
+  const { setOpen: setSearchOpen } = useSearchActions();
+  const latest = useRef({ entries, go, setView, toggleSidebar, setSearchOpen });
   useEffect(() => {
-    latest.current = { entries, go, setView, toggleSidebar };
+    latest.current = { entries, go, setView, toggleSidebar, setSearchOpen };
   });
 
   useEffect(() => {
     const stops = [
       onNativeEvent("sidebar-select", ({ id }) => {
         const now = latest.current;
+        // Search results sit beside the sidebar, not over it; leaving the
+        // page has to take them down.
+        now.setSearchOpen(false);
         if (id === KIDS_PLAY_ID) {
           now.setView("kids");
           window.dispatchEvent(new CustomEvent("harbor:kids-play"));

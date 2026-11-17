@@ -4,7 +4,7 @@ import { useView } from "@/lib/view";
 import { menuCommand } from "./menu-command";
 import { onNativeEvent } from "./native-events";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
-import { useNativeSearchActive } from "./native-search-state";
+import { searchAllowed } from "./native-search-state";
 
 /**
  * Carries out the macOS menu bar's Harbor commands. They are ignored while
@@ -16,7 +16,6 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
   const { navigate, pinModal } = useGatedNavigation();
   const toggleSidebar = useSidebarToggle();
   const { setOpen } = useSearchActions();
-  const searchAvailable = useNativeSearchActive();
 
   const latest = useRef({
     playerActive,
@@ -25,7 +24,6 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
     navigate,
     toggleSidebar,
     setOpen,
-    searchAvailable,
   });
   useEffect(() => {
     latest.current = {
@@ -35,7 +33,6 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
       navigate,
       toggleSidebar,
       setOpen,
-      searchAvailable,
     };
   });
 
@@ -45,12 +42,17 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
         const now = latest.current;
         const command = menuCommand(action);
         if (!command || now.playerActive) return;
-        if (command.kind === "view") now.navigate(command.view);
-        else if (command.kind === "back") {
-          if (now.canGoBack) now.goBack();
+        if (command.kind === "view") {
+          now.setOpen(false);
+          now.navigate(command.view);
+        } else if (command.kind === "back") {
+          if (!now.canGoBack) return;
+          now.setOpen(false);
+          now.goBack();
         } else if (command.kind === "toggle-sidebar") now.toggleSidebar();
-        // Opening search focuses the toolbar field (see NativeToolbarBridge).
-        else if (now.searchAvailable) now.setOpen(true);
+        // With the sidebar shown this focuses its field (see
+        // NativeToolbarBridge); hidden, Harbor's own search input opens.
+        else if (searchAllowed()) now.setOpen(true);
       }),
     [],
   );

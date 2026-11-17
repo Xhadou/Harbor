@@ -1,3 +1,4 @@
+import { useCoverNativeChrome } from "@/chrome/mac/use-native-chrome-cover";
 import { ArrowRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DoneStep } from "@/components/onboarding/done-step";
@@ -60,6 +61,7 @@ export function OnboardingModal() {
   // Big Picture ships its own ten-foot setup at z-900. Leaving this mounted
   // underneath it keeps a second focusable dialog in native tab order and a
   // second owner of the body scroll lock.
+  useCoverNativeChrome("onboarding", !(onboarded || bigPicture));
   if (onboarded || bigPicture) return null;
 
   const step = STEPS[stepIdx];

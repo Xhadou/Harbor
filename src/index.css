@@ -189,7 +189,7 @@ html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed {
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed [data-mac-hero="content"] {
   padding-inline-start: calc(var(--mac-content-start) + 2rem);
 }
-html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed [data-mac-hero="prev"] {
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed .mac-hero-prev {
   inset-inline-start: calc(var(--mac-content-start) - 2.5rem);
 }
 

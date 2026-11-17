@@ -4,6 +4,7 @@ import { ParentalPinModal } from "@/components/parental-pin-modal";
 import { useParental } from "@/lib/parental";
 import { useSettings } from "@/lib/settings";
 import { useView, type View } from "@/lib/view";
+import { menuNavigation } from "./sidebar-items";
 
 /**
  * Navigation from native macOS chrome, with the same parental gate the React
@@ -19,7 +20,7 @@ export function useGatedNavigation(): {
 } {
   const { setView } = useView();
   const { unlock } = useParental();
-  const { entries } = useSidebarNavigation();
+  const { entries, locked, kid } = useSidebarNavigation();
   const [pendingPinView, setPendingPinView] = useState<View | null>(null);
 
   const go = useCallback(
@@ -29,11 +30,10 @@ export function useGatedNavigation(): {
     },
     [setView],
   );
-  const navigate = (view: View) =>
-    go(
-      view,
-      entries.some((entry) => entry.item.view === view && entry.gated),
-    );
+  const navigate = (view: View) => {
+    const allowed = menuNavigation(entries, view, { locked, kid: !!kid });
+    if (allowed !== "ignore") go(view, allowed === "pin");
+  };
 
   const pinModal = pendingPinView ? (
     <ParentalPinModal

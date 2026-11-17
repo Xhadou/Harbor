@@ -1,3 +1,4 @@
+import { useCoverNativeChrome } from "@/chrome/mac/use-native-chrome-cover";
 import lottie, { type AnimationItem } from "lottie-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -85,6 +86,7 @@ function paintPosters(svg: SVGSVGElement, sources: string[]): void {
 }
 
 export function VoyageLaunch({ thumbs, onDone }: { thumbs: LaunchThumb[]; onDone: () => void }) {
+  useCoverNativeChrome("voyage-launch", true);
   const t = useT();
   const stageRef = useRef<HTMLDivElement>(null);
   const skipRef = useRef<HTMLButtonElement>(null);

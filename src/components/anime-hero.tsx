@@ -210,8 +210,7 @@ export function AnimeHero({
             onClick={prev}
             label={t("Previous")}
             size={38}
-            data-mac-hero="prev"
-            className="absolute start-2 top-1/2 z-30 h-14 w-14 -translate-y-1/2 opacity-25 transition-opacity group-hover:opacity-100"
+            className="mac-hero-prev absolute start-2 top-1/2 z-30 h-14 w-14 -translate-y-1/2 opacity-25 transition-opacity group-hover:opacity-100"
           />
           <NavArrow
             dir="right"

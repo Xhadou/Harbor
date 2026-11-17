@@ -8,6 +8,7 @@ import { nativeChromeCoverStore } from "./native-chrome-cover";
 import { NATIVE_SEARCH_KEY_EVENT, onNativeEvent, pushNativeState } from "./native-events";
 import { applyNativeLayout, setNativeLayoutScale } from "./native-layout";
 import { setNativeSearchParts, useNativeSearchActive } from "./native-search-state";
+import { NativeTextEcho } from "./native-text-echo";
 import { searchHiddenFor, toolbarPayload } from "./toolbar-payload";
 
 /**
@@ -51,9 +52,8 @@ export function NativeToolbarBridge({
     setNativeLayoutScale(settings.uiScale);
   }, [settings.uiScale]);
 
-  // Text and focus as the native field last reported them, to avoid echoing
-  // its own changes back to it.
-  const nativeText = useRef("");
+  // What the native field has typed, so its own text is not sent back to it.
+  const echo = useRef(new NativeTextEcho());
   const nativeFocused = useRef(false);
   const actions = useRef({ goBack, setOpen, setQuery });
   useEffect(() => {
@@ -68,7 +68,10 @@ export function NativeToolbarBridge({
       onNativeEvent("layout", applyNativeLayout, () =>
         pushNativeState("mac_native_toolbar_set", toolbarState.current),
       ),
-      onNativeEvent("toolbar-back", () => actions.current.goBack()),
+      onNativeEvent("toolbar-back", () => {
+        actions.current.setOpen(false);
+        actions.current.goBack();
+      }),
       onNativeEvent("search-begin", () => {
         nativeFocused.current = true;
         actions.current.setOpen(true);
@@ -79,7 +82,7 @@ export function NativeToolbarBridge({
         nativeFocused.current = false;
       }),
       onNativeEvent("search-text", ({ text }) => {
-        nativeText.current = text;
+        echo.current.reported(text);
         actions.current.setQuery(text);
       }),
       onNativeEvent("search-key", (detail) => {
@@ -92,8 +95,7 @@ export function NativeToolbarBridge({
   }, []);
 
   useEffect(() => {
-    if (query === nativeText.current) return;
-    nativeText.current = query;
+    if (!echo.current.shouldSend(query)) return;
     pushNativeState("mac_native_search_set", { text: query });
   }, [query]);
 

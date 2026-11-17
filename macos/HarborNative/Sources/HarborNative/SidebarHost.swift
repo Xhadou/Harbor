@@ -34,7 +34,12 @@ final class SidebarHost: NSObject {
         self.layoutChanged = layoutChanged
         search = SearchFieldController(window: window, emit: emit)
         super.init()
-        model.onSelect = { id in emit("sidebar-select", SidebarSelectPayload(id: id)) }
+        model.onSelect = { [search] id in
+            emit("sidebar-select", SidebarSelectPayload(id: id))
+            // The list took the keyboard with the click. Hand it back, or the
+            // arrow keys would walk the sidebar instead of the page.
+            DispatchQueue.main.async { search.focusWebContent() }
+        }
         model.onAccount = { emit("sidebar-account", EmptyPayload()) }
 
         let header = WindowDragView()

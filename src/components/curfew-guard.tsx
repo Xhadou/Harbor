@@ -1,3 +1,4 @@
+import { useCoverNativeChrome } from "@/chrome/mac/use-native-chrome-cover";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { HarborMark } from "@/components/icons/harbor-mark";
@@ -64,6 +65,7 @@ function CurfewLockdown({
   onSwitch: () => void;
 }) {
   const t = useT();
+  useCoverNativeChrome("curfew", true);
   const hash = profile.kid?.parentPinHash ?? null;
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);

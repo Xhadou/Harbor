@@ -1,4 +1,5 @@
 import AppKit
+import WebKit
 import XCTest
 
 @testable import HarborNative
@@ -96,6 +97,36 @@ final class SidebarTests: XCTestCase {
         XCTAssertEqual(EventLog.kinds(), ["sidebar-select"])
         XCTAssertEqual(EventLog.events[0].json, #"{"id":"library"}"#)
         XCTAssertEqual(controller.sidebar.model.activeID, "home")
+    }
+
+    func testClickingTheHighlightedRowIsReportedButOtherRowsAreLeftToTheList() {
+        let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
+        controller.setSidebar(
+            SidebarPayload(
+                visible: true, collapsed: false,
+                items: [item("home", "browse", active: true), item("library", "library")]))
+        EventLog.events = []
+        // The list's own selection reports a click on any other row.
+        controller.sidebar.model.rowClicked("library")
+        XCTAssertEqual(EventLog.kinds(), [])
+        controller.sidebar.model.rowClicked("home")
+        XCTAssertEqual(EventLog.kinds(), ["sidebar-select"])
+        XCTAssertEqual(EventLog.events[0].json, #"{"id":"home"}"#)
+    }
+
+    func testKeyboardFocusReturnsToThePageAfterARowIsSelected() {
+        let window = makeWindow()
+        let webView = WKWebView(frame: NSRect(x: 0, y: 0, width: 1000, height: 700))
+        window.contentView?.addSubview(webView)
+        let controller = HarborNativeController(window: window, callback: EventLog.callback)
+        controller.setSidebar(
+            SidebarPayload(
+                visible: true, collapsed: false,
+                items: [item("home", "browse", active: true), item("library", "library")]))
+        window.makeFirstResponder(nil)
+        controller.sidebar.model.select("library")
+        RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+        XCTAssertTrue(window.firstResponder === webView)
     }
 
     func testFootReportsAccountAndSettingsClicks() {

@@ -465,3 +465,53 @@ covered by other apps for the whole round and was **not** looked at.
   option), so it was not pinned.
 - On Shows the showcase's neighbouring cards are cut at the content edge
   rather than passing under the glass.
+
+## Whole-branch code review (2026-11-17)
+
+One fresh reviewer read `0dc3528d..HEAD`. No critical findings. It confirmed
+that every new stylesheet rule is scoped to macOS, that the settings helpers
+return their input on other platforms, that the C ABI copies and threads
+strings safely, and that payload shapes agree across TypeScript, Rust and Swift.
+
+### Fixed
+
+| Finding                                                                    | Fix                                                                                                        | Proof                                                                   |
+| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| The Go menu opened pages hidden by the parental lock without a PIN         | `menuNavigation`: a page the sidebar dropped asks for the PIN when locked and is ignored for a kid profile | 4 JS tests, red then green                                              |
+| Fast typing in the native field could be overwritten by its own older text | `NativeTextEcho`: text the field reported is never sent back                                               | 2 JS tests, red then green                                              |
+| Sidebar, Back and Go navigated behind open search results                  | Those handlers close search first                                                                          | Seen in the preview: results close on sidebar click and on Back         |
+| Clicking the highlighted sidebar row did nothing                           | A tap on the active row is reported (`rowClicked`)                                                         | Swift test, red then green; the tap itself not tried in the real window |
+| After a sidebar click the arrow keys walked the sidebar                    | Keyboard focus goes back to the web view                                                                   | Swift test, red then green                                              |
+| Only the screensaver hid the native chrome                                 | Profile picker, curfew lock, onboarding and Voyage launch do too (`useCoverNativeChrome`)                  | Store tests; the layers themselves not looked at                        |
+| Anime's Previous arrow sat under the sidebar                               | The offset is applied through a class the arrow forwards                                                   | Measured in the preview: arrow starts at the pane's edge                |
+| Find did nothing with the sidebar hidden                                   | It opens Harbor's own search whenever the view offers search                                               | Read, not exercised                                                     |
+
+The mirror of Harbor's query to the native field now also runs once on load,
+which clears a stale field after a page reload (a minor finding).
+
+### Ruling: not fixed now
+
+- **A packaged build would update itself to upstream Harbor.** The updater
+  endpoint and key in `tauri.conf.json` are upstream's. Dev builds skip the
+  updater, so nothing happens today. **Must be overridden in
+  `tauri.macos.conf.json` before any packaged build is made**; if forgotten,
+  the installed fork replaces itself with upstream on its first update check.
+- **`data-tv-skip` on the search click-away layer applies on every platform.**
+  Kept: focused, that layer collapses, and TV users close search with their
+  own close control. Cost if wrong: a remote user who relied on focusing the
+  backdrop to close search has to use Back instead.
+
+### Deferred minors
+
+- Mac settings are pinned only when settings load; the theme picker and the
+  cycle-theme hotkey take effect until relaunch.
+- The search hotkey is handled twice (toolbar bridge and Harbor's own).
+- `topbar.tsx` imports `searchHiddenFor` from `src/chrome/mac/`.
+- The kids "Play" title is English only; `--mac-titlebar-inset` is set but unused.
+- No test drives the bridges themselves, and nothing ties the web sidebar
+  payload to Swift's decoding; a payload Swift cannot decode is logged and ignored.
+
+### Declined by the reviewer, still open
+
+- Whether the `swift-rs` build dependency compiles on Windows and Linux hosts.
+- How the converted pages look in the real window.

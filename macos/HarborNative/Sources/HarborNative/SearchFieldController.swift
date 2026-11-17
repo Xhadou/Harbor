@@ -83,7 +83,8 @@ final class SearchFieldController: NSObject, NSSearchFieldDelegate {
         emit(now ? "search-begin" : "search-end", EmptyPayload())
     }
 
-    private func focusWebContent() {
+    /// Gives the keyboard to Harbor's web page.
+    func focusWebContent() {
         guard let window, let content = window.contentView,
             let webView = Self.firstWebView(in: content)
         else { return }

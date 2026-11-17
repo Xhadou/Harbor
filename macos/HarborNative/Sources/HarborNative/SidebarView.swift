@@ -59,6 +59,14 @@ final class SidebarModel {
         onSelect(id)
     }
 
+    /// A click on a row. The list's selection reports clicks on other rows, but
+    /// says nothing about the row that is already highlighted, and clicking
+    /// that one is how you get back to the top of a section from a page
+    /// opened inside it.
+    func rowClicked(_ id: String) {
+        if id == activeID { select(id) }
+    }
+
     func openAccount() {
         onAccount()
     }
@@ -107,6 +115,9 @@ struct SidebarList: View {
             Image(systemName: SidebarItem.resolvedSymbol(for: item.symbol))
         }
         .badge(item.badge ?? 0)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .simultaneousGesture(TapGesture().onEnded { model.rowClicked(item.id) })
         .tag(item.id)
     }
 }

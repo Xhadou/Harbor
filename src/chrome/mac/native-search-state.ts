@@ -16,6 +16,11 @@ export function setNativeSearchParts(next: Partial<typeof parts>): void {
   for (const listener of listeners) listener();
 }
 
+/** Whether Harbor offers search on the current view at all, sidebar or not. */
+export function searchAllowed(): boolean {
+  return parts.allowed;
+}
+
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
