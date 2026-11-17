@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { findHotkeyMatch, shouldHandleGlobalKeyboardEvent } from "@/lib/hotkeys";
 import { useActiveKid } from "@/lib/profiles";
 import { useSearchActions, useSearchData, useSearchOpen } from "@/lib/search-context";
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
+import { nativeChromeCoverStore } from "./native-chrome-cover";
 import { NATIVE_SEARCH_KEY_EVENT, onNativeEvent, pushNativeState } from "./native-events";
 import { applyNativeLayout, setNativeLayoutScale } from "./native-layout";
 import { setNativeSearchParts, useNativeSearchActive } from "./native-search-state";
@@ -29,10 +30,11 @@ export function NativeToolbarBridge({
   const { query } = useSearchData();
   const { settings } = useSettings();
   const hotkeys = settings.hotkeys;
+  const covered = useSyncExternalStore(...nativeChromeCoverStore);
 
   const { visible, searchVisible } = toolbarPayload({
     playerActive,
-    immersive: immersive || chromeHidden,
+    immersive: immersive || chromeHidden || covered,
     canGoBack,
     searchHidden: searchHiddenFor({ view, topKind, connecting: false, kid: !!kid }),
   });

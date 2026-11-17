@@ -1,3 +1,4 @@
+import { setNativeChromeCovered } from "@/chrome/mac/native-chrome-cover";
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 import type { Meta } from "@/lib/cinemeta";
 import { useBigPicture } from "@/lib/big-picture";
@@ -82,6 +83,11 @@ export function ScreensaverRoot() {
     };
   }, [preview]);
   const showing = active || preview;
+  // macOS: the native sidebar floats above the page and has to leave too.
+  useEffect(() => {
+    setNativeChromeCovered("screensaver", showing);
+    return () => setNativeChromeCovered("screensaver", false);
+  }, [showing]);
   const dismissAll = () => {
     dismiss();
     setPreview(false);

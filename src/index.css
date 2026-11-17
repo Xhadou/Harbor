@@ -99,6 +99,12 @@ html[data-os="macos"] [data-search-overlay="true"] {
   padding-inline-start: var(--mac-sidebar-inset);
 }
 
+/* Dialogs are centred in the area beside the sidebar, not on the window; the
+   dimming behind them still covers the page under the glass. */
+html[data-os="macos"] [data-harbor-modal] {
+  padding-inline-start: calc(var(--mac-sidebar-inset) + 2rem);
+}
+
 /* A windowed player keeps the traffic lights on screen, so the controls in
    its top-left corner start after them and sit on their line. */
 html[data-os="macos"] [data-player-top="windowed"] {
