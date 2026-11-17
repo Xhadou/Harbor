@@ -410,3 +410,58 @@ Left as it is:
   loader over the row, so this is a measurement, not a look at the controls.
 - Seen on the source list page: the native Back button and the page's own
   Back button are both shown. Not changed.
+
+## More pages on the layout contract (2026-11-17)
+
+The owner asked for the browse pages, the Library group, the More group and
+then a hygiene pass, with Home's hero left as it is.
+
+### Converted
+
+| Page                                         | What changed                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------------------- |
+| Movies                                       | Hero artwork under the sidebar, text and rows at the content edge               |
+| Shows                                        | Rows under the sidebar; the centred showcase is unchanged                       |
+| Discover                                     | Rows under the sidebar                                                          |
+| Anime                                        | Break-out hero under the sidebar with its own offsets; rows inside and below it |
+| My Library, Collections, Downloads, Calendar | Same content edge as the browse pages                                           |
+| Catalogs, Addons                             | Same content edge                                                               |
+
+How a page opts in: `data-mac-bleed` on the page's own root (the shell's
+layers are `display: contents`, so the layer cannot be the element that
+moves), and `mac-pad` on each padded block.
+
+### Left beside the sidebar, on purpose
+
+- **Live TV, Manga, eBook**: with nothing configured they show only their
+  setup pages, so their real layouts could not be looked at.
+- **Music**: it hosts native child views sized from its own box.
+- **Games**: it has its own inner sidebar; two sidebars side by side is a
+  design question, not a layout one.
+- The collection editor, Settings, the source list.
+
+### Other changes
+
+- Heroes other than Home's get a stronger text shade; Home's is unchanged.
+- The browser preview can be driven like the native shell: dispatch
+  `mac-native://layout` and `mac-native://sidebar-select` CustomEvents on
+  `window` (`registerOnPage` in `native-subscription.ts`).
+- The screensaver now hides the native sidebar and buttons while it shows
+  (`native-chrome-cover.ts`).
+- Shared dialogs are centred beside the sidebar.
+
+### How it was checked
+
+Browser preview only (1280×800, the owner's data, a translucent stand-in for
+the sidebar): each converted page at rest, scrolled, and with a row scrolled
+sideways; no horizontal page scroll on any of them. The real window was
+covered by other apps for the whole round and was **not** looked at.
+
+### Seen and not changed
+
+- The native sidebar stays clickable while a web dialog is open.
+- The crash screen is drawn across the whole window, partly under the sidebar.
+- Poster hover motion is a Harbor setting (`cardHoverStyle`, with a "none"
+  option), so it was not pinned.
+- On Shows the showcase's neighbouring cards are cut at the content edge
+  rather than passing under the glass.
