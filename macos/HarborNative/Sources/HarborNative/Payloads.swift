@@ -81,5 +81,6 @@ struct LayoutPayload: Codable, Equatable, Sendable {
     var titlebarInset: Double
     var sidebarWidth: Double
     var sidebarVisible: Bool
-
+    /// Where a web control in the top-left corner can start, clear of the traffic lights.
+    var controlsInset: Double
 }

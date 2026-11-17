@@ -65,9 +65,11 @@
 :root {
   /* Space taken by native macOS chrome; set from Swift's layout reports.
      --mac-sidebar-inset: where content at rest starts beside the floating sidebar.
-     --mac-titlebar-inset: height of the floating controls zone at the top. */
+     --mac-titlebar-inset: height of the floating controls zone at the top.
+     --mac-controls-inset: where a top-left control starts, past the traffic lights. */
   --mac-titlebar-inset: 0px;
   --mac-sidebar-inset: 0px;
+  --mac-controls-inset: 0px;
 }
 
 /* macOS layout contract. Pages are placed beside the floating sidebar by the
@@ -91,9 +93,17 @@ html[data-os="macos"] {
 }
 
 /* Search results open beside the sidebar that holds the search field, not
-   centred under it. */
+   centred under it. Padding, not an inset, so the dimming behind the results
+   still covers the page under the glass. */
 html[data-os="macos"] [data-search-overlay="true"] {
-  inset-inline-start: var(--mac-sidebar-inset);
+  padding-inline-start: var(--mac-sidebar-inset);
+}
+
+/* A windowed player keeps the traffic lights on screen, so the controls in
+   its top-left corner start after them and sit on their line. */
+html[data-os="macos"] [data-player-top="windowed"] {
+  padding-inline-start: var(--mac-controls-inset);
+  padding-top: 0.625rem;
 }
 
 /* A padded block of a converted page (its scroll container, a text column):

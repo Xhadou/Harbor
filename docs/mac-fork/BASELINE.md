@@ -273,6 +273,9 @@ captures while locked. Two stand-ins were used:
 
 ### Not yet seen in the real window
 
+Most of this list was looked at later; see "Real-window check of the
+redesign" below for what was seen, fixed and still open.
+
 1. The glass itself over artwork, and legibility of sidebar text on bright art.
 2. Traffic lights at their new position (22, 24) inside the pane's top zone.
 3. Typing in the sidebar search field, ↓ into results, Esc; results panel
@@ -295,3 +298,57 @@ captures while locked. Two stand-ins were used:
 - Sidebar group headings follow Harbor's language; button tooltips are English.
 - From the first plan: Task 7 (side-by-side run with installed Harbor) and a
   whole-branch code review have not been done.
+
+## Real-window check of the redesign (2026-11-17)
+
+The screen was unlocked, so the running `pnpm tauri dev` window was captured
+with `screencapture -l` and each state was looked at. States that need a click
+were reached with a temporary probe module (removed afterwards, never
+committed) that emitted the same `mac-native://…` events the native controls
+send, or clicked a web button.
+
+### Seen and fine
+
+- Glass sidebar over the Home hero and the title-page backdrop; sidebar text
+  stays readable on bright art.
+- Home with the sidebar shown and hidden; hero text starts 41 pt after the pane.
+- Title page: backdrop under the glass, Back button at the content edge.
+- Search results beside the sidebar.
+- Account menu opening beside the profile row.
+- An unconverted page (Collections) beside the sidebar.
+- The player: native sidebar and buttons leave; traffic lights stay.
+
+### Found and fixed
+
+- **Content under the sidebar after a cold start.** The page asked Swift for
+  its layout before the page's own listener was registered, so the answer
+  could be lost and both insets stayed 0. The request is now repeated once
+  the listener is in place (`native-subscription.ts`, `onNativeEvent`'s
+  `onReady`). Confirmed on a cold start: insets present in the first report.
+- **Traffic lights sat 8 pt above the sidebar toggle.** `trafficLightPosition`
+  y is now 32, which puts their centre on the toggle's line (30 pt from the
+  window top) in both the shown and the hidden state.
+- **Search dimming stopped at the sidebar's edge**, leaving a bright strip.
+  The overlay is now padded instead of inset, so the dimming covers the page
+  under the glass too.
+- **Player top-left controls under the traffic lights.** Swift now reports
+  where a top-left control may start (`controlsInset`, 92 pt); the windowed
+  player's top row starts there (`data-player-top`, `--mac-controls-inset`).
+  Measured in the real player: first control at x 92–136, lights end at 76.
+
+### Seen, upstream behaviour, left alone
+
+- A hero trailer replaces the backdrop as soon as it can play, and trailers
+  often open on black or on a rating card, so the hero can be black or bright
+  green for a few seconds. With the window in the background the trailer
+  pauses on that frame.
+- Trailers in a wide format carry their own black bars, visible at the top
+  and bottom of the hero while the trailer plays.
+
+### Still not checked
+
+- Typing in the native search field and its arrow/Enter/Escape keys (needs
+  the keyboard; only the event path was exercised).
+- Dragging the window by the pane's top zone; double-click to zoom.
+- Kid profile and parental lock.
+- The fullscreen player.

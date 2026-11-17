@@ -100,6 +100,13 @@ final class ChromeTests: XCTestCase {
         XCTAssertEqual(payload.sidebarWidth, 0)
     }
 
+    func testLayoutReportsWhereControlsClearTheTrafficLights() throws {
+        _ = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
+        let event = try XCTUnwrap(EventLog.events.last { $0.kind == "layout" })
+        let payload = try JSONDecoder().decode(LayoutPayload.self, from: Data(event.json.utf8))
+        XCTAssertEqual(payload.controlsInset, Double(ChromeButtons.afterTrafficLights))
+    }
+
     func testSearchSetUpdatesFieldWithoutEchoingText() {
         let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
         EventLog.events = []

@@ -11,12 +11,13 @@ const SIDEBAR_GUTTER = 16;
 export function layoutInsets(
   layout: NativeLayout,
   scale = 1,
-): { titlebar: string; sidebar: string } {
+): { titlebar: string; sidebar: string; controls: string } {
   const zoom = scale > 0 ? scale : 1;
   const css = (points: number) => `${Math.round((points / zoom) * 100) / 100}px`;
   return {
     titlebar: css(layout.titlebarInset),
     sidebar: layout.sidebarVisible ? css(layout.sidebarWidth + SIDEBAR_GUTTER) : "0px",
+    controls: css(layout.controlsInset),
   };
 }
 
@@ -29,6 +30,7 @@ function write(): void {
   const style = document.documentElement.style;
   style.setProperty("--mac-titlebar-inset", insets.titlebar);
   style.setProperty("--mac-sidebar-inset", insets.sidebar);
+  style.setProperty("--mac-controls-inset", insets.controls);
 }
 
 export function applyNativeLayout(layout: NativeLayout): void {

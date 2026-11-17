@@ -466,6 +466,7 @@ export function Transport({
       <SongIdToast />
       <div
         data-tauri-drag-region={fullscreen ? undefined : ""}
+        data-player-top={fullscreen ? "fullscreen" : "windowed"}
         className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-7 pt-4 pb-8"
       >
         <div

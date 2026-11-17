@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { subscribe } from "./native-subscription";
 
 // Events from the HarborNative Swift package, re-emitted by Rust
 // (src-tauri/src/mac_native/mod.rs) as `mac-native://<kind>`.
@@ -10,6 +11,8 @@ export type NativeLayout = {
   titlebarInset: number;
   sidebarWidth: number;
   sidebarVisible: boolean;
+  /** Where a control in the top-left corner can start, clear of the traffic lights. */
+  controlsInset: number;
 };
 
 export type NativeEventPayloads = {
@@ -27,22 +30,20 @@ export type NativeEventPayloads = {
 
 export type NativeEventKind = keyof NativeEventPayloads;
 
+/**
+ * Listens for one kind of native event. `onReady` runs once the listener is
+ * registered; see `subscribe` for why a request for state has to wait for it.
+ */
 export function onNativeEvent<K extends NativeEventKind>(
   kind: K,
   handler: (payload: NativeEventPayloads[K]) => void,
+  onReady?: () => void,
 ): () => void {
-  let disposed = false;
-  let unlisten: (() => void) | null = null;
-  void listen<NativeEventPayloads[K]>(`mac-native://${kind}`, (event) => handler(event.payload))
-    .then((off) => {
-      if (disposed) off();
-      else unlisten = off;
-    })
-    .catch((e) => console.warn(`[harbor] cannot listen for ${kind}`, e));
-  return () => {
-    disposed = true;
-    unlisten?.();
-  };
+  return subscribe<NativeEventPayloads[K]>(
+    (deliver) => listen<NativeEventPayloads[K]>(`mac-native://${kind}`, (e) => deliver(e.payload)),
+    handler,
+    onReady,
+  );
 }
 
 export type NativeStateCommand =

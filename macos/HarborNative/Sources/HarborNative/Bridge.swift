@@ -71,7 +71,8 @@ final class HarborNativeController {
         let layout = LayoutPayload(
             titlebarInset: Double(SidebarHost.topZone),
             sidebarWidth: sidebar.isShown ? Double(SidebarHost.width) : 0,
-            sidebarVisible: sidebar.isShown)
+            sidebarVisible: sidebar.isShown,
+            controlsInset: Double(ChromeButtons.afterTrafficLights))
         guard force || layout != lastLayout else { return }
         lastLayout = layout
         emit("layout", layout)

@@ -37,8 +37,10 @@ export function NativeToolbarBridge({
     searchHidden: searchHiddenFor({ view, topKind, connecting: false, kid: !!kid }),
   });
 
+  const toolbarState = useRef({ visible, canGoBack, searchVisible });
   useEffect(() => {
-    pushNativeState("mac_native_toolbar_set", { visible, canGoBack, searchVisible });
+    toolbarState.current = { visible, canGoBack, searchVisible };
+    pushNativeState("mac_native_toolbar_set", toolbarState.current);
     setNativeSearchParts({ allowed: searchVisible });
   }, [visible, canGoBack, searchVisible]);
   useEffect(() => () => setNativeSearchParts({ allowed: false }), []);
@@ -58,7 +60,12 @@ export function NativeToolbarBridge({
 
   useEffect(() => {
     const stops = [
-      onNativeEvent("layout", applyNativeLayout),
+      // Swift answers a toolbar update with its layout. The first update goes
+      // out before this listener exists, so ask again once it does; otherwise
+      // the page can start with no insets and sit under the sidebar.
+      onNativeEvent("layout", applyNativeLayout, () =>
+        pushNativeState("mac_native_toolbar_set", toolbarState.current),
+      ),
       onNativeEvent("toolbar-back", () => actions.current.goBack()),
       onNativeEvent("search-begin", () => {
         nativeFocused.current = true;
