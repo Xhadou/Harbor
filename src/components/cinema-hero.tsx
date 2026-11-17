@@ -336,9 +336,12 @@ function CinemaSlide({
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/70 via-30% to-transparent" />
       <MetaAwardsCorner meta={meta} imdbId={resolvedImdb} />
-      <div className="absolute inset-y-0 start-0 w-3/5 bg-gradient-to-r from-canvas/95 via-canvas/55 to-transparent rtl:bg-gradient-to-l" />
+      <div
+        data-hero-shade="side"
+        className="absolute inset-y-0 start-0 w-3/5 bg-gradient-to-r from-canvas/95 via-canvas/55 to-transparent rtl:bg-gradient-to-l"
+      />
 
-      <div className="relative flex h-full items-end pb-28 ps-20 pe-20">
+      <div className="mac-pad relative flex h-full items-end pb-28 ps-20 pe-20">
         <div className="flex max-w-[640px] flex-col gap-5">
           <span className="text-[11px] font-bold uppercase tracking-[0.42em] text-ink-subtle">
             {t(eyebrow)}

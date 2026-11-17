@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { layoutInsets } from "../src/chrome/mac/native-layout";
-import { subscribe } from "../src/chrome/mac/native-subscription";
+import { registerOnPage, subscribe } from "../src/chrome/mac/native-subscription";
 import { searchHiddenFor, toolbarPayload } from "../src/chrome/mac/toolbar-payload";
 
 const shown = { playerActive: false, immersive: false, canGoBack: false, searchHidden: false };
@@ -124,4 +124,17 @@ test("stopping a registered subscription releases its listener", async () => {
   await Promise.resolve();
   stop();
   assert.equal(released, 1);
+});
+
+test("a preview page event reaches the handler until the listener is released", async () => {
+  const page = new EventTarget();
+  const seen: unknown[] = [];
+  const release = await registerOnPage(
+    page,
+    "mac-native://layout",
+  )((payload) => seen.push(payload));
+  page.dispatchEvent(new CustomEvent("mac-native://layout", { detail: { sidebarWidth: 240 } }));
+  release();
+  page.dispatchEvent(new CustomEvent("mac-native://layout", { detail: { sidebarWidth: 0 } }));
+  assert.deepEqual(seen, [{ sidebarWidth: 240 }]);
 });

@@ -31,3 +31,20 @@ export function subscribe<T>(
     release = null;
   };
 }
+
+/**
+ * Registration for `subscribe` that listens on the page itself instead of the
+ * native side: a `CustomEvent` named like the native event, its payload in
+ * `detail`. Used in the browser layout preview, where there is no native
+ * shell, so its sidebar, layout and search can be driven by hand.
+ */
+export function registerOnPage<T>(
+  page: EventTarget,
+  name: string,
+): (handler: (payload: T) => void) => Promise<Release> {
+  return (handler) => {
+    const listener = (event: Event) => handler((event as CustomEvent<T>).detail);
+    page.addEventListener(name, listener);
+    return Promise.resolve(() => page.removeEventListener(name, listener));
+  };
+}

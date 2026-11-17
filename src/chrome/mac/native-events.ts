@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { subscribe } from "./native-subscription";
+import { registerOnPage, subscribe } from "./native-subscription";
+
+const IS_TAURI = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
 // Events from the HarborNative Swift package, re-emitted by Rust
 // (src-tauri/src/mac_native/mod.rs) as `mac-native://<kind>`.
@@ -39,8 +41,11 @@ export function onNativeEvent<K extends NativeEventKind>(
   handler: (payload: NativeEventPayloads[K]) => void,
   onReady?: () => void,
 ): () => void {
+  const name = `mac-native://${kind}`;
   return subscribe<NativeEventPayloads[K]>(
-    (deliver) => listen<NativeEventPayloads[K]>(`mac-native://${kind}`, (e) => deliver(e.payload)),
+    IS_TAURI
+      ? (deliver) => listen<NativeEventPayloads[K]>(name, (e) => deliver(e.payload))
+      : registerOnPage(window, name),
     handler,
     onReady,
   );
@@ -56,6 +61,7 @@ export function pushNativeState(command: NativeStateCommand, payload: unknown): 
 }
 
 export function pushNativeJson(command: NativeStateCommand, json: string): void {
+  if (!IS_TAURI) return;
   void invoke(command, { payload: json }).catch((e) =>
     console.warn(`[harbor] ${command} failed`, e),
   );

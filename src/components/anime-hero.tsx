@@ -125,6 +125,7 @@ export function AnimeHero({
         })}
         <div
           aria-hidden
+          data-hero-shade="side"
           className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[var(--color-canvas)] from-0% via-[color-mix(in_oklch,var(--color-canvas),transparent_50%)] via-55% to-[color-mix(in_oklch,var(--color-canvas),transparent_92%)] to-100%"
         />
         <div
@@ -137,7 +138,10 @@ export function AnimeHero({
         />
       </div>
 
-      <div className="relative z-10 flex min-h-[520px] items-end px-20 pt-24 pb-10">
+      <div
+        data-mac-hero="content"
+        className="relative z-10 flex min-h-[520px] items-end px-20 pt-24 pb-10"
+      >
         <div
           className="flex max-w-[520px] flex-col gap-5"
           style={{ transition: `opacity ${FADE_MS}ms ease-out` }}
@@ -206,6 +210,7 @@ export function AnimeHero({
             onClick={prev}
             label={t("Previous")}
             size={38}
+            data-mac-hero="prev"
             className="absolute start-2 top-1/2 z-30 h-14 w-14 -translate-y-1/2 opacity-25 transition-opacity group-hover:opacity-100"
           />
           <NavArrow
@@ -218,7 +223,7 @@ export function AnimeHero({
         </>
       )}
 
-      <div className="relative z-10 flex flex-col gap-5 px-12 pb-12" data-saved={savedTick}>
+      <div className="mac-pad relative z-10 flex flex-col gap-5 px-12 pb-12" data-saved={savedTick}>
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-[20px] font-medium tracking-tight text-ink">
             {t("Top Picks for You")}
@@ -259,7 +264,10 @@ export function AnimeHeroSkeleton() {
     <section className="relative -mx-12 -mt-28" aria-hidden>
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-elevated/45 via-surface/30 to-canvas" />
-        <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[var(--color-canvas)] from-0% via-[color-mix(in_oklch,var(--color-canvas),transparent_50%)] via-55% to-[color-mix(in_oklch,var(--color-canvas),transparent_92%)] to-100%" />
+        <div
+          data-hero-shade="side"
+          className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-[var(--color-canvas)] from-0% via-[color-mix(in_oklch,var(--color-canvas),transparent_50%)] via-55% to-[color-mix(in_oklch,var(--color-canvas),transparent_92%)] to-100%"
+        />
         <div
           className="absolute inset-x-0 bottom-0 h-[60%]"
           style={{
@@ -268,7 +276,7 @@ export function AnimeHeroSkeleton() {
           }}
         />
       </div>
-      <div className="relative z-10 flex min-h-[520px] items-end px-12 pt-24 pb-10">
+      <div className="mac-pad relative z-10 flex min-h-[520px] items-end px-12 pt-24 pb-10">
         <div className="flex max-w-[520px] flex-col gap-5">
           <div className="h-4 w-40 animate-pulse rounded-full bg-elevated/50" />
           <div className="h-16 w-[360px] max-w-full animate-pulse rounded-2xl bg-elevated/50" />
@@ -284,7 +292,7 @@ export function AnimeHeroSkeleton() {
           </div>
         </div>
       </div>
-      <div className="relative z-10 flex flex-col gap-5 px-12 pb-12">
+      <div className="mac-pad relative z-10 flex flex-col gap-5 px-12 pb-12">
         <div className="h-5 w-44 animate-pulse rounded-full bg-elevated/45" />
         <div className="flex gap-4 overflow-hidden">
           {Array.from({ length: 7 }).map((_, i) => (

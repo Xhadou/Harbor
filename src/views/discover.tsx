@@ -525,7 +525,11 @@ export function Discover({ active = true }: { active?: boolean }) {
   };
 
   return (
-    <main ref={scrollCb} className="flex-1 overflow-y-auto overflow-x-hidden px-12 pb-20 pt-28">
+    <main
+      ref={scrollCb}
+      data-mac-bleed
+      className="mac-pad flex-1 overflow-y-auto overflow-x-hidden px-12 pb-20 pt-28"
+    >
       <ScrollRootContext.Provider value={scrollEl}>
         <div {...contentDrag} data-context-page-background className="flex flex-col gap-14">
           {pageRows.editMode || !hiddenFeatured ? (

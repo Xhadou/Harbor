@@ -108,7 +108,8 @@ html[data-os="macos"] [data-player-top="windowed"] {
 
 /* A padded block of a converted page (its scroll container, a text column):
    starts at the content start instead of at the window edge. */
-html[data-os="macos"] [data-mac-bleed] .mac-pad {
+html[data-os="macos"] [data-mac-bleed] .mac-pad,
+html[data-os="macos"] [data-mac-bleed].mac-pad {
   padding-inline-start: var(--mac-content-start);
 }
 
@@ -123,6 +124,25 @@ html[data-os="macos"] [data-mac-bleed] .harbor-hero-full .harbor-hero-content {
 /* Keep the artwork alive on the left, where the glass sidebar sits over it:
    a scrim that gathers behind the text block at the bottom-left instead of a
    solid wall of canvas down the whole side. */
+html[data-os="macos"] [data-mac-bleed] [data-hero-shade="side"] {
+  width: 100%;
+  background:
+    radial-gradient(
+      115% 85% at 0% 100%,
+      rgb(0 0 0 / 0.78) 0%,
+      rgb(0 0 0 / 0.56) 38%,
+      rgb(0 0 0 / 0.2) 62%,
+      transparent 80%
+    ),
+    linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.66) 0%,
+      rgb(0 0 0 / 0.58) 42%,
+      rgb(0 0 0 / 0.2) 70%,
+      transparent 86%
+    );
+}
+/* Home's hero carries less text over calmer art and keeps a lighter shade. */
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-hero-shade="side"] {
   background:
     radial-gradient(
@@ -152,6 +172,19 @@ html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-home-customize] {
   bottom: 3.25rem;
   inset-inline-end: 3rem;
+}
+
+/* Heroes that break out of the page padding (Anime, Manga): artwork to the
+   window edge, text and the previous arrow clear of the sidebar, each keeping
+   its own offset from the content edge. */
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed {
+  margin-inline-start: calc(-1 * var(--mac-content-start));
+}
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed [data-mac-hero="content"] {
+  padding-inline-start: calc(var(--mac-content-start) + 2rem);
+}
+html[data-os="macos"] [data-mac-bleed] .harbor-hero-bleed [data-mac-hero="prev"] {
+  inset-inline-start: calc(var(--mac-content-start) - 2.5rem);
 }
 
 /* Rows: the heading and the first card rest at the content start, and the
