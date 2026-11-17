@@ -122,8 +122,10 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
     <header
       data-cleannav={settings.topbarAppearance === "transparent" ? "on" : undefined}
       className={`pointer-events-none fixed inset-x-0 top-0 ${connecting ? "z-[130]" : "z-[55]"} h-20`}
-      // macOS: level with the floating native controls, starting past the sidebar.
-      style={mac ? { height: "60px", insetInlineStart: "var(--mac-sidebar-inset)" } : undefined}
+      // macOS: level with the floating native controls. The bar itself spans the
+      // window so its fade and blur run under the glass sidebar too; only its
+      // contents start past the sidebar.
+      style={mac ? { height: "60px" } : undefined}
     >
       {!inSettings && settings.topbarScrollBlur && settings.topbarAppearance !== "transparent" && (
         <div
@@ -142,6 +144,7 @@ export function Topbar({ connecting = false }: { connecting?: boolean } = {}) {
       <div
         {...dragProps}
         data-harbor-topbar-content
+        style={mac ? { marginInlineStart: "var(--mac-sidebar-inset)" } : undefined}
         className={`relative z-10 grid h-full grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-8 ${
           hybridBar ? "pt-11" : ""
         }`}
