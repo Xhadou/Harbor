@@ -336,6 +336,10 @@ send, or clicked a web button.
   player's top row starts there (`data-player-top`, `--mac-controls-inset`).
   Measured in the real player: first control at x 92–136, lights end at 76.
 
+- **Hero synopsis hard to read on bright artwork.** The shade behind the hero
+  text is stronger and reaches across the text column; checked on a bright
+  and a dark slide.
+
 ### Seen, upstream behaviour, left alone
 
 - A hero trailer replaces the backdrop as soon as it can play, and trailers

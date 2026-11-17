@@ -132,7 +132,13 @@ html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-hero-shade="side"
       rgb(0 0 0 / 0.2) 62%,
       transparent 80%
     ),
-    linear-gradient(to right, rgb(0 0 0 / 0.28) 0%, transparent 45%);
+    linear-gradient(
+      to right,
+      rgb(0 0 0 / 0.5) 0%,
+      rgb(0 0 0 / 0.42) 40%,
+      rgb(0 0 0 / 0.14) 68%,
+      transparent 82%
+    );
 }
 /* Trim the last two pixel rows: under interface zoom the artwork can round a
    pixel past its fade and leave a bright hairline above the first row. */
