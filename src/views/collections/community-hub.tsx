@@ -153,7 +153,8 @@ function HubGrid({
     <main
       ref={scrollRef}
       style={active ? undefined : { display: "none" }}
-      className="flex-1 overflow-y-auto px-5 pt-24 pb-20 sm:px-8 lg:px-12 lg:pt-28"
+      data-mac-bleed
+      className="mac-pad flex-1 overflow-y-auto px-5 pt-24 pb-20 sm:px-8 lg:px-12 lg:pt-28"
     >
       <div
         data-context-page-background

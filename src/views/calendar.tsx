@@ -243,9 +243,10 @@ export function CalendarView({
   return (
     <main
       data-tv-chrome-offset
+      data-mac-bleed
       className={`flex h-full flex-col overflow-hidden${source === "games" ? " calendar-games-view" : ""}`}
     >
-      <header className="shrink-0 border-b border-edge-soft px-12 pb-5 pt-24">
+      <header className="mac-pad shrink-0 border-b border-edge-soft px-12 pb-5 pt-24">
         <div className="flex items-end justify-between gap-6">
           <div className="flex flex-col gap-1.5">
             <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink-subtle">
@@ -475,7 +476,7 @@ export function CalendarView({
       <div ref={railHostRef} className="relative flex min-h-0 flex-1">
         <div
           ref={scrollRef}
-          className="calendar-body-scroll min-w-0 flex-1 overflow-y-auto px-12 py-8"
+          className="mac-pad calendar-body-scroll min-w-0 flex-1 overflow-y-auto px-12 py-8"
         >
           {body}
         </div>

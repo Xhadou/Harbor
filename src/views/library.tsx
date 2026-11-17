@@ -170,7 +170,8 @@ export function LibraryView({ active }: { active: boolean }) {
     <main
       ref={scrollRef}
       data-harbor-library
-      className="flex-1 overflow-y-auto px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
+      data-mac-bleed
+      className="mac-pad flex-1 overflow-y-auto px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
     >
       <LibraryFeaturedProvider>
         <div {...contentDrag} data-context-page-background className="flex flex-col gap-7">
