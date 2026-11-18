@@ -140,7 +140,7 @@ export function AnimeHero({
 
       <div
         data-mac-hero="content"
-        className="relative z-10 flex min-h-[520px] items-end px-20 pt-24 pb-10"
+        className="mac-zoom-fixed relative z-10 flex min-h-[520px] items-end px-20 pt-24 pb-10"
       >
         <div
           className="flex max-w-[520px] flex-col gap-5"

@@ -40,7 +40,7 @@ export function FeaturedBanner({ items }: { items: Meta[] }) {
   if (items.length === 0) {
     if (hasLoadedRef.current) return null;
     return (
-      <section className="flex flex-col gap-5">
+      <section className="mac-zoom-fixed flex flex-col gap-5">
         <h2 className="font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
           {t("Recommended")}
         </h2>
@@ -58,7 +58,7 @@ export function FeaturedBanner({ items }: { items: Meta[] }) {
   return (
     <section
       ref={ref}
-      className="flex flex-col gap-5"
+      className="mac-zoom-fixed flex flex-col gap-5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

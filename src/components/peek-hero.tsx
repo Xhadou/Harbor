@@ -55,7 +55,7 @@ export function PeekHero({ slides }: { slides: Meta[] }) {
 
   if (slides.length === 0) {
     return (
-      <div className="flex h-[440px] animate-pulse items-center justify-center rounded-3xl border border-edge-soft bg-elevated/20" />
+      <div className="mac-zoom-fixed flex h-[440px] animate-pulse items-center justify-center rounded-3xl border border-edge-soft bg-elevated/20" />
     );
   }
 
@@ -119,7 +119,7 @@ export function PeekHero({ slides }: { slides: Meta[] }) {
   return (
     <div
       ref={ref}
-      className="flex flex-col gap-5"
+      className="mac-zoom-fixed flex flex-col gap-5"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

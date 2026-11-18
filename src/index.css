@@ -119,6 +119,22 @@ html[data-os="macos"] [data-mac-bleed].mac-pad {
   padding-inline-start: var(--mac-content-start);
 }
 
+/* A hero keeps one size whatever the interface zoom is; the zoom is for the
+   rows and text around it. `--mac-hero-zoom` (set with the interface scale,
+   see native-layout.ts) cancels the page zoom inside `.mac-zoom-fixed`. CSS
+   zoom multiplies every length inside it, viewport units and the contract's
+   own lengths included, so those two are divided by it again here: a hero
+   sized with `--mac-vh` keeps its share of the window, and its text still
+   starts level with the rows below. */
+html[data-os="macos"] {
+  --mac-hero-zoom: 1;
+}
+html[data-os="macos"] .mac-zoom-fixed {
+  zoom: var(--mac-hero-zoom);
+  --mac-vh: calc(1vh / var(--mac-hero-zoom));
+  --mac-content-start: calc((var(--mac-sidebar-inset) + var(--mac-gutter)) / var(--mac-hero-zoom));
+}
+
 /* Full-bleed hero: artwork to the window's left, right and top edges, text
    held clear of the sidebar. */
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {

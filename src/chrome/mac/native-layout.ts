@@ -21,10 +21,23 @@ export function layoutInsets(
   };
 }
 
+/**
+ * The interface scale heroes are drawn at. Zooming the interface changes the
+ * size of everything else on a page; a hero keeps the size it has at this scale.
+ */
+export const HERO_SCALE = 0.8;
+
+/** The CSS `zoom` that cancels the interface scale for a hero (`.mac-zoom-fixed`). */
+export function heroZoom(scale = 1): number {
+  const zoom = scale > 0 ? scale : 1;
+  return Math.round((HERO_SCALE / zoom) * 10000) / 10000;
+}
+
 let lastLayout: NativeLayout | null = null;
 let interfaceScale = 1;
 
 function write(): void {
+  document.documentElement.style.setProperty("--mac-hero-zoom", String(heroZoom(interfaceScale)));
   if (!lastLayout) return;
   const insets = layoutInsets(lastLayout, interfaceScale);
   const style = document.documentElement.style;

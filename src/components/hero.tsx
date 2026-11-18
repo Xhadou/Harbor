@@ -9,6 +9,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
+import { HERO_FULL_HEIGHT } from "@/components/hero-size";
 import { Play } from "@/components/icons/play-filled";
 import { ImdbIcon } from "@/components/icons/imdb-icon";
 import tmdbIcon from "@/assets/addon-logos/tmdb.png";
@@ -299,7 +300,7 @@ export const Hero = memo(function Hero({
       onContextMenu={onContextMenu}
       ref={sectionRef}
       onClick={() => openMeta({ ...meta, logo: logo ?? meta.logo })}
-      className={`harbor-hero-stage group relative cursor-pointer overflow-hidden bg-canvas ${full ? "h-[78vh] min-h-[640px] rounded-none" : "h-[560px] rounded-2xl"}`}
+      className={`harbor-hero-stage group relative cursor-pointer overflow-hidden bg-canvas ${full ? `${HERO_FULL_HEIGHT} min-h-[640px] rounded-none` : "h-[560px] rounded-2xl"}`}
       style={{ isolation: "isolate" }}
     >
       {bg && loadBackdrop && (

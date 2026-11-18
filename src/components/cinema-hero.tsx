@@ -1,4 +1,5 @@
 import { ChevronRight, Info } from "lucide-react";
+import { HERO_FULL_HEIGHT } from "@/components/hero-size";
 import { Play } from "@/components/icons/play-filled";
 import { useEffect, useRef, useState } from "react";
 import { ImdbIcon } from "@/components/icons/imdb-icon";
@@ -139,7 +140,9 @@ export function CinemaHero({
 
   if (slides.length === 0) {
     return (
-      <section className="harbor-bleed-stremio relative h-[78vh] min-h-[640px] animate-pulse bg-elevated/30" />
+      <section
+        className={`harbor-bleed-stremio mac-zoom-fixed relative ${HERO_FULL_HEIGHT} min-h-[640px] animate-pulse bg-elevated/30`}
+      />
     );
   }
 
@@ -148,7 +151,7 @@ export function CinemaHero({
   return (
     <section
       ref={ref}
-      className="harbor-bleed-stremio relative h-[78vh] min-h-[640px] overflow-hidden bg-canvas"
+      className={`harbor-bleed-stremio mac-zoom-fixed relative ${HERO_FULL_HEIGHT} min-h-[640px] overflow-hidden bg-canvas`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

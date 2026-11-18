@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 // @ts-expect-error Node test types are intentionally outside the browser-only tsconfig.
 import test from "node:test";
 
-import { layoutInsets } from "../src/chrome/mac/native-layout";
+import { HERO_SCALE, heroZoom, layoutInsets } from "../src/chrome/mac/native-layout";
 import { registerOnPage, subscribe } from "../src/chrome/mac/native-subscription";
 import { searchHiddenFor, toolbarPayload } from "../src/chrome/mac/toolbar-payload";
 
@@ -72,6 +72,17 @@ test("layout insets are converted from screen points to CSS pixels under interfa
   assert.deepEqual(layoutInsets(layout, 1), unzoomed);
   // A missing or nonsensical scale means no zoom.
   assert.deepEqual(layoutInsets(layout, 0), unzoomed);
+});
+
+test("a hero's zoom cancels the interface scale, so it stays the size it has at the hero scale", () => {
+  assert.equal(heroZoom(HERO_SCALE), 1);
+  // Scale times zoom is what a hero is drawn at: always the hero scale.
+  for (const scale of [0.8, 0.95, 1, 1.25, 1.6]) {
+    assert.ok(Math.abs(scale * heroZoom(scale) - HERO_SCALE) < 0.001, `scale ${scale}`);
+  }
+  // A missing or nonsensical scale means no zoom.
+  assert.equal(heroZoom(0), heroZoom(1));
+  assert.equal(heroZoom(), heroZoom(1));
 });
 
 function deferred<T>() {

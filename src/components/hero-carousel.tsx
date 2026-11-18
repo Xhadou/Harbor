@@ -4,6 +4,7 @@ import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { isRtl, useT, useUiLanguage } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import { Hero } from "./hero";
+import { HERO_FULL_HEIGHT } from "./hero-size";
 import { NavChevron } from "@/components/nav-arrow";
 import type { Meta } from "@/lib/cinemeta";
 
@@ -116,7 +117,7 @@ export function HeroCarousel({
   if (slides.length === 0) {
     return (
       <div
-        className={`harbor-hero-stage animate-pulse border border-edge-soft bg-elevated/30 ${full ? "min-h-[max(78vh,640px)] rounded-none" : "min-h-[560px] rounded-2xl"}`}
+        className={`harbor-hero-stage mac-zoom-fixed animate-pulse border border-edge-soft bg-elevated/30 ${full ? `${HERO_FULL_HEIGHT} min-h-[640px] rounded-none` : "min-h-[560px] rounded-2xl"}`}
       />
     );
   }
@@ -240,7 +241,7 @@ export function HeroCarousel({
 
   return (
     <div
-      className={full ? "relative" : "flex flex-col gap-5"}
+      className={`mac-zoom-fixed ${full ? "relative" : "flex flex-col gap-5"}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -299,7 +300,7 @@ export function HeroCarousel({
                   />
                 ) : (
                   <div
-                    className={`harbor-hero-stage w-full bg-elevated/30 ${full ? "h-[78vh] min-h-[640px] rounded-none" : "h-[560px] rounded-2xl"}`}
+                    className={`harbor-hero-stage w-full bg-elevated/30 ${full ? `${HERO_FULL_HEIGHT} min-h-[640px] rounded-none` : "h-[560px] rounded-2xl"}`}
                   />
                 )}
               </div>
