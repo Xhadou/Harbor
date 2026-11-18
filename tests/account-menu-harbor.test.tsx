@@ -235,7 +235,7 @@ async function fixture(harborSignedIn = false, stremioSignedIn = false, kid = fa
           throw new Error("Unexpected avatar upload");
         },
       },
-      "./groups": { TOP_GROUPS: [] },
+      "./groups": { BAND_LABELS: {}, settingsBands: () => [] },
       "./section-icons": { SECTION_ICONS: {} },
       "./set-icon": { SetIcon: () => null },
       "./tab-registry": { tabsFor: () => [] },

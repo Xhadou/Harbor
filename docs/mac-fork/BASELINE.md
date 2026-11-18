@@ -612,3 +612,90 @@ on the title page) are untouched and were not measured.
 on "fetching jdk-17.0.21+9" (an open connection to GitHub's download host, no
 progress for 30 minutes). Nothing has been compared against a production
 build, so how much of the slowness is the development build is unknown.
+
+## Settings, zoom and a crash (2026-11-18)
+
+### Crash when the sidebar hides
+
+`NativeSidebarBridge` called a hook only while the sidebar was wanted
+(`wanted && !useSyncExternalStore(...)`), so the first time the sidebar hid
+the hook order changed and React threw; the app showed its error page.
+Reproduced by opening Settings. The same code path runs for the player, the
+stream picker and immersive mode; those were not reproduced. Introduced by
+`6ec0c076`. Fixed by reading the cover state on every render. No test: nothing
+in the repo renders this component.
+
+### Heroes do not follow the interface zoom
+
+The owner: when zooming in, the hero should stay as it is and only the other
+things should grow. The zoom was at 80% when they said the hero was fine, so
+that is the scale heroes are drawn at (`HERO_SCALE` in
+`src/chrome/mac/native-layout.ts`; change that one number to resize them).
+
+- `--mac-hero-zoom` is set with the interface scale and `.mac-zoom-fixed`
+  applies it as CSS `zoom`, cancelling the page zoom inside the hero.
+- Measured in the macOS web view: CSS zoom multiplies every length inside it,
+  viewport units included, and an element's own margins and padding. So the
+  hero's height uses `--mac-vh` (`HERO_FULL_HEIGHT` in
+  `src/components/hero-size.ts`) and `--mac-content-start` is redefined inside
+  `.mac-zoom-fixed`; both divide by the zoom again.
+- The class goes on an element with no margins of its own that depend on the
+  page's scale. On Anime it is on the hero's text block only, because that
+  hero also carries a row of posters, which has to follow the zoom.
+- Applied to: Home and Library (`HeroCarousel`), Movies (`CinemaHero`), Shows
+  (`PeekHero`), Discover (`FeaturedBanner`), Anime (`AnimeHero` text block).
+
+Checked in the real window at 80%, 100%, 120% and 130%:
+
+| Page   | Hero at 80%   | Hero at 120–130% | Text start vs. row heading |
+| ------ | ------------- | ---------------- | -------------------------- |
+| Home   | 1464 × 720 pt | 1460 × 720 pt    | equal at every scale       |
+| Movies | 1464 × 720 pt | 1461 × 720 pt    | equal                      |
+
+Shows, Discover and Anime were looked at at 120%. Known limits: text inside a
+hero still grows by about 3–5% across the range (font-size rounding); the
+Discover banner is 16 pt taller at 120% than at 80%; the Anime and Manga
+skeletons and the Manga hero are not fixed; breakpoints inside a hero still
+follow the zoomed viewport width.
+
+### Settings
+
+The owner asked for a rebuilt Settings page with a MacBook feel, consistent
+with the rest.
+
+- While Settings is on screen the native sidebar lists the settings pages
+  (32, in 10 groups) instead of Harbor's navigation. No Swift change: the
+  sidebar already takes any list. `src/views/settings/mac-settings-chrome.tsx`
+  publishes the pages, `src/chrome/mac/settings-sidebar.ts` holds the model,
+  the SF Symbol for each page and the store, and `NativeSidebarBridge` shows
+  them and routes `settings-page:<id>` clicks back. `sidebarVisible` no longer
+  hides the sidebar in Settings.
+- The page's own rail is hidden; a page's tabs are a strip above its content
+  (`MacSettingsTabs`), fed by what the panel registers through `useSubTabs`.
+- Search is a field on the title line. Its results are still rendered by the
+  rail component, shown as a panel beneath the field.
+- Look: the block at the end of `src/index.css` ("Settings on macOS"). It
+  overrides the shell's `--hset-*` variables and restyles the shared hooks
+  (`.harbor-settings-group` as a card, `.hset-row`, `.harbor-settings-label`,
+  switches, segmented controls, buttons in a row's control column). Three
+  hooks were added for it: `hset-toggle`, `hset-toggle-knob`,
+  `hset-segmented`.
+- The grouping of pages (`settingsBands`, `BAND_LABELS`) moved from the rail
+  component to `src/views/settings/groups.ts` so both sidebars share it.
+
+Seen in the real window: Account, Trackers, Get started, Player & quality,
+Subtitles, Streaming sources, Library & metadata, Theme & appearance, Hotkeys,
+Storage, Advanced, the search panel, and Back returning to Shows with the
+normal sidebar. Not looked at: the other 21 pages; panels that draw their own
+controls with utility classes keep Harbor's larger buttons and fields; nothing
+was removed, so TV, Big Picture, remotes and updates are still listed.
+
+### How it was looked at without taking the window to the front
+
+A temporary module imported from `src/main.tsx` emitted the native events
+(`mac-native://menu`, `mac-native://sidebar-select`) and
+`screencapture -x -o -l <window id>` captured the window while another app was
+in front. Zoom was stepped by dispatching ⌘= / ⌘- key events and stepped back
+afterwards; that goes through the owner's saved setting, so check it is
+restored. A second browser (the preview) also loads such a module; guard it
+with `"__TAURI_INTERNALS__" in window`.
