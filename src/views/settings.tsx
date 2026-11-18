@@ -15,6 +15,7 @@ import { groupForSection, TOP_GROUPS } from "./settings/groups";
 import { requestTracker } from "./settings/tracker-request";
 import { SubTabsProvider, type SubTabReg } from "./settings/sub-tabs";
 import { SettingsSidebar } from "./settings/settings-sidebar";
+import { MacSettingsNav, MacSettingsTabs } from "./settings/mac-settings-chrome";
 import { tabsFor } from "./settings/tab-registry";
 import {
   glideSettingsToTop,
@@ -639,6 +640,12 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 onSelect={selectFromRail}
                 onJump={handleNav}
               />
+              <MacSettingsNav
+                visible={visible}
+                active={active}
+                meta={SECTION_META}
+                onSelect={selectFromRail}
+              />
               <main
                 ref={scrollRef}
                 inert={compact && browseOpen}
@@ -646,6 +653,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 data-hset-wide={wide ? "" : undefined}
               >
                 <div className="hset-content">
+                  <MacSettingsTabs reg={subReg} />
                   <Suspense
                     fallback={
                       <div

@@ -11,6 +11,7 @@ import { nativeChromeCoverStore } from "./native-chrome-cover";
 import { onNativeEvent, pushNativeJson } from "./native-events";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
 import { setNativeSearchParts } from "./native-search-state";
+import { settingsNavStore, settingsPageOf } from "./settings-sidebar";
 import {
   buildNativeSidebar,
   findSidebarTarget,
@@ -36,17 +37,21 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
   const { activeProfile } = useProfiles();
   const { locked } = useParental();
   const collapsed = settings.sidebarCollapsed;
+  // Non-null while Settings is on screen: its pages take the list's place.
+  const settingsNav = useSyncExternalStore(...settingsNavStore);
 
   const profileName = activeProfile?.name ?? "";
+  const navigation = buildNativeSidebar(entries, view, t, {
+    renamed: customization.renamed,
+    kid: !!kid,
+    reminderCount,
+    customOrder: customization.order.length > 0,
+  });
   const payload = JSON.stringify({
     visible,
     collapsed,
-    ...buildNativeSidebar(entries, view, t, {
-      renamed: customization.renamed,
-      kid: !!kid,
-      reminderCount,
-      customOrder: customization.order.length > 0,
-    }),
+    ...navigation,
+    ...(settingsNav ? { items: settingsNav.items, sections: settingsNav.sections } : null),
     // Under parental lock the profile cannot be switched, as in the React sidebar.
     account: locked ? null : { name: profileName, initials: profileInitials(profileName) },
   });
@@ -62,9 +67,9 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
   const accountAnchor = useRef<HTMLDivElement>(null);
 
   const { setOpen: setSearchOpen } = useSearchActions();
-  const latest = useRef({ entries, go, setView, toggleSidebar, setSearchOpen });
+  const latest = useRef({ entries, go, setView, toggleSidebar, setSearchOpen, settingsNav });
   useEffect(() => {
-    latest.current = { entries, go, setView, toggleSidebar, setSearchOpen };
+    latest.current = { entries, go, setView, toggleSidebar, setSearchOpen, settingsNav };
   });
 
   useEffect(() => {
@@ -74,6 +79,11 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
         // Search results sit beside the sidebar, not over it; leaving the
         // page has to take them down.
         now.setSearchOpen(false);
+        const settingsPage = settingsPageOf(id);
+        if (settingsPage !== null) {
+          now.settingsNav?.select(settingsPage);
+          return;
+        }
         if (id === KIDS_PLAY_ID) {
           now.setView("kids");
           window.dispatchEvent(new CustomEvent("harbor:kids-play"));

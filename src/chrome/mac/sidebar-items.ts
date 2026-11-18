@@ -135,9 +135,11 @@ export function menuNavigation(
   return state.locked ? "pin" : "go";
 }
 
-/** Same conditions the React sidebar is rendered under, plus hidden chrome. */
+/**
+ * Same conditions the React sidebar is rendered under, plus hidden chrome.
+ * Settings keeps the sidebar: it lists the settings pages there (settings-sidebar.ts).
+ */
 export function sidebarVisible(state: {
-  settingsTop: boolean;
   playerActive: boolean;
   standaloneLive: boolean;
   pickerTop: boolean;
@@ -145,7 +147,6 @@ export function sidebarVisible(state: {
   chromeHidden: boolean;
 }): boolean {
   return (
-    !state.settingsTop &&
     !state.playerActive &&
     !state.standaloneLive &&
     !state.pickerTop &&

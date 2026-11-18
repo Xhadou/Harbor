@@ -14,6 +14,12 @@ import {
   menuNavigation,
 } from "../src/chrome/mac/sidebar-items";
 import { NativeTextEcho } from "../src/chrome/mac/native-text-echo";
+import {
+  buildSettingsSidebar,
+  SETTINGS_SYMBOLS,
+  settingsPageOf,
+} from "../src/chrome/mac/settings-sidebar";
+import { settingsBands } from "../src/views/settings/groups";
 
 const entry = (id: string, primary: boolean, gated = false) => ({
   item: { id, label: `nav.${id}`, view: id },
@@ -183,9 +189,8 @@ test("a selected id resolves to its view and whether a PIN is needed", () => {
   assert.equal(findSidebarTarget(entries, "nope"), null);
 });
 
-test("native sidebar shows where the React sidebar did, and never over hidden chrome", () => {
+test("native sidebar shows where the React sidebar did and in Settings, never over hidden chrome", () => {
   const shown = {
-    settingsTop: false,
     playerActive: false,
     standaloneLive: false,
     pickerTop: false,
@@ -238,4 +243,39 @@ test("text Harbor chose itself is sent to the native field once", () => {
   assert.equal(echo.shouldSend("dune part two"), true);
   assert.equal(echo.shouldSend("dune part two"), false);
   assert.equal(echo.shouldSend(""), true);
+});
+
+test("Settings lists its pages in the native sidebar, grouped under its headings", () => {
+  const bands = [
+    { section: "SETUP", sections: ["basics", "account"] },
+    { section: "HELP", sections: ["bug"] },
+  ];
+  const sidebar = buildSettingsSidebar(bands, "account", {
+    band: (section) => `B:${section}`,
+    page: (id) => `P:${id}`,
+  });
+  assert.deepEqual(sidebar.sections, [
+    { id: "SETUP", title: "B:SETUP" },
+    { id: "HELP", title: "B:HELP" },
+  ]);
+  assert.deepEqual(
+    sidebar.items.map((item) => [item.id, item.title, item.section, item.active]),
+    [
+      ["settings-page:basics", "P:basics", "SETUP", false],
+      ["settings-page:account", "P:account", "SETUP", true],
+      ["settings-page:bug", "P:bug", "HELP", false],
+    ],
+  );
+});
+
+test("a native sidebar row is told apart from navigation by its prefix", () => {
+  assert.equal(settingsPageOf("settings-page:player"), "player");
+  assert.equal(settingsPageOf("home"), null);
+  assert.equal(settingsPageOf("settings"), null);
+});
+
+test("every Settings page has a symbol", () => {
+  for (const band of settingsBands()) {
+    for (const id of band.sections) assert.ok(SETTINGS_SYMBOLS[id], id);
+  }
 });

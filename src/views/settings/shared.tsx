@@ -629,12 +629,13 @@ export function ToggleRow({
         )}
         <span
           aria-hidden
-          className={`relative block h-8 w-12 shrink-0 rounded-full transition-colors ${
+          data-on={effective ? "" : undefined}
+          className={`hset-toggle relative block h-8 w-12 shrink-0 rounded-full transition-colors ${
             effective ? "bg-ink" : "bg-edge"
           }`}
         >
           <span
-            className={`absolute start-[3px] top-[3px] h-[26px] w-[26px] rounded-full bg-canvas ${
+            className={`hset-toggle-knob absolute start-[3px] top-[3px] h-[26px] w-[26px] rounded-full bg-canvas ${
               effective ? "translate-x-4 rtl:-translate-x-4" : "translate-x-0"
             } ${knobAnim}`}
           />
@@ -727,12 +728,12 @@ export function Segmented<T extends string>({
     <div
       ref={wrapRef}
       onKeyDown={stripArrowKeys(btnRefs, (i) => onChange(options[i].value))}
-      className="relative flex w-fit flex-wrap gap-0.5 rounded-[10px] bg-canvas p-1"
+      className="hset-segmented relative flex w-fit flex-wrap gap-0.5 rounded-[10px] bg-canvas p-1"
     >
       <span
         ref={thumbRef}
         aria-hidden
-        className="pointer-events-none absolute rounded-[6px] bg-ink opacity-0"
+        className="hset-segmented-thumb pointer-events-none absolute rounded-[6px] bg-ink opacity-0"
       />
       {options.map((o, i) => (
         <button

@@ -91,3 +91,36 @@ export const TOP_GROUPS: TopGroup[] = [
 export function groupForSection(id: SectionId): TopGroup | undefined {
   return TOP_GROUPS.find((g) => g.children.includes(id));
 }
+
+/** A heading in the Settings navigation and the pages under it. */
+export type SettingsBand = { section: string; sections: SectionId[] };
+
+/** Groups that share a heading, merged in order: the Settings navigation's top level. */
+export function settingsBands(): SettingsBand[] {
+  const out: SettingsBand[] = [];
+  const bySection = new Map<string, SettingsBand>();
+  for (const group of TOP_GROUPS) {
+    const seen = bySection.get(group.section);
+    if (seen) {
+      seen.sections.push(...group.children);
+      continue;
+    }
+    const band: SettingsBand = { section: group.section, sections: [...group.children] };
+    bySection.set(group.section, band);
+    out.push(band);
+  }
+  return out;
+}
+
+export const BAND_LABELS: Record<string, string> = {
+  SETUP: "Account & setup",
+  WATCHING: "Playback",
+  LANGUAGE: "Languages",
+  CONTENT: "Sources & library",
+  "LOOK & FEEL": "Appearance",
+  DEVICES: "Controls & devices",
+  SYSTEM: "System",
+  HELP: "Help & about",
+  PLUGINS: "Plugins",
+  UPDATES: "Updates & backup",
+};

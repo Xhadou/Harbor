@@ -1865,7 +1865,6 @@ function Shell({ onReady }: { onReady?: () => void }) {
               <NativeMenuBridge playerActive={playerActive} />
               <NativeSidebarBridge
                 visible={sidebarVisible({
-                  settingsTop,
                   playerActive,
                   standaloneLive,
                   pickerTop,

@@ -8150,3 +8150,354 @@ button.hset-rail-me:hover,
 [data-profile-ui~="glass"] [data-profile-solid="elevated"] {
   background-color: var(--profile-elevated-solid, var(--color-elevated));
 }
+
+/* ---------------------------------------------------------------------------
+   Settings on macOS.
+
+   The pages are listed in the native sidebar (chrome/mac/settings-sidebar.ts),
+   so the page's own rail and its column go away and the content takes the
+   window beside the glass. Controls follow the system's settings look: rows
+   gathered into rounded cards with hairlines between them, a small heading
+   above each card, compact controls, an accent-coloured switch.
+   Everything here is scoped to macOS; other platforms keep Harbor's own look.
+   --------------------------------------------------------------------------- */
+html[data-os="macos"] .harbor-settings-shell {
+  /* The title sits under the floating window controls, not beside them. */
+  --hset-toolbar-h: calc(var(--mac-titlebar-inset) + 50px);
+  --hset-content-max: 900px;
+  --hset-pad-inline: var(--mac-gutter);
+  --hset-group-gap: 14px;
+
+  --hset-row-min-h: 50px;
+  --hset-row-pad-block: 10px;
+  --hset-row-pad-inline: 16px;
+  --hset-row-gutter: 20px;
+  --hset-row-radius: 0px;
+  --hset-lead-box: 22px;
+
+  --hset-title-size: 14.5px;
+  --hset-title-lh: 20px;
+  --hset-desc-size: 13px;
+  --hset-desc-lh: 18px;
+  --hset-note-size: 12.5px;
+  --hset-note-lh: 17px;
+
+  --hset-switch-w: 42px;
+  --hset-switch-h: 25px;
+  --hset-switch-knob: 21px;
+  --hset-switch-pad: 2px;
+  --hset-switch-travel: 17px;
+
+  --hset-ctl-h: 30px;
+  --hset-radius-ctl: 8px;
+  --hset-radius-field: 8px;
+
+  --hset-mac-card: color-mix(in srgb, var(--color-ink) 5%, transparent);
+  --hset-mac-card-edge: color-mix(in srgb, var(--color-ink) 9%, transparent);
+  --hset-mac-well: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  --hset-mac-raised: color-mix(in srgb, var(--color-ink) 20%, transparent);
+}
+
+/* One column: heading across the top, content below. */
+html[data-os="macos"] .hset-grid {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--hset-toolbar-h) minmax(0, 1fr);
+}
+html[data-os="macos"] .hset-grid > .hset-heading {
+  grid-column: 1;
+  grid-row: 1;
+  align-items: flex-end;
+  padding-block-end: 12px;
+  /* Leaves room for the search field at the end of the same row. */
+  padding-inline-end: calc(var(--hset-pad-inline) + 280px);
+}
+html[data-os="macos"] .hset-grid > .hset-main {
+  grid-column: 1;
+  grid-row: 2;
+  padding-block-start: 4px;
+}
+html[data-os="macos"] .hset-title,
+html[data-os="macos"] .hset-heading > h1 {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+}
+html[data-os="macos"] .hset-top-space,
+html[data-os="macos"] .hset-browse-toggle {
+  display: none;
+}
+
+/* Search: a field at the end of the heading row. Its results, which the rail
+   renders, open as a panel beneath it; the rail shows for nothing else. */
+html[data-os="macos"] .hset-grid > .hset-tools {
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 3;
+  justify-self: end;
+  align-self: end;
+  inline-size: 280px;
+  block-size: auto;
+  align-items: flex-end;
+  padding: 0 var(--hset-pad-inline) 13px 0;
+  background: transparent;
+}
+/* The line under the field is a hint for remote-control text entry. */
+html[data-os="macos"] .hset-grid > .hset-tools > div > :not([data-settings-search-field]) {
+  display: none;
+}
+html[data-os="macos"] .hset-tools [data-settings-search-field] {
+  block-size: 30px;
+  padding-inline: 8px;
+  border-radius: 8px;
+  background: var(--hset-mac-well);
+  box-shadow: inset 0 0 0 0.5px var(--hset-mac-card-edge);
+}
+html[data-os="macos"] .hset-tools [data-settings-search-field]:focus-within {
+  background: var(--hset-mac-well);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+html[data-os="macos"] .hset-tools [data-settings-search-field] input {
+  font-size: 13.5px;
+}
+html[data-os="macos"] .hset-tools [data-settings-search-field] svg {
+  inline-size: 14px;
+  block-size: 14px;
+}
+html[data-os="macos"] .hset-tools [data-settings-search-field] button {
+  inline-size: 22px;
+  block-size: 22px;
+}
+html[data-os="macos"] .hset-grid > .hset-rail {
+  display: none;
+}
+html[data-os="macos"] .hset-grid > .hset-rail:has(.hset-rail-results) {
+  display: flex;
+  /* Out of the grid's rows: an absolutely placed grid item is otherwise
+     positioned inside the cell it was assigned to. */
+  grid-area: auto;
+  position: absolute;
+  z-index: 40;
+  inset-block-start: calc(var(--hset-toolbar-h) - 4px);
+  inset-inline-end: var(--hset-pad-inline);
+  inline-size: 360px;
+  max-block-size: min(60vh, 520px);
+  padding: 6px;
+  overflow-y: auto;
+  border: 1px solid var(--hset-mac-card-edge);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
+  backdrop-filter: blur(30px) saturate(1.6);
+  box-shadow: 0 18px 50px -12px rgb(0 0 0 / 0.6);
+}
+html[data-os="macos"] .hset-grid > .hset-rail > :not(.hset-rail-nav) {
+  display: none;
+}
+
+/* Tabs of the open page. */
+html[data-os="macos"] .hset-mac-tabs {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 5;
+  display: flex;
+  align-self: flex-start;
+  max-inline-size: 100%;
+  gap: 2px;
+  margin-block-end: 18px;
+  padding: 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-elevated) 88%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+html[data-os="macos"] .hset-mac-tabs::-webkit-scrollbar {
+  display: none;
+}
+html[data-os="macos"] .hset-mac-tab {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  block-size: 28px;
+  padding-inline: 12px;
+  border-radius: 7px;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out);
+}
+html[data-os="macos"] .hset-mac-tab:hover {
+  color: var(--color-ink);
+}
+html[data-os="macos"] .hset-mac-tab[aria-selected="true"] {
+  background: var(--hset-mac-raised);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+html[data-os="macos"] .hset-mac-tab-dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+/* Cards. A row already pulls itself out by its own inline padding, so giving
+   the card that same padding makes rows run edge to edge while anything else
+   in the card sits inside it. */
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group {
+  padding-inline: var(--hset-row-pad-inline);
+  border: 1px solid var(--hset-mac-card-edge);
+  border-radius: 12px;
+  background: var(--hset-mac-card);
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group:empty {
+  display: none;
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > :not(.hset-row):first-child {
+  margin-block-start: 14px;
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > :not(.hset-row):last-child {
+  margin-block-end: 14px;
+}
+/* A card inside a card would draw a box in a box. */
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group .harbor-settings-group {
+  padding-inline: 0;
+  border: 0;
+  background: transparent;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-row + .hset-row::before {
+  background: var(--hset-mac-card-edge);
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > .hset-row:first-child {
+  border-start-start-radius: 11px;
+  border-start-end-radius: 11px;
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > .hset-row:last-child {
+  border-end-start-radius: 11px;
+  border-end-end-radius: 11px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-row[data-interactive]:hover {
+  background: var(--hset-mac-well);
+}
+
+/* The heading above a card. */
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-label {
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-section > .harbor-settings-label {
+  min-block-size: 30px;
+  padding-inline-start: var(--hset-row-pad-inline);
+}
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-section + .harbor-settings-section {
+  margin-block-start: 6px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-section-title {
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-caption {
+  margin-block-end: 16px;
+  font-size: 13.5px;
+  line-height: 19px;
+}
+
+/* Switch: the accent colour when on, a white knob. */
+html[data-os="macos"] .harbor-settings-shell .hset-switch {
+  background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.25);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-switch[data-on] {
+  background: var(--color-accent);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-switch-knob {
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 0 0 0.5px rgb(0 0 0 / 0.1);
+}
+
+/* Buttons and menus in a row's control column: the system's compact size. */
+html[data-os="macos"] .harbor-settings-shell .hset-row-control :is(button, a).h-11,
+html[data-os="macos"] .harbor-settings-shell .hset-row-controls :is(button, a).h-11 {
+  block-size: 30px;
+  padding-inline: 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-row-control button[aria-haspopup="listbox"] {
+  min-block-size: 30px;
+  font-size: 13px;
+}
+
+/* The switch a toggle row draws for itself. */
+html[data-os="macos"] .harbor-settings-shell .hset-toggle {
+  inline-size: var(--hset-switch-w);
+  block-size: var(--hset-switch-h);
+  background: color-mix(in srgb, var(--color-ink) 20%, transparent);
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.25);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-toggle[data-on] {
+  background: var(--color-accent);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-toggle-knob {
+  inset-block-start: var(--hset-switch-pad);
+  inset-inline-start: var(--hset-switch-pad);
+  inline-size: var(--hset-switch-knob);
+  block-size: var(--hset-switch-knob);
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 0 0 0.5px rgb(0 0 0 / 0.1);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-toggle[data-on] > .hset-toggle-knob {
+  --tw-translate-x: var(--hset-switch-travel);
+}
+html[data-os="macos"][dir="rtl"] .harbor-settings-shell .hset-toggle[data-on] > .hset-toggle-knob {
+  --tw-translate-x: calc(-1 * var(--hset-switch-travel));
+}
+
+/* Segmented control: a recessed track with a raised selection. */
+html[data-os="macos"] .harbor-settings-shell .hset-segmented {
+  gap: 1px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--hset-mac-well);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-segmented > button {
+  block-size: 26px;
+  min-inline-size: 0;
+  padding-inline: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-segmented > button[aria-pressed="true"] {
+  color: var(--color-ink);
+}
+html[data-os="macos"] .harbor-settings-shell .hset-segmented-thumb {
+  border-radius: 6px;
+  background: var(--hset-mac-raised);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+/* OptionScale has no moving thumb; its selected button carries the fill. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-segmented:not(:has(.hset-segmented-thumb))
+  > button[aria-pressed="true"] {
+  background: var(--hset-mac-raised);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}

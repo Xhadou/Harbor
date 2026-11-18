@@ -11,7 +11,7 @@ import { currentAuthor, subscribeAuthor } from "@/lib/theme-auth";
 import { useT } from "@/lib/i18n";
 import { useProfiles } from "@/lib/profiles";
 import { useSettings } from "@/lib/settings";
-import { TOP_GROUPS } from "./groups";
+import { BAND_LABELS, settingsBands, type SettingsBand } from "./groups";
 import { SECTION_ICONS } from "./section-icons";
 import { SetIcon } from "./set-icon";
 import { tabsFor, type TabEntry } from "./tab-registry";
@@ -22,7 +22,7 @@ function Glyph({ name, size }: { name: string; size: number }) {
   return <SetIcon name={name} size={size} />;
 }
 
-type Band = { section: string; sections: SectionId[] };
+type Band = SettingsBand;
 
 const PAGE_LABELS: Record<string, string> = {
   "player.play": "When you press Play",
@@ -73,19 +73,6 @@ const PAGE_LABELS: Record<string, string> = {
   "advanced.repair": "Repair & diagnostics",
 };
 
-const BAND_LABELS: Record<string, string> = {
-  SETUP: "Account & setup",
-  WATCHING: "Playback",
-  LANGUAGE: "Languages",
-  CONTENT: "Sources & library",
-  "LOOK & FEEL": "Appearance",
-  DEVICES: "Controls & devices",
-  SYSTEM: "System",
-  HELP: "Help & about",
-  PLUGINS: "Plugins",
-  UPDATES: "Updates & backup",
-};
-
 const BAND_ICONS: Record<string, string> = {
   SETUP: "AccountSetup",
   WATCHING: "Play",
@@ -105,21 +92,7 @@ function flatPage(band: Band): SectionId | null {
     : null;
 }
 
-function bands(): Band[] {
-  const out: Band[] = [];
-  const bySection = new Map<string, Band>();
-  for (const group of TOP_GROUPS) {
-    const seen = bySection.get(group.section);
-    if (seen) {
-      seen.sections.push(...group.children);
-      continue;
-    }
-    const band: Band = { section: group.section, sections: [...group.children] };
-    bySection.set(group.section, band);
-    out.push(band);
-  }
-  return out;
-}
+const bands = settingsBands;
 
 function RailAccount() {
   const t = useT();
