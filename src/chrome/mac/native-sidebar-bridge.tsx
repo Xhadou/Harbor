@@ -23,7 +23,10 @@ import {
  * routes its clicks back. It replaces the React sidebar on macOS.
  */
 export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
-  const visible = wanted && !useSyncExternalStore(...nativeChromeCoverStore);
+  // Read on every render: skipping the hook while `wanted` is false changes the
+  // hook order the first time the sidebar hides, which crashes the app.
+  const covered = useSyncExternalStore(...nativeChromeCoverStore);
+  const visible = wanted && !covered;
   const { entries, customization, kid, settings } = useSidebarNavigation();
   const { view, setView } = useView();
   const t = useT();
