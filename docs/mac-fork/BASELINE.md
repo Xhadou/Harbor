@@ -545,6 +545,61 @@ before or outside it. Not yet explained. Two leads:
 A measurement taken while the window is hidden is worthless: macOS throttles
 it to about one frame a second.
 
+Both leads were tested on 2026-11-18 and neither is the cause; see the next
+section.
+
+### Cause found and fixed (2026-11-18)
+
+**Cause.** Rows are wrapped in `content-visibility: auto` (`.harbor-row-shell`
+and the `LazyMount` wrapper `.harbor-lazy-cull`). WebKit renders such content
+only once it is on screen, with no margin ahead of the viewport, and until
+then no IntersectionObserver or ResizeObserver inside it fires. Harbor's
+look-ahead lives inside those rows (cards mount 1600px out, artwork starts
+1200px out), so in the macOS web view it never ran: a poster was created a few
+milliseconds before it entered the viewport and only then started to load.
+
+**Fix.** `src/index.css` sets `content-visibility: visible` on both classes
+under `html[data-os="macos"]`. The `LazyMount` wrapper's `content-visibility`
+moved from an inline style to its class so that CSS can override it. Other
+platforms are unchanged.
+
+Measured with a temporary in-page probe (removed), dev app, window in front,
+1600×1000 CSS px, page scrolled top to bottom at 1500 px/s, two rows scrolled
+sideways. "Not cached" means Harbor's thumbnail cache was cleared first. Time
+is per poster, from entering the viewport to its image being loaded.
+
+| Page                              | Before: median / p90 / max | After: median / p90 / max | Frames before → after |
+| --------------------------------- | -------------------------- | ------------------------- | --------------------- |
+| Shows, artwork not cached         | 107 / 143 / 162 ms         | 0 / 0 / 258 ms            | 60 → 60 fps           |
+| Shows, artwork cached             | 0 / 25 / 37 ms             | 0 / 0 / 20 ms             | 60 → 60 fps           |
+| Discover, artwork not cached      | 149 / 527 / 709 ms         | 0 / 0 / 0 ms              | 58 → 58 fps           |
+| Home, rows below the first screen | 127 / 267 / 484 ms         | 0 / 0 / 0 ms              | 57 → 59 fps           |
+
+Before the fix a poster existed for a median of 8 ms before entering the
+viewport; after it, about 1.1 s.
+
+**What was ruled out.**
+
+- _The Rust image proxy._ Loading posters straight from the image host in the
+  web view was slower when not cached (median 132 ms, p90 1.5 s, 35 of 138
+  over 1 s) and no faster when cached. Per image the proxy path costs a 3 ms
+  cache lookup, a native fetch of about 120 ms (median 75 kB) and under 1 ms
+  to decode; the time is the download, not the bridge.
+- _Per-title lookups._ A Movies pass with 127 Cinemeta, 292 Wikidata and 124
+  TMDB requests in flight had the same poster times as a pass with almost
+  none (median 117 vs 106 ms).
+
+**Not reproduced.** The 2026-11-17 figure for Shows (median 528 ms, 27 over
+1 s) did not recur; the same page measured 107 ms before the fix. Cinemeta
+answered in 4.6 s that evening against 0.4–1.7 s now, so a slow network then
+is the likely difference, but that was not checked.
+
+**Not done.** No test: the repository has no way to test a CSS rule. The
+change was not timed in a production build. Other places that set
+`content-visibility: auto` themselves (Collections, the Addons rail and
+community list, sports league sections, the Suwayomi manga grid, episode rows
+on the title page) are untouched and were not measured.
+
 ### Other numbers
 
 - Browser preview against the dev server: Home's hero in 1.3 s, a first visit

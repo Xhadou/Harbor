@@ -3256,6 +3256,7 @@ html:not([data-input-modality="pointer"])
 }
 
 .harbor-lazy-cull {
+  content-visibility: auto;
   contain-intrinsic-size: auto var(--harbor-cull-min, 240px);
 }
 
@@ -4665,6 +4666,15 @@ html[data-theme-card="crunch"][dir="rtl"] .harbor-profile-dropdown {
   contain-intrinsic-size: auto 280px;
   /* Paint containment must leave room for the outset arrows and card hovers. */
   overflow-clip-margin: 64px;
+}
+/* WebKit renders `content-visibility: auto` content only once it is on screen, with no margin
+   ahead of the viewport, and until then no IntersectionObserver or ResizeObserver inside it
+   fires. A row's own look-ahead (cards 1600px out, artwork 1200px out) therefore never ran in
+   the macOS web view: every poster was created and began loading as it scrolled into view.
+   Without the culling, artwork not yet cached is there before the row arrives. */
+html[data-os="macos"] .harbor-row-shell,
+html[data-os="macos"] .harbor-lazy-cull {
+  content-visibility: visible;
 }
 .harbor-preview-img {
   background-color: var(--color-raised);

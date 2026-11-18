@@ -10,8 +10,9 @@ import { observeWithin } from "@/lib/visibility";
 
 const CULL_PAD_Y = 24;
 
+// `content-visibility` for this wrapper lives on `.harbor-lazy-cull` in index.css, where macOS
+// turns it off.
 const CULL_STYLE: CSSProperties = {
-  contentVisibility: "auto",
   paddingLeft: "48px",
   paddingRight: "48px",
   marginLeft: "-48px",
