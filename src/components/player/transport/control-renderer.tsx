@@ -62,6 +62,7 @@ import { DvrButton } from "./dvr-button";
 import { VolumeControl } from "./volume-control";
 import { SpeedMenu } from "./speed-menu";
 import { ChapterMenu } from "./chapter-menu";
+import { MoreMenu } from "./more-menu";
 import { AspectMenu } from "./aspect-menu";
 import { Anime4kMenu } from "./anime4k-menu";
 import { ShaderMenu } from "./shader-menu";
@@ -163,6 +164,12 @@ export type ControlContext = {
   onAnime4kMode?: (id: string) => void;
   anime4kAvailable?: boolean;
   homeServerQualityControl?: ReactNode;
+  /** The controls the More menu holds: the extras this layout keeps off the bar. */
+  moreControls?: PlayerControlId[];
+  setMoreMenuOpen?: (v: boolean) => void;
+  /** Set by the More menu when it mounts a panel control without its button. */
+  menuTrigger?: "button" | "none";
+  menuOpenSignal?: number;
 };
 
 export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNode {
@@ -542,6 +549,8 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
           onSeek={ctx.onSeek}
           onOpenChange={ctx.setChapterMenuOpen}
           iconUrl={iconUrl}
+          trigger={ctx.menuTrigger}
+          openSignal={ctx.menuOpenSignal}
         />
       );
     }
@@ -553,6 +562,8 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
           onMode={ctx.onCropMode}
           onOpenChange={ctx.setAspectMenuOpen}
           iconUrl={iconUrl}
+          trigger={ctx.menuTrigger}
+          openSignal={ctx.menuOpenSignal}
         />
       );
     }
@@ -565,6 +576,8 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
           onMode={ctx.onAnime4kMode}
           onOpenChange={ctx.setAnime4kMenuOpen}
           iconUrl={iconUrl}
+          trigger={ctx.menuTrigger}
+          openSignal={ctx.menuOpenSignal}
         />
       );
     }
@@ -577,6 +590,8 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
           anime4kAvailable={!!ctx.anime4kAvailable}
           onOpenChange={ctx.setAnime4kMenuOpen}
           iconUrl={iconUrl}
+          trigger={ctx.menuTrigger}
+          openSignal={ctx.menuOpenSignal}
         />
       );
     }
@@ -648,6 +663,22 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
       if (ctx.tight) return null;
       return <CastButton onClick={ctx.onCast} capabilities={ctx.capabilities} />;
     }
+    case "more-menu":
+      return (
+        <MoreMenu
+          ctx={ctx}
+          renderPanel={(control, openSignal) =>
+            // A panel opened from More is not short of room the way a button on
+            // a narrow bar is, so the bar's width does not hide it.
+            renderControl(control, {
+              ...ctx,
+              tight: false,
+              menuTrigger: "none",
+              menuOpenSignal: openSignal,
+            })
+          }
+        />
+      );
     case "fullscreen": {
       return (
         <BigButton

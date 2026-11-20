@@ -20,6 +20,7 @@ import { playerTitleLines } from "./transport/title-lines";
 import { fmtTime } from "./transport/transport-utils";
 import {
   controlsInSlot,
+  moreMenuControls,
   PLAYER_CHROME_CHANGED_EVENT,
   readPlayerChromeConfig,
   writePlayerChromeConfig,
@@ -180,9 +181,11 @@ export function Transport({
   const [anime4kMenuOpen, setAnime4kMenuOpen] = useState(false);
   const [castModalOpen, setCastModalOpen] = useState(false);
   const [chapterMenuOpen, setChapterMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [chromeConfig, setChromeConfig] = useState<PlayerChromeConfig>(() =>
     readPlayerChromeConfig("default"),
   );
+  const moreControls = useMemo(() => moreMenuControls(chromeConfig), [chromeConfig]);
   const isLiveChannel = isLivePlaybackSrc({ meta: meta ?? {}, isLive });
   const titleClickable = !!meta && !isLiveChannel;
   const titleLogoSlides = useMemo(
@@ -213,7 +216,8 @@ export function Transport({
         speedMenuOpen ||
         aspectMenuOpen ||
         anime4kMenuOpen ||
-        chapterMenuOpen,
+        chapterMenuOpen ||
+        moreMenuOpen,
     );
   }, [
     audioMenuOpen,
@@ -222,6 +226,7 @@ export function Transport({
     aspectMenuOpen,
     anime4kMenuOpen,
     chapterMenuOpen,
+    moreMenuOpen,
     onMenuOpenChange,
   ]);
   useEffect(() => {
@@ -454,6 +459,8 @@ export function Transport({
     onAnime4kMode,
     anime4kAvailable,
     homeServerQualityControl,
+    moreControls,
+    setMoreMenuOpen,
   };
   const fadeClassName = `transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`;
   const renderFadedControl = (id: PlayerControlId) => {

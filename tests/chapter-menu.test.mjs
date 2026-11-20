@@ -8,7 +8,7 @@ import {
   DEFAULT_STREMIO_CONFIG,
 } from "../src/lib/player-chrome.ts";
 
-function harness(chapters, positionSec = 0) {
+function harness(chapters, positionSec = 0, extra = {}) {
   const slots = [],
     effects = [],
     events = new Map(),
@@ -104,6 +104,7 @@ function harness(chapters, positionSec = 0) {
     positionSec,
     onSeek: (value) => seeks.push(value),
     onOpenChange: (value) => changes.push(value),
+    ...extra,
   };
   const render = () => {
     slot = 0;
@@ -124,6 +125,7 @@ function harness(chapters, positionSec = 0) {
   };
   render();
   return {
+    props,
     render,
     buttons,
     seeks,
@@ -201,4 +203,19 @@ test("Escape and outside clicks close chapters and remove listeners", () => {
 test("chapter controls stay hidden without usable chapters", () => {
   assert.equal(harness([]).empty(), true);
   assert.equal(harness([{ startSec: Infinity }]).empty(), true);
+});
+
+test("chapters open on a signal from another menu, with no button of their own", () => {
+  const h = harness([{ startSec: 0, title: "First" }], 0, { trigger: "none", openSignal: 0 });
+  assert.equal(h.buttons().length, 0);
+  h.props.openSignal = 1;
+  h.render();
+  h.render();
+  // Close, the seekbar-marks switch and the one chapter: the panel, no trigger.
+  assert.equal(h.buttons().length, 3);
+  assert.equal(h.changes.at(-1), true);
+  h.buttons()[2].props.onClick();
+  h.render();
+  assert.deepEqual(h.seeks, [0]);
+  assert.equal(h.buttons().length, 0);
 });

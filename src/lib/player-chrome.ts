@@ -4,6 +4,7 @@ import {
   type SaveResult,
 } from "./player-chrome-profiles";
 import { DEFAULT_PLAYER_ICONS } from "./default-player-icons";
+import { isMacDesktop } from "./platform";
 
 export type PlayerSlot =
   | "top-left"
@@ -46,6 +47,7 @@ export type PlayerControlId =
   | "song-id"
   | "pip"
   | "cast"
+  | "more-menu"
   | "fullscreen"
   | "window-controls";
 
@@ -208,12 +210,67 @@ export const DEFAULT_DEFAULT_CONFIG: PlayerChromeConfig = {
     { id: "song-id", slot: "bottom-right", order: 46 },
     { id: "pip", slot: "bottom-right", order: 50 },
     { id: "cast", slot: "bottom-right", order: 60 },
+    { id: "more-menu", slot: "bottom-right", order: 65, hidden: true },
     { id: "fullscreen", slot: "bottom-right", order: 70 },
   ],
   options: {
     volumeStyle: "slider",
     timeFormat: "start-end",
   },
+};
+
+/**
+ * The extras the More menu can hold, in the order it lists them. More shows
+ * whichever of these the layout does not already put on the bar, so hiding a
+ * control never makes it unreachable while More is shown.
+ */
+export const MORE_MENU_CONTROLS: readonly PlayerControlId[] = [
+  "chapter-menu",
+  "aspect-menu",
+  "anime4k-menu",
+  "shader-menu",
+  "screenshot",
+  "download",
+  "song-id",
+  "draw-toggle",
+];
+
+export function moreMenuControls(config: PlayerChromeConfig): PlayerControlId[] {
+  const onBar = new Set(config.controls.filter((c) => !c.hidden).map((c) => c.id));
+  const rows = MORE_MENU_CONTROLS.filter((id) => !onBar.has(id));
+  // The shader panel already contains the Anime4K choices.
+  return rows.includes("shader-menu") ? rows.filter((id) => id !== "anime4k-menu") : rows;
+}
+
+/**
+ * Whether a saved layout is only the stock bar from before More existed.
+ * Tapping the time readout saves the whole layout, so an install can hold a
+ * "saved" layout nobody arranged. That one follows the platform's default;
+ * a layout that differs in any control, or was saved since, is the user's own.
+ */
+export function isStockLayoutBeforeMore(controls: readonly PlayerControlConfig[]): boolean {
+  if (controls.some((c) => c.id === "more-menu")) return false;
+  const stock = DEFAULT_DEFAULT_CONFIG.controls.filter((c) => c.id !== "more-menu");
+  if (controls.length !== stock.length) return false;
+  return stock.every((base) => {
+    const saved = controls.find((c) => c.id === base.id);
+    return (
+      !!saved &&
+      saved.slot === base.slot &&
+      saved.order === base.order &&
+      !!saved.hidden === !!base.hidden &&
+      (saved.variant ?? "auto") === (base.variant ?? "auto")
+    );
+  });
+}
+
+/** macOS: the default bar with its extras folded into one More menu. */
+export const DEFAULT_MAC_CONFIG: PlayerChromeConfig = {
+  ...DEFAULT_DEFAULT_CONFIG,
+  controls: DEFAULT_DEFAULT_CONFIG.controls.map((c) => {
+    if (c.id === "more-menu") return { ...c, hidden: false };
+    return MORE_MENU_CONTROLS.includes(c.id) ? { ...c, hidden: true } : c;
+  }),
 };
 
 export const DEFAULT_STREMIO_CONFIG: PlayerChromeConfig = {
@@ -311,6 +368,7 @@ export const CONTROL_META: Record<
   "song-id": { label: "Identify song", group: "actions", defaultSlot: "bottom-right" },
   pip: { label: "Picture-in-picture", group: "actions", defaultSlot: "bottom-right" },
   cast: { label: "Cast", group: "actions", defaultSlot: "bottom-right" },
+  "more-menu": { label: "More", group: "menus", defaultSlot: "bottom-right" },
   fullscreen: { label: "Fullscreen", group: "transport", defaultSlot: "bottom-right" },
   "window-controls": {
     label: "Window buttons (minimize, maximize, close)",
@@ -321,8 +379,9 @@ export const CONTROL_META: Record<
 
 export type ThemeId = "default" | "stremio";
 
-function baselineFor(theme: ThemeId): PlayerChromeConfig {
-  return theme === "stremio" ? DEFAULT_STREMIO_CONFIG : DEFAULT_DEFAULT_CONFIG;
+export function baselineFor(theme: ThemeId, mac = isMacDesktop()): PlayerChromeConfig {
+  if (theme === "stremio") return DEFAULT_STREMIO_CONFIG;
+  return mac ? DEFAULT_MAC_CONFIG : DEFAULT_DEFAULT_CONFIG;
 }
 
 export function readPlayerChromeConfig(theme: ThemeId): PlayerChromeConfig {

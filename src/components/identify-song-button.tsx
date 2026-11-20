@@ -5,24 +5,12 @@ import { identifyNowPlaying } from "@/lib/song-id";
 import { Tooltip } from "@/components/player/transport/tooltip";
 import { useT } from "@/lib/i18n";
 
-export function IdentifySongButton({
-  className,
-  tight,
-  editing,
-  iconUrl,
-}: {
-  className?: string;
-  tight?: boolean;
-  editing?: boolean;
-  iconUrl?: string;
-}) {
-  const t = useT();
+/** Song identification as an action, for a button or a menu row. */
+export function useIdentifySong() {
   const { settings } = useSettings();
   const [pending, setPending] = useState(false);
 
-  if (!settings.songIdEnabled && !editing) return null;
-
-  const onClick = async () => {
+  const identify = async () => {
     if (pending) return;
     setPending(true);
     try {
@@ -37,11 +25,30 @@ export function IdentifySongButton({
     }
   };
 
+  return { enabled: settings.songIdEnabled, pending, identify };
+}
+
+export function IdentifySongButton({
+  className,
+  tight,
+  editing,
+  iconUrl,
+}: {
+  className?: string;
+  tight?: boolean;
+  editing?: boolean;
+  iconUrl?: string;
+}) {
+  const t = useT();
+  const { enabled, pending, identify } = useIdentifySong();
+
+  if (!enabled && !editing) return null;
+
   return (
     <Tooltip label={t("Identify song")}>
       <button
         type="button"
-        onClick={onClick}
+        onClick={identify}
         disabled={pending}
         aria-label={t("Identify song")}
         className={

@@ -125,7 +125,7 @@ function Dot({ delay }: { delay: number }) {
   );
 }
 
-function ProgressRing({ ratio, indeterminate }: { ratio: number; indeterminate: boolean }) {
+export function ProgressRing({ ratio, indeterminate }: { ratio: number; indeterminate: boolean }) {
   const r = 20;
   const c = 2 * Math.PI * r;
   const offset = c * (1 - Math.max(0, Math.min(1, ratio)));

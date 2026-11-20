@@ -1,11 +1,11 @@
 import {
   CONTROL_META,
   CONTROL_STATES,
-  DEFAULT_DEFAULT_CONFIG,
-  DEFAULT_STREMIO_CONFIG,
   PANELS,
   PANEL_CORNERS,
   PANEL_META,
+  baselineFor,
+  isStockLayoutBeforeMore,
   type CustomIconMap,
   type PanelConfig,
   type PanelCorner,
@@ -53,10 +53,6 @@ function isValidIconDataUrl(s: unknown): s is string {
   );
 }
 
-function baselineFor(theme: ThemeId): PlayerChromeConfig {
-  return theme === "stremio" ? DEFAULT_STREMIO_CONFIG : DEFAULT_DEFAULT_CONFIG;
-}
-
 function newId(): string {
   return `p_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
@@ -69,10 +65,12 @@ function sanitizeConfig(input: unknown, theme: ThemeId): PlayerChromeConfig {
     (c): c is PlayerControlConfig => !!c && typeof c.id === "string" && c.id in CONTROL_META,
   );
   const present = new Set(incoming.map((c) => c.id));
-  const merged: PlayerControlConfig[] = [...incoming];
-  for (const base of baseline.controls) {
-    if (!present.has(base.id)) merged.push(base);
-  }
+  // A stock bar nobody arranged takes the platform's default as a whole;
+  // any other layout keeps its controls and only gains the ones it lacks.
+  const adoptBaseline = theme === "default" && isStockLayoutBeforeMore(incoming);
+  const merged: PlayerControlConfig[] = adoptBaseline
+    ? [...baseline.controls]
+    : [...incoming, ...baseline.controls.filter((base) => !present.has(base.id))];
   const customIcons: CustomIconMap = {};
   if (partial.customIcons && typeof partial.customIcons === "object") {
     for (const [k, v] of Object.entries(partial.customIcons)) {

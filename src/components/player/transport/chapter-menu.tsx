@@ -13,12 +13,16 @@ export function ChapterMenu({
   onSeek,
   onOpenChange,
   iconUrl,
+  trigger = "button",
+  openSignal,
 }: {
   chapters: Chapter[];
   positionSec: number;
   onSeek: (sec: number) => void;
   onOpenChange?: (open: boolean) => void;
   iconUrl?: string;
+  trigger?: "button" | "none";
+  openSignal?: number;
 }) {
   const t = useT();
   const { settings, update } = useSettings();
@@ -41,6 +45,10 @@ export function ChapterMenu({
     -1,
   );
 
+  // Another menu (More) can open this panel in place of the button.
+  useEffect(() => {
+    if (openSignal) setOpen(true);
+  }, [openSignal]);
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
@@ -79,28 +87,30 @@ export function ChapterMenu({
   if (!ordered.length) return null;
   return (
     <div ref={wrap} className="relative">
-      <Tooltip label={t("Chapters")}>
-        <button
-          type="button"
-          onClick={() => setOpen((value) => !value)}
-          aria-label={t("Chapters")}
-          aria-expanded={open}
-          className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
-            open ? "bg-white/22 text-white" : "text-white/85 hover:bg-white/10 hover:text-white"
-          }`}
-        >
-          {iconUrl ? (
-            <img
-              src={iconUrl}
-              alt=""
-              className="h-[22px] w-[22px] shrink-0 select-none object-contain"
-              draggable={false}
-            />
-          ) : (
-            <ListTree size={19} strokeWidth={2} />
-          )}
-        </button>
-      </Tooltip>
+      {trigger === "button" && (
+        <Tooltip label={t("Chapters")}>
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-label={t("Chapters")}
+            aria-expanded={open}
+            className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
+              open ? "bg-white/22 text-white" : "text-white/85 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            {iconUrl ? (
+              <img
+                src={iconUrl}
+                alt=""
+                className="h-[22px] w-[22px] shrink-0 select-none object-contain"
+                draggable={false}
+              />
+            ) : (
+              <ListTree size={19} strokeWidth={2} />
+            )}
+          </button>
+        </Tooltip>
+      )}
       {open && (
         <div className="fixed end-14 bottom-[150px] flex max-h-[calc(100vh-174px)] w-[360px] max-w-[calc(100vw-72px)] flex-col overflow-hidden rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop">
           <header className="flex items-center justify-between border-b border-edge-soft px-4 py-2.5">
