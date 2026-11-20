@@ -31,11 +31,13 @@ export function Anime4kMenu({
   const t = useT();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
-  const { measure } = useMenuSide(wrap, 320);
+  const { side, measure } = useMenuSide(wrap, 320);
   // Another menu (More) can open this panel in place of the button.
   useEffect(() => {
-    if (openSignal) setOpen(true);
-  }, [openSignal]);
+    if (!openSignal) return;
+    measure();
+    setOpen(true);
+  }, [openSignal, measure]);
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
@@ -51,7 +53,7 @@ export function Anime4kMenu({
   const current = OPTIONS.find((o) => o.id === mode);
   const sub = ANIME4K_MODES.find((m) => m.id === mode)?.sub;
   return (
-    <div ref={wrap} className="relative">
+    <div ref={wrap} className={trigger === "button" ? "relative" : undefined}>
       {trigger === "button" && (
         <Tooltip label={t("Anime4K upscaling")}>
           <button
@@ -60,7 +62,7 @@ export function Anime4kMenu({
               setOpen((o) => !o);
             }}
             aria-label={t("Anime4K upscaling")}
-            className={`flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 transition-[background-color,color] ${
+            className={`mac-player-btn flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 transition-[background-color,color] ${
               accent
                 ? "bg-white/22 text-white hover:bg-white/30"
                 : "text-white/85 hover:bg-white/10 hover:text-white"
@@ -85,7 +87,9 @@ export function Anime4kMenu({
         </Tooltip>
       )}
       {open && (
-        <div className="fixed end-14 bottom-[150px] max-h-[calc(100vh-174px)] w-[320px] max-w-[calc(100vw-72px)] overflow-y-auto rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop">
+        <div
+          className={`mac-player-menu mac-player-surface ${side === "start" ? "mac-player-menu-start" : ""} fixed end-14 bottom-[150px] max-h-[calc(100vh-174px)] w-[320px] max-w-[calc(100vw-72px)] overflow-y-auto rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop`}
+        >
           <div className="p-2">
             <div className="px-3 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-subtle">
               {t("Anime4K")}

@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import type { PlayerCapabilities, PlayerSnapshot } from "@/lib/player/bridge";
 import type { VolumeStyle } from "@/lib/player-chrome";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { useSettings } from "@/lib/settings";
 import { Tooltip } from "./tooltip";
 import {
@@ -11,6 +12,7 @@ import {
   VOL_MAX,
   boostColor,
   fractionFromValue,
+  sliderShowsBoost,
   valueFromFraction,
 } from "./transport-utils";
 
@@ -34,19 +36,24 @@ export function VolumeControl({
   const tr = useT();
   const { settings } = useSettings();
   const boostMax = Math.max(1, Math.min(VOL_MAX, settings.volumeBoostMax || 2));
-  const allowBoost = capabilities.engine === "mpv" && boostMax > 1;
-  const max = allowBoost ? boostMax : 1;
+  const boostAllowed = capabilities.engine === "mpv" && boostMax > 1;
+  const max = boostAllowed ? boostMax : 1;
   const v = snap.muted ? 0 : Math.max(0, Math.min(max, snap.volume));
   const trackRef = useRef<HTMLDivElement>(null);
   const [barNear, setBarNear] = useState(false);
   const [pinned, setPinned] = useState(false);
+  // The slider's range is fixed for the length of a drag, so the point under
+  // the pointer does not change value when the volume crosses 100%.
+  const dragBoost = useRef(false);
+  const liveBoost = sliderShowsBoost({ boostAllowed, volume: v, mac: isMacDesktop() });
+  const allowBoost = pinned ? dragBoost.current : liveBoost;
 
   const setFromClientX = (clientX: number) => {
     const t = trackRef.current;
     if (!t) return;
     const rect = t.getBoundingClientRect();
     const f = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    let next = allowBoost ? valueFromFraction(f, boostMax) : f;
+    let next = dragBoost.current ? valueFromFraction(f, boostMax) : f;
     if (Math.abs(next - 1) < 0.06) next = 1;
     else if (next < 0.03) next = 0;
     onVolume(Math.round(Math.min(max, next) * 100) / 100);
@@ -54,6 +61,7 @@ export function VolumeControl({
 
   const onPointerDown = (e: React.PointerEvent) => {
     e.currentTarget.setPointerCapture(e.pointerId);
+    dragBoost.current = liveBoost;
     setPinned(true);
     setFromClientX(e.clientX);
   };

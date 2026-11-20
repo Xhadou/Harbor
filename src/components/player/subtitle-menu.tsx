@@ -20,6 +20,7 @@ import { ResizableSubtitlePanel } from "./subtitle-menu/resizable-panel";
 import { useSubtitleContext } from "./subtitle-menu/subtitle-context-store";
 import type { SubtitleMenuProps } from "./subtitle-menu/types";
 import { buildOverlayState } from "./subtitle-menu/utils";
+import { useMenuSide } from "./menu-side";
 import { Tooltip } from "./transport/tooltip";
 import { watchEscape, watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
 
@@ -35,6 +36,7 @@ export function SubtitleMenu(props: Props) {
   useEffect(() => (open ? watchEscape(() => setOpen(false)) : undefined), [open]);
   const [forceInline, setForceInline] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const { side, measure } = useMenuSide(wrap, 520);
   const useOverlay = props.useOverlayPopup === true;
   const propsRef = useRef(props);
   propsRef.current = props;
@@ -165,6 +167,7 @@ export function SubtitleMenu(props: Props) {
 
   const handleClick = () => {
     if (!useOverlay) {
+      if (!open) measure();
       setOpen((v) => !v);
       return;
     }
@@ -218,7 +221,9 @@ export function SubtitleMenu(props: Props) {
         </button>
       </Tooltip>
       {open && (forceInline || !useOverlay) && (
-        <ResizableSubtitlePanel className="fixed end-14 bottom-[150px] animate-menu-pop">
+        <ResizableSubtitlePanel
+          className={`mac-player-menu ${side === "start" ? "mac-player-menu-start" : ""} fixed end-14 bottom-[150px] animate-menu-pop`}
+        >
           <MenuBody
             {...props}
             preferredLanguages={preferredLanguages}

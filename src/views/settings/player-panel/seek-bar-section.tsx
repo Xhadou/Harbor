@@ -1,3 +1,4 @@
+import { isMacDesktop } from "@/lib/platform";
 import { fillStyle } from "@/components/slider";
 import { RotateCcw } from "../icons";
 import { useRef, useState } from "react";
@@ -131,7 +132,11 @@ export function SeekBarPanel() {
         <SettingRow
           wide
           label={t("Bar color")}
-          desc={t("The filled part of the timeline. Default follows your Harbor accent.")}
+          desc={
+            isMacDesktop()
+              ? t("The filled part of the timeline. White unless you pick a color.")
+              : t("The filled part of the timeline. Default follows your Harbor accent.")
+          }
         >
           <div className="flex w-full flex-wrap items-center gap-2.5">
             {PRESET_COLORS.map((c) => {
@@ -151,7 +156,9 @@ export function SeekBarPanel() {
                       ? "linear-gradient(135deg, transparent 45%, var(--color-ink-subtle) 45% 55%, transparent 55%)"
                       : undefined,
                   }}
-                  aria-label={isDefault ? t("Default (gold accent)") : c}
+                  aria-label={
+                    isDefault ? t(isMacDesktop() ? "Default (white)" : "Default (gold accent)") : c
+                  }
                 />
               );
             })}

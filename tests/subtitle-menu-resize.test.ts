@@ -63,7 +63,7 @@ test("the inline subtitle menu keeps the resize handle instead of using a fixed 
   assert.match(subtitleMenu, /import \{ ResizableSubtitlePanel \}/);
   assert.match(
     subtitleMenu,
-    /<ResizableSubtitlePanel className="fixed end-14 bottom-\[150px\] animate-menu-pop">/,
+    /<ResizableSubtitlePanel\s+className=\{`mac-player-menu [^`]*fixed end-14 bottom-\[150px\] animate-menu-pop`\}/,
   );
   assert.doesNotMatch(subtitleMenu, /flex h-\[460px\].*w-\[560px\]/);
 });

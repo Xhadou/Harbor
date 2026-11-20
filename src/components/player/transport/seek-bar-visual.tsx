@@ -1,4 +1,6 @@
+import { isMacDesktop } from "@/lib/platform";
 import type { Settings } from "@/lib/settings";
+import { defaultSeekColor } from "./transport-utils";
 
 export const GLASS_BG =
   "linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.04) 50%, rgba(0,0,0,0.18) 100%)";
@@ -11,7 +13,7 @@ export function clamp(n: number, min: number, max: number): number {
 }
 
 export function resolveAccent(settings: Settings): string {
-  return (settings.seekBarColor || "").trim() || "oklch(0.78 0.13 60)";
+  return (settings.seekBarColor || "").trim() || defaultSeekColor(isMacDesktop());
 }
 
 export type SeekSegmentSpan = { startPct: number; endPct: number; color?: string };

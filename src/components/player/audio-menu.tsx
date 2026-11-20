@@ -39,7 +39,7 @@ export function AudioMenu(props: Props) {
   useEffect(() => (open ? watchEscape(() => setOpen(false)) : undefined), [open]);
   const [forceInline, setForceInline] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
-  const { measure } = useMenuSide(wrap, 360);
+  const { side, measure } = useMenuSide(wrap, 360);
   const useOverlay = props.useOverlayPopup === true;
   const propsRef = useRef(props);
   propsRef.current = props;
@@ -132,7 +132,9 @@ export function AudioMenu(props: Props) {
         </button>
       </Tooltip>
       {open && (forceInline || !useOverlay) && (
-        <div className="fixed end-14 bottom-[150px] flex max-h-[calc(100vh-174px)] w-[360px] max-w-[calc(100vw-72px)] flex-col overflow-hidden rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop">
+        <div
+          className={`mac-player-menu mac-player-surface ${side === "start" ? "mac-player-menu-start" : ""} fixed end-14 bottom-[150px] flex max-h-[calc(100vh-174px)] w-[360px] max-w-[calc(100vw-72px)] flex-col overflow-hidden rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop`}
+        >
           <AudioMenuBody {...props} onClose={() => setOpen(false)} />
         </div>
       )}

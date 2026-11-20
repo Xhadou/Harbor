@@ -49,7 +49,7 @@ export function SpeedMenu({
   useEffect(() => (open ? watchEscape(() => setOpen(false)) : undefined), [open]);
   const [editing, setEditing] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
-  const { measure } = useMenuSide(wrap, 400);
+  const { side, measure } = useMenuSide(wrap, 400);
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
@@ -142,7 +142,7 @@ export function SpeedMenu({
             setOpen((o) => !o);
           }}
           aria-label={t("Speed and sleep timer")}
-          className={`flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 transition-[background-color,color] ${
+          className={`mac-player-btn flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 transition-[background-color,color] ${
             accent
               ? "bg-white/22 text-white hover:bg-white/30"
               : "text-white/85 hover:bg-white/10 hover:text-white"
@@ -169,7 +169,9 @@ export function SpeedMenu({
         </button>
       </Tooltip>
       {open && (
-        <div className="fixed end-14 bottom-[150px] w-[400px] max-w-[calc(100vw-72px)] max-h-[calc(100vh-174px)] overflow-y-auto rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop">
+        <div
+          className={`mac-player-menu mac-player-surface ${side === "start" ? "mac-player-menu-start" : ""} fixed end-14 bottom-[150px] w-[400px] max-w-[calc(100vw-72px)] max-h-[calc(100vh-174px)] overflow-y-auto rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop`}
+        >
           <div className={`grid ${sleep ? "grid-cols-2" : "grid-cols-1"}`}>
             <Section title={t("Playback speed")}>
               {speedList.map((s) => {

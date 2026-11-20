@@ -112,7 +112,7 @@ export function TimeEnd({
   const text =
     fmt === "remaining" ? `-${fmtTime(Math.max(0, duration - positionSec))}` : fmtTime(duration);
   const cls =
-    "inline-flex shrink-0 items-center text-[15px] font-semibold tabular-nums text-white/55 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]";
+    "mac-player-time inline-flex shrink-0 items-center text-[15px] font-semibold tabular-nums text-white/55 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)]";
   if (onCycle) {
     return (
       <button

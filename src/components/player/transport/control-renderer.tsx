@@ -1,4 +1,5 @@
 import { togglePictureBar } from "@/lib/player/picture-bar";
+import { isMacDesktop } from "@/lib/platform";
 import { t as translate } from "@/lib/i18n";
 import { StremioVolume } from "./stremio-volume";
 import {
@@ -6,8 +7,10 @@ import {
   ChevronLeft,
   Maximize,
   Minimize,
+  Pause,
   PauseCircle,
   PictureInPicture2,
+  Play,
   PlayCircle,
   Replace,
   SlidersHorizontal,
@@ -19,6 +22,7 @@ import type { SubtitleAddHandler } from "@/lib/player/subtitle-load";
 import type { Meta } from "@/lib/cinemeta";
 import {
   getCustomIcon,
+  iconKey,
   type ControlVariant,
   type CustomIconMap,
   type PlayerControlId,
@@ -412,10 +416,15 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
     case "play-pause": {
       const sizeClass = ctx.tight ? "h-12 w-12" : ctx.compact ? "h-14 w-14" : "h-16 w-16";
       const iconSize = ctx.tight ? 28 : ctx.compact ? 32 : 36;
+      // The stock icon is an outline; on macOS only an icon the user chose
+      // themselves replaces the filled glyph.
+      const playIconUrl = isMacDesktop()
+        ? ((state && ctx.customIcons?.[iconKey(id, state)]) ?? ctx.customIcons?.[id])
+        : iconUrl;
       return (
         <Tooltip label={ctx.playing ? t("Pause") : t("Play")}>
           <div
-            className={`shrink-0 rounded-full ${sizeClass} transition-opacity duration-300 ${
+            className={`shrink-0 rounded-full ${sizeClass} ${ctx.tight ? "" : "mac-player-play"} transition-opacity duration-300 ${
               ctx.active ? "opacity-100" : "opacity-0"
             }`}
             style={{ transition: "opacity 300ms ease-out" }}
@@ -432,8 +441,15 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
                 key={ctx.playing ? "pause" : "play"}
                 className="flex items-center justify-center motion-safe:animate-play-toggle"
               >
-                {iconUrl ? (
-                  <CustomIcon url={iconUrl} size={iconSize} />
+                {playIconUrl ? (
+                  <CustomIcon url={playIconUrl} size={iconSize} />
+                ) : isMacDesktop() ? (
+                  // The filled glyphs the rest of the Mac app uses for Play.
+                  ctx.playing ? (
+                    <Pause size={iconSize - 6} fill="currentColor" strokeWidth={0} />
+                  ) : (
+                    <Play size={iconSize - 6} fill="currentColor" strokeWidth={1.5} />
+                  )
                 ) : ctx.playing ? (
                   <PauseCircle size={iconSize} strokeWidth={1.5} />
                 ) : (

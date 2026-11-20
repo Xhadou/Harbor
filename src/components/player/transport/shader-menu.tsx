@@ -36,12 +36,14 @@ export function ShaderMenu({
   const { settings, update } = useSettings();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
-  const { measure } = useMenuSide(wrap, 340);
+  const { side, measure } = useMenuSide(wrap, 340);
 
   // Another menu (More) can open this panel in place of the button.
   useEffect(() => {
-    if (openSignal) setOpen(true);
-  }, [openSignal]);
+    if (!openSignal) return;
+    measure();
+    setOpen(true);
+  }, [openSignal, measure]);
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
@@ -69,7 +71,7 @@ export function ShaderMenu({
   };
 
   return (
-    <div ref={wrap} className="relative">
+    <div ref={wrap} className={trigger === "button" ? "relative" : undefined}>
       {trigger === "button" && (
         <Tooltip label={t("Shaders")}>
           <button
@@ -78,7 +80,7 @@ export function ShaderMenu({
               setOpen((o) => !o);
             }}
             aria-label={t("Shaders")}
-            className={`flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 transition-[background-color,color] ${
+            className={`mac-player-btn flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 transition-[background-color,color] ${
               accent
                 ? "bg-white/22 text-white hover:bg-white/30"
                 : "text-white/85 hover:bg-white/10 hover:text-white"
@@ -101,7 +103,9 @@ export function ShaderMenu({
         </Tooltip>
       )}
       {open && (
-        <div className="fixed end-14 bottom-[150px] max-h-[calc(100vh-174px)] w-[340px] max-w-[calc(100vw-72px)] overflow-y-auto rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop">
+        <div
+          className={`mac-player-menu mac-player-surface ${side === "start" ? "mac-player-menu-start" : ""} fixed end-14 bottom-[150px] max-h-[calc(100vh-174px)] w-[340px] max-w-[calc(100vw-72px)] overflow-y-auto rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop`}
+        >
           <div className="p-2">
             {anime4kAvailable && (
               <>

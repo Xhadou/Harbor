@@ -32,3 +32,26 @@ export function boostColor(value: number, max: number = VOL_MAX): string {
   const b = Math.round(22 - t * (22 - 38));
   return `rgb(${r}, ${g}, ${b})`;
 }
+
+/** The seek bar's fill when no colour was chosen in Settings. */
+export function defaultSeekColor(mac: boolean): string {
+  return mac ? "#ffffff" : "oklch(0.78 0.13 60)";
+}
+
+/**
+ * Whether the volume slider draws and covers the range above 100%. On macOS
+ * it is a plain 0 to 100% slider until the volume is actually boosted (by the
+ * keyboard or the wheel), so a zone nothing explains is not always on show.
+ */
+export function sliderShowsBoost({
+  boostAllowed,
+  volume,
+  mac,
+}: {
+  boostAllowed: boolean;
+  volume: number;
+  mac: boolean;
+}): boolean {
+  if (!boostAllowed) return false;
+  return !mac || volume > 1.001;
+}

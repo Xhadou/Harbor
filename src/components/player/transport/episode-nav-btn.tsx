@@ -20,7 +20,7 @@ export function EpisodeNavBtn({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={`inline-flex h-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color] ${
+      className={`mac-player-btn inline-flex h-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color] ${
         iconOnly ? "w-11" : "mx-1 gap-1.5 px-3.5"
       } ${
         disabled

@@ -4,6 +4,7 @@ import type { Chapter } from "@/lib/player/bridge";
 import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import { watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
+import { useMenuSide } from "../menu-side";
 import { Tooltip } from "./tooltip";
 import { fmtTime } from "./transport-utils";
 
@@ -29,6 +30,7 @@ export function ChapterMenu({
   const showMarkers = settings.seekBarChapters !== false;
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const { side, measure } = useMenuSide(wrap, 360);
   const openRef = useRef(open);
   openRef.current = open;
   const onOpenChangeRef = useRef(onOpenChange);
@@ -47,8 +49,10 @@ export function ChapterMenu({
 
   // Another menu (More) can open this panel in place of the button.
   useEffect(() => {
-    if (openSignal) setOpen(true);
-  }, [openSignal]);
+    if (!openSignal) return;
+    measure();
+    setOpen(true);
+  }, [openSignal, measure]);
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
@@ -86,12 +90,15 @@ export function ChapterMenu({
 
   if (!ordered.length) return null;
   return (
-    <div ref={wrap} className="relative">
+    <div ref={wrap} className={trigger === "button" ? "relative" : undefined}>
       {trigger === "button" && (
         <Tooltip label={t("Chapters")}>
           <button
             type="button"
-            onClick={() => setOpen((value) => !value)}
+            onClick={() => {
+              if (!open) measure();
+              setOpen((value) => !value);
+            }}
             aria-label={t("Chapters")}
             aria-expanded={open}
             className={`flex h-12 w-12 items-center justify-center rounded-full transition-colors ${
@@ -112,7 +119,9 @@ export function ChapterMenu({
         </Tooltip>
       )}
       {open && (
-        <div className="fixed end-14 bottom-[150px] flex max-h-[calc(100vh-174px)] w-[360px] max-w-[calc(100vw-72px)] flex-col overflow-hidden rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop">
+        <div
+          className={`mac-player-menu mac-player-surface ${side === "start" ? "mac-player-menu-start" : ""} fixed end-14 bottom-[150px] flex max-h-[calc(100vh-174px)] w-[360px] max-w-[calc(100vw-72px)] flex-col overflow-hidden rounded-md bg-elevated shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop`}
+        >
           <header className="flex items-center justify-between border-b border-edge-soft px-4 py-2.5">
             <div className="flex items-center gap-2.5">
               <span className="text-[13.5px] font-semibold text-ink">{t("Chapters")}</span>

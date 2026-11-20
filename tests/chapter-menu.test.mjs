@@ -65,6 +65,7 @@ function harness(chapters, positionSec = 0, extra = {}) {
     },
     "./transport-utils": { fmtTime: (value) => `${value}s` },
     "./tooltip": { Tooltip: ({ children }) => children },
+    "../menu-side": { useMenuSide: () => ({ side: "end", measure: () => {} }) },
     // The shared helper also notes the dismissal so the player underneath does
     // not read the closing click as a tap. Seeing it here is the parity claim.
     "@/lib/player/overlay-dismiss": {

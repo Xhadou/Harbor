@@ -53,7 +53,7 @@ export function IdentifySongButton({
         aria-label={t("Identify song")}
         className={
           className ??
-          "pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15 disabled:opacity-50"
+          "mac-player-btn pointer-events-auto inline-flex h-11 w-11 items-center justify-center rounded-full text-white/90 transition hover:bg-white/15 disabled:opacity-50"
         }
       >
         {iconUrl ? (

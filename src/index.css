@@ -9096,3 +9096,46 @@ html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-r
 html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-ring {
   box-shadow: 0 6px 14px -8px rgb(0 0 0 / 0.55);
 }
+
+/* Player bar. Every button is one size, and play, the main action, is one
+   step larger. The readout at the end of the timeline reads like the one at
+   its start. */
+html[data-os="macos"] .mac-player-btn {
+  block-size: 48px;
+  min-inline-size: 48px;
+}
+html[data-os="macos"] .mac-player-seek {
+  inline-size: 48px;
+  block-size: 48px;
+}
+html[data-os="macos"] .mac-player-play {
+  inline-size: 56px;
+  block-size: 56px;
+}
+html[data-os="macos"] .mac-player-time {
+  color: rgb(255 255 255 / 0.9);
+}
+
+/* Player menus open above the button that opened them, their far edge on the
+   button's, instead of at a fixed spot against the window edge. A panel opened
+   from More has no button of its own and sits above More. Over video there is
+   nothing for a blur to sample (the picture is a native layer under the page),
+   so these surfaces are solid. */
+html[data-os="macos"] .mac-player-menu {
+  position: absolute;
+  inset-block: auto calc(100% + 10px);
+  inset-inline: auto 0;
+}
+html[data-os="macos"] .mac-player-menu.mac-player-menu-start {
+  inset-inline: 0 auto;
+}
+html[data-os="macos"] .mac-player-surface,
+html[data-os="macos"] [data-harbor-player] .mac-menu {
+  border-radius: var(--mac-radius-card);
+  background: var(--color-elevated);
+  backdrop-filter: none;
+  box-shadow:
+    0 0 0 0.5px var(--mac-hairline),
+    0 2px 6px rgb(0 0 0 / 0.2),
+    0 14px 36px -10px rgb(0 0 0 / 0.5);
+}
