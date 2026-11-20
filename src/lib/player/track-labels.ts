@@ -49,3 +49,33 @@ export function audioCodecLabel(codec?: string | null): string {
   // An unknown codec: keep its short name, drop a long description in brackets.
   return raw.replace(/\s*\(.*\)\s*$/, "") || raw;
 }
+
+// Subtitle formats as the player reports them (an ffmpeg codec name or its
+// long description), in the short form people know them by.
+const SUBTITLE_FORMATS: Array<[RegExp, string]> = [
+  [/pgs/, "PGS"],
+  [/subrip|\bsrt\b/, "SRT"],
+  [/\bssa\b/, "SSA"],
+  [/\bass\b|substation/, "ASS"],
+  [/vtt/, "WebVTT"],
+  [/dvd|vobsub/, "VobSub"],
+  [/dvb/, "DVB"],
+  [/mov_text|tx3g|timed text/, "Timed text"],
+  [/eia_608|eia-608|cea_608|cea_708|closed caption/, "Closed captions"],
+];
+
+export function subtitleFormatLabel(codec?: string | null): string {
+  const raw = (codec ?? "").trim();
+  if (!raw) return "";
+  const id = raw.toLowerCase();
+  for (const [pattern, label] of SUBTITLE_FORMATS) if (pattern.test(id)) return label;
+  // An unknown format: its name without the word "subtitle" or the underscores.
+  return (
+    raw
+      .replace(/[_-]+/g, " ")
+      .replace(/\bsubtitles?\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toUpperCase() || raw
+  );
+}

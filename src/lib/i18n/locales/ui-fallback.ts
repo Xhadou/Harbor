@@ -3065,6 +3065,20 @@ const uiFallback: Record<string, string> = {
     "Titles you save show up here. What you have watched is under History.",
   "More places you can keep in the sidebar.": "More places you can keep in the sidebar.",
   "End of film": "End of film",
+  "The filled part of the timeline. White unless you pick a color.":
+    "The filled part of the timeline. White unless you pick a color.",
+  "Default (white)": "Default (white)",
+  "Image subtitles": "Image subtitles",
+  "Drawn as pictures: only their position and size can be changed.":
+    "Drawn as pictures: only their position and size can be changed.",
+  "Picture and aspect ratio": "Picture and aspect ratio",
+  "Anime4K and shaders": "Anime4K and shaders",
+  Screenshot: "Screenshot",
+  Chapters: "Chapters",
+  Shaders: "Shaders",
+  Anime4K: "Anime4K",
+  Download: "Download",
+  More: "More",
 };
 
 export default uiFallback;

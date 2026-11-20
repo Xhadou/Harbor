@@ -3,6 +3,7 @@ import type { TrackInfo } from "@/lib/player/bridge";
 import { HoverTooltip } from "@/components/hover-tooltip";
 import { useContextMenu, type ContextMenuTarget } from "@/lib/context-menu";
 import { isImageSubTrack } from "@/lib/player/sub-format";
+import { subtitleFormatLabel } from "@/lib/player/track-labels";
 import { subtitleReleaseLabel } from "@/lib/subtitles/release-label";
 import { subtitleTrackLanguageLabel, subtitleTrackTitle } from "@/lib/subtitles/track-label";
 import { saveSubtitleToDisk } from "@/lib/subtitles/save-to-disk";
@@ -44,10 +45,11 @@ export function VariantRow({
   const { openAt } = useContextMenu();
   const imported = useImportedSubs();
   const isImported = !!track.title && imported.has(track.title);
-  const tags: { label: string; tone: "warn" | "info" | "default" }[] = subtitleClassificationLabels(
-    track,
-    tr,
-  ).map(({ kind, label }) => ({
+  const tags: {
+    label: string;
+    tone: "warn" | "info" | "default";
+    hint?: string;
+  }[] = subtitleClassificationLabels(track, tr).map(({ kind, label }) => ({
     label,
     tone: kind === "hearingImpaired" || kind === "machineTranslated" ? "warn" : "info",
   }));
@@ -55,13 +57,19 @@ export function VariantRow({
     tags.push({ label: tr("Audio verified"), tone: "info" });
   }
   if (track.default) tags.push({ label: tr("Default"), tone: "default" });
-  if (isImageSubTrack(track)) tags.push({ label: tr("Position and size only"), tone: "warn" });
+  if (isImageSubTrack(track)) {
+    tags.push({
+      label: tr("Image subtitles"),
+      tone: "warn",
+      hint: tr("Drawn as pictures: only their position and size can be changed."),
+    });
+  }
   const sourceLabel = isImported
     ? tr("Imported")
     : track.external
       ? tr("External")
       : tr("Embedded");
-  const codec = track.codec?.toUpperCase();
+  const codec = subtitleFormatLabel(track.codec);
   const realRelease = track.release?.trim();
   const releaseLabel = subtitleReleaseLabel(realRelease);
   const titleText = releaseLabel || realRelease || subtitleTrackTitle(track);
@@ -149,7 +157,8 @@ export function VariantRow({
             {tags.map((t) => (
               <span
                 key={t.label}
-                className={`rounded px-1 py-px text-[9.5px] font-bold uppercase tracking-[0.1em] ${
+                title={t.hint}
+                className={`mac-sub-tag rounded px-1 py-px text-[9.5px] font-bold uppercase tracking-[0.1em] ${
                   t.tone === "warn"
                     ? "bg-amber-400/15 text-amber-200 ring-1 ring-amber-400/30"
                     : t.tone === "info"
@@ -201,11 +210,8 @@ export function VariantRow({
             ? `${rank}, ${tr("Match estimate")} ${tr("Unknown")}`
             : `${rank}, ${tr("Match estimate")} ${track.matchExplanation?.compatibilityPercent ?? compatibilityPercent}%`
         }
-        className="flex w-20 shrink-0 items-center justify-end gap-1.5 rounded-e-lg pe-2 text-[10.5px] font-medium tabular-nums outline-none transition-colors hover:bg-raised focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+        className="flex min-w-9 shrink-0 items-center justify-end gap-1.5 rounded-e-lg pe-2 ps-1 text-[10.5px] font-medium tabular-nums outline-none transition-colors hover:bg-raised focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
       >
-        <span aria-hidden className={selected ? "text-accent" : "text-ink-muted"}>
-          {rank}
-        </span>
         {(track.matchExplanation?.compatibilityPercent ?? compatibilityPercent) != null && (
           <span
             aria-hidden
@@ -218,11 +224,6 @@ export function VariantRow({
             }
           >
             {track.matchExplanation?.compatibilityPercent ?? compatibilityPercent}%
-          </span>
-        )}
-        {(track.matchExplanation?.compatibilityPercent ?? compatibilityPercent) == null && (
-          <span aria-hidden className="text-ink-subtle">
-            —
           </span>
         )}
         <Info

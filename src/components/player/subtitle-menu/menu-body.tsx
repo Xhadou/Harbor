@@ -188,7 +188,7 @@ export function MenuBody(props: SubtitleMenuProps & { onClose: () => void }) {
       {/* ── Body ── */}
       <div className="flex min-h-0 flex-1">
         {/* Language sidebar */}
-        <aside className="flex w-[128px] shrink-0 flex-col gap-0.5 overflow-y-auto border-e border-edge-soft bg-canvas/30 p-2">
+        <aside className="flex w-[156px] shrink-0 flex-col gap-0.5 overflow-y-auto border-e border-edge-soft bg-canvas/30 p-2">
           <button
             onClick={() => {
               if (offSelected) return;

@@ -9139,3 +9139,17 @@ html[data-os="macos"] [data-harbor-player] .mac-menu {
     0 2px 6px rgb(0 0 0 / 0.2),
     0 14px 36px -10px rgb(0 0 0 / 0.5);
 }
+
+/* A note on a subtitle row is small plain text on a quiet fill, not a ringed
+   capital label. */
+html[data-os="macos"] .mac-sub-tag {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--mac-fill);
+  box-shadow: none;
+  color: var(--color-ink-muted);
+  font-size: var(--mac-text-caption);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
