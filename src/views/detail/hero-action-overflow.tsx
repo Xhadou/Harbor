@@ -162,7 +162,7 @@ export function HeroActionOverflow({
             role="menu"
             style={{ left: menu.x, top: menu.y }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="fixed z-[320] flex max-h-[min(70vh,480px)] w-[224px] flex-col overflow-y-auto rounded-xl border border-edge bg-elevated p-1 shadow-[0_18px_50px_-15px_rgba(0,0,0,0.7)] animate-popover-in"
+            className="mac-menu fixed z-[320] flex max-h-[min(70vh,480px)] w-[224px] flex-col overflow-y-auto rounded-xl border border-edge bg-elevated p-1 shadow-[0_18px_50px_-15px_rgba(0,0,0,0.7)] animate-popover-in"
           >
             {showSync && (
               <>
@@ -203,7 +203,7 @@ export function HeroActionOverflow({
                   type={meta.type === "series" ? "series" : "movie"}
                   onAction={() => setMenu(null)}
                 />
-                <div className="my-1 h-px bg-edge-soft" />
+                <div className="mac-menu-separator my-1 h-px bg-edge-soft" />
               </>
             )}
             <Item
@@ -331,7 +331,7 @@ function Item({
     <button
       role="menuitem"
       onClick={onClick}
-      className={`flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] transition-colors ${
+      className={`mac-menu-item flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] transition-colors ${
         danger
           ? "text-danger hover:bg-danger/10"
           : active

@@ -8952,3 +8952,120 @@ html[data-os="macos"] .mac-field.font-mono {
 html[data-os="macos"] .mac-field:disabled {
   opacity: 0.5;
 }
+
+/* Menu. One look for the right-click menu and its submenus, and for any other
+   menu that opts in with `mac-menu` and `mac-menu-item`. The panel takes the
+   card corner and its rows the control corner, four pixels in, so the two
+   curves run parallel. */
+html[data-os="macos"] :is(.context-menu-surface, .mac-menu) {
+  padding: 4px;
+  border: 0;
+  border-radius: var(--mac-radius-card);
+  background: var(--color-elevated);
+  box-shadow:
+    0 0 0 0.5px var(--mac-hairline),
+    0 2px 6px rgb(0 0 0 / 0.2),
+    0 14px 36px -10px rgb(0 0 0 / 0.5);
+}
+@supports (backdrop-filter: blur(1px)) {
+  html[data-os="macos"] :is(.context-menu-surface, .mac-menu) {
+    background: color-mix(in srgb, var(--color-elevated) 82%, transparent);
+    backdrop-filter: blur(28px) saturate(1.6);
+  }
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  html[data-os="macos"] :is(.context-menu-surface, .mac-menu) {
+    background: var(--color-elevated);
+    backdrop-filter: none;
+  }
+}
+/* A menu is as wide as its longest row, within limits, so a label wraps only
+   when it has to. The width set on the element is the narrowest it gets;
+   `!important` is what it takes to outrank that inline width. */
+html[data-os="macos"] .context-menu-position {
+  --context-menu-radius: var(--mac-radius-card);
+  --context-menu-hover: var(--mac-fill);
+  --context-menu-pressed: var(--mac-fill-hover);
+  inline-size: max-content !important;
+  min-inline-size: 200px;
+  max-inline-size: min(360px, calc(100vw - 16px)) !important;
+}
+
+/* A row: the regular control height, body text. The strip of icon buttons at
+   the top of a menu keeps its own taller shape. */
+html[data-os="macos"] :is(.context-menu-item:not(.context-menu-quick-item), .mac-menu-item) {
+  min-block-size: var(--mac-control-h);
+  padding: 6px 8px;
+  gap: 8px;
+  border-radius: var(--mac-radius-control);
+  font-size: var(--mac-text-body);
+  font-weight: 400;
+  line-height: var(--mac-lh-body);
+}
+html[data-os="macos"] .context-menu-quick-item {
+  min-block-size: 48px;
+  padding: 7px 4px 6px;
+  gap: 3px;
+  border-radius: var(--mac-radius-control);
+  font-weight: 400;
+}
+html[data-os="macos"] .context-menu-quick-label {
+  font-size: var(--mac-text-caption);
+  line-height: var(--mac-lh-caption);
+}
+/* A row built by hand may carry a fixed height of its own. */
+html[data-os="macos"] .mac-menu-item {
+  block-size: auto;
+}
+html[data-os="macos"] .mac-menu-item:hover:not(:disabled, [aria-disabled="true"]) {
+  background: var(--mac-fill);
+}
+html[data-os="macos"] .mac-menu-item:active:not(:disabled, [aria-disabled="true"]) {
+  background: var(--mac-fill-hover);
+}
+/* The row the keyboard is on looks like the row the pointer is on: a fill, no
+   ring. `!important` answers the keyboard-navigation outline rule. */
+html[data-os="macos"] :is(.context-menu-item, .mac-menu-item):focus-visible {
+  outline: none !important;
+  background: var(--mac-fill);
+  box-shadow: none;
+}
+html[data-os="macos"] .context-menu-item[data-danger]:focus-visible {
+  background: var(--context-menu-hover);
+}
+html[data-os="macos"] .context-menu-item:is(:disabled, [aria-disabled="true"]) {
+  color: var(--mac-ink-off);
+}
+html[data-os="macos"] :is(.context-menu-separator, .mac-menu-separator) {
+  block-size: 1px;
+  margin: 4px 8px;
+  background: var(--mac-hairline);
+}
+html[data-os="macos"] .context-menu-section-label {
+  padding: 6px 8px 2px;
+  color: var(--color-ink-subtle);
+  font-size: var(--mac-text-caption);
+  font-weight: 600;
+  line-height: var(--mac-lh-caption);
+}
+html[data-os="macos"] .context-menu-shortcut {
+  padding-inline-start: 16px;
+  font-size: var(--mac-text-small);
+  line-height: var(--mac-lh-small);
+}
+/* The strip's divider is drawn inset, like every other divider in the menu. */
+html[data-os="macos"] .context-menu-quick {
+  padding: 0 0 5px;
+  margin-bottom: 4px;
+  border-bottom: 0;
+  background: linear-gradient(var(--mac-hairline), var(--mac-hairline)) bottom / calc(100% - 16px)
+    1px no-repeat;
+}
+html[data-os="macos"] .context-menu-confirmation,
+html[data-os="macos"] .context-menu-action-feedback {
+  padding-inline: 8px;
+}
+/* A menu on macOS carries no maker's mark. */
+html[data-os="macos"] .context-menu-brand-footer {
+  display: none;
+}

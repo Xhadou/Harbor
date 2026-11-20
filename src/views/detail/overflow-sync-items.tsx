@@ -60,7 +60,7 @@ function GroupRow({
     <button
       role="menuitem"
       onClick={onClick}
-      className="flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] text-ink transition-colors hover:bg-raised"
+      className="mac-menu-item flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] text-ink transition-colors hover:bg-raised"
     >
       <img src={logo} alt="" className="h-[14px] w-[14px] rounded-[3px] object-contain" />
       <span className="flex-1 truncate">{label}</span>
@@ -310,7 +310,7 @@ export function PmdbMenuItems({
             if (ok) onAction();
           });
         }}
-        className="flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] text-ink transition-colors hover:bg-raised disabled:opacity-60"
+        className="mac-menu-item flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] text-ink transition-colors hover:bg-raised disabled:opacity-60"
       >
         <img
           src={publicmetadbLogo}
@@ -354,7 +354,7 @@ export function TraktMenuItems({
         void pushWatched(target).catch(() => {});
         onAction();
       }}
-      className="flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] text-ink transition-colors hover:bg-raised"
+      className="mac-menu-item flex h-9 items-center gap-2.5 rounded-lg px-3 text-start text-[13px] text-ink transition-colors hover:bg-raised"
     >
       <img src={traktLogo} alt="" className="h-[14px] w-[14px] rounded-[3px] object-contain" />
       <span className="flex-1 truncate">{t("Mark watched on Trakt")}</span>

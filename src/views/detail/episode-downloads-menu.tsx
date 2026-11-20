@@ -84,7 +84,7 @@ export function EpisodeDownloadsMenu({ meta, episodes }: { meta: Meta; episodes:
             role="menu"
             style={{ left: menu.x, top: menu.y }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="fixed z-[320] flex w-[236px] flex-col rounded-xl border border-edge bg-elevated p-1 shadow-[0_18px_50px_-15px_rgba(0,0,0,0.7)] animate-popover-in"
+            className="mac-menu fixed z-[320] flex w-[236px] flex-col rounded-xl border border-edge bg-elevated p-1 shadow-[0_18px_50px_-15px_rgba(0,0,0,0.7)] animate-popover-in"
           >
             <MenuItem
               icon={<Download size={15} strokeWidth={2} />}
@@ -93,7 +93,7 @@ export function EpisodeDownloadsMenu({ meta, episodes }: { meta: Meta; episodes:
               disabled={pending === 0}
               onClick={startSeason}
             />
-            <div className="my-1 h-px bg-edge-soft" />
+            <div className="mac-menu-separator my-1 h-px bg-edge-soft" />
             <MenuItem
               icon={
                 autoOn ? (
@@ -150,7 +150,7 @@ function MenuItem({
       role="menuitem"
       disabled={disabled}
       onClick={onClick}
-      className={`flex items-start gap-2.5 rounded-lg px-3 py-2 text-start transition-colors ${
+      className={`mac-menu-item flex items-start gap-2.5 rounded-lg px-3 py-2 text-start transition-colors ${
         disabled ? "cursor-not-allowed opacity-45" : "hover:bg-raised"
       }`}
     >
