@@ -527,6 +527,7 @@ export function renderControl(id: PlayerControlId, ctx: ControlContext): ReactNo
           rate={ctx.snap.rate}
           onRate={ctx.onRate}
           sleep={ctx.sleep}
+          episodic={ctx.season != null && ctx.episode != null}
           onOpenChange={ctx.setSpeedMenuOpen}
           iconUrl={iconUrl}
         />

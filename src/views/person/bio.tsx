@@ -1,8 +1,17 @@
 import { useMemo } from "react";
 import type { PersonCredit } from "@/lib/providers/tmdb";
 
+/**
+ * Biographies arrive with Markdown emphasis around titles ("*Good Will
+ * Hunting*", sometimes "* Mystic Pizza*"). Harbor shows them as plain text, so
+ * the markers are dropped and the words kept.
+ */
+export function plainBio(text: string): string {
+  return text.replace(/\*{1,2}[ \t]*([^*\n]{1,160}?)[ \t]*\*{1,2}/g, "$1");
+}
+
 export function Bio({
-  text,
+  text: rawText,
   credits,
   onOpenCredit,
 }: {
@@ -10,6 +19,7 @@ export function Bio({
   credits?: PersonCredit[];
   onOpenCredit?: (c: PersonCredit) => void;
 }) {
+  const text = useMemo(() => plainBio(rawText), [rawText]);
   const content = useMemo(() => {
     if (!credits || credits.length === 0 || !onOpenCredit) return null;
     const byTitle = new Map<string, PersonCredit>();

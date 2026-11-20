@@ -8,7 +8,8 @@ import { languageName, normalizeLang, trackLanguageName } from "@/lib/subtitles/
 import { useT } from "@/lib/i18n";
 import { useMenuSide } from "./menu-side";
 import { Tooltip } from "./transport/tooltip";
-import { watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
+import { watchEscape, watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
+import { audioCodecLabel, channelLabel } from "@/lib/player/track-labels";
 
 type Props = {
   tracks: TrackInfo[];
@@ -34,6 +35,8 @@ function buildAudioOverlayState(props: Props) {
 export function AudioMenu(props: Props) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  // Escape closes the menu; without this the player takes it as "leave".
+  useEffect(() => (open ? watchEscape(() => setOpen(false)) : undefined), [open]);
   const [forceInline, setForceInline] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const { measure } = useMenuSide(wrap, 360);
@@ -305,8 +308,9 @@ function trackTitle(t: TrackInfo, tr: (key: string) => string): string {
 function trackSubtitle(t: TrackInfo, tr: (key: string) => string): string {
   const parts: string[] = [];
   if (t.lang) parts.push(trackLanguageName(t.lang, t.title));
-  if (t.codec) parts.push(t.codec);
-  if (t.channels) parts.push(t.channels);
+  if (t.codec) parts.push(audioCodecLabel(t.codec));
+  const channels = channelLabel(t.channels, t.channelCount);
+  if (channels) parts.push(channels);
   if (t.default) parts.push(tr("Default"));
   return parts.filter(Boolean).join(" · ");
 }

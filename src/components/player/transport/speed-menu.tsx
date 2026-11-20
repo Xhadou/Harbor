@@ -9,7 +9,7 @@ import { useSettings } from "@/lib/settings";
 import { useT } from "@/lib/i18n";
 import { useMenuSide } from "../menu-side";
 import { Tooltip } from "./tooltip";
-import { watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
+import { watchEscape, watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
 
 const CURATED_SPEEDS = [0.75, 1, 1.25, 1.5, 2];
 const CURATED_SLEEP_IDS = ["30", "60", "ep", "ep2"];
@@ -30,18 +30,23 @@ export function SpeedMenu({
   rate,
   onRate,
   sleep,
+  episodic = true,
   onOpenChange,
   iconUrl,
 }: {
   rate: number;
   onRate: (r: number) => void;
   sleep?: SleepTimerState;
+  /** False for a film, which has no next episode to wait for. */
+  episodic?: boolean;
   onOpenChange?: (open: boolean) => void;
   iconUrl?: string;
 }) {
   const t = useT();
   const { settings, update } = useSettings();
   const [open, setOpen] = useState(false);
+  // Escape closes the menu; without this the player takes it as "leave".
+  useEffect(() => (open ? watchEscape(() => setOpen(false)) : undefined), [open]);
   const [editing, setEditing] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const { measure } = useMenuSide(wrap, 400);
@@ -84,10 +89,18 @@ export function SpeedMenu({
         custom,
       }));
     const episodeRows = SLEEP_PRESETS.filter(
-      (p) => CURATED_SLEEP_IDS.includes(p.id) && p.mode.kind !== "minutes",
-    ).map((p) => ({ id: p.id, label: t(p.label), mode: p.mode, custom: false }));
+      (p) =>
+        CURATED_SLEEP_IDS.includes(p.id) &&
+        p.mode.kind !== "minutes" &&
+        (episodic || p.mode.kind === "end_episode"),
+    ).map((p) => ({
+      id: p.id,
+      label: episodic ? t(p.label) : t("End of film"),
+      mode: p.mode,
+      custom: false,
+    }));
     return [...minuteRows, ...episodeRows];
-  }, [settings.customSleepMinutes, t]);
+  }, [settings.customSleepMinutes, t, episodic]);
 
   const current = Math.abs(rate - 1) < 0.01 ? "1×" : `${rate}×`;
   const sleepActive = sleep != null && sleep.mode.kind !== "off";

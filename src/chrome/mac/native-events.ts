@@ -27,6 +27,8 @@ export type NativeEventPayloads = {
   "search-end": Record<string, never>;
   "search-key": { key: NativeSearchKey; shift: boolean };
   layout: NativeLayout;
+  /** The window entered or left macOS full screen, by any route. */
+  fullscreen: { on: boolean };
   menu: { action: string };
 };
 

@@ -101,6 +101,9 @@ pub fn menu_spec() -> Vec<(&'static str, Vec<MenuEntry>)> {
                 action("go-movies", "Movies", "CmdOrCtrl+3"),
                 action("go-shows", "Shows", "CmdOrCtrl+4"),
                 action("go-library", "Library", "CmdOrCtrl+5"),
+                Separator,
+                action("next-section", "Next Section", "CmdOrCtrl+Shift+]"),
+                action("previous-section", "Previous Section", "CmdOrCtrl+Shift+["),
             ],
         ),
         (

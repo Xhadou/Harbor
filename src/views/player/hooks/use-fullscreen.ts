@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { isMacDesktop } from "@/lib/platform";
 import {
   consumeMarathonReenter,
   enterWindowFullscreen,
@@ -16,12 +17,15 @@ export function useFullscreen() {
 
   useEffect(() => subscribeFullscreen(() => setFullscreen(getWindowFullscreen())), []);
 
-  useEffect(
-    () => () => {
-      void exitWindowFullscreenOnPlayerClose();
-    },
-    [],
-  );
+  useEffect(() => {
+    // On macOS the window can already be full screen when playback starts (the
+    // green button, the View menu). That was the user's choice for the whole
+    // app, so closing the player leaves it alone.
+    const keep = isMacDesktop() && getWindowFullscreen();
+    return () => {
+      if (!keep) void exitWindowFullscreenOnPlayerClose();
+    };
+  }, []);
 
   useEffect(() => {
     if (consumeMarathonReenter() && !getWindowFullscreen()) {

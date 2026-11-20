@@ -1,3 +1,6 @@
+import { macBindingLabel, macDefaultBinding } from "./mac-chrome";
+import { osClass } from "./platform";
+
 export type HotkeyScope = "Player" | "Global" | "Manga";
 
 export type HotkeyId =
@@ -67,7 +70,7 @@ export type HotkeyDef = {
   group?: string;
 };
 
-export const HOTKEYS: HotkeyDef[] = [
+const BASE_HOTKEYS: HotkeyDef[] = [
   {
     id: "globalSearchFocus",
     scope: "Global",
@@ -532,6 +535,13 @@ export const HOTKEYS: HotkeyDef[] = [
   },
 ];
 
+// Defaults are per platform (Command on a Mac), so everything that reads a
+// default, matches a key or resets a binding agrees on the same one.
+export const HOTKEYS: HotkeyDef[] = BASE_HOTKEYS.map((def) => ({
+  ...def,
+  defaultBinding: macDefaultBinding(def.id, def.defaultBinding, osClass()),
+}));
+
 export const HOTKEY_MAP: Record<HotkeyId, HotkeyDef> = Object.fromEntries(
   HOTKEYS.map((h) => [h.id, h]),
 ) as Record<HotkeyId, HotkeyDef>;
@@ -589,21 +599,28 @@ export function effectiveBinding(id: HotkeyId, overrides: Record<string, string>
   return bindingOverride(id, overrides) ?? HOTKEY_MAP[id].defaultBinding;
 }
 
+function keyLabel(p: string): string {
+  if (p === " ") return "Space";
+  if (p === "ArrowUp") return "↑";
+  if (p === "ArrowDown") return "↓";
+  if (p === "ArrowLeft") return "←";
+  if (p === "ArrowRight") return "→";
+  if (p.length === 1) return p.toUpperCase();
+  return p;
+}
+
 export function formatBindingForDisplay(binding: string): string {
-  return binding
-    .split("+")
+  const parts = binding.split("+");
+  if (osClass() === "macos") {
+    return macBindingLabel([...parts.slice(0, -1), keyLabel(parts[parts.length - 1] ?? "")]);
+  }
+  return parts
     .map((p) => {
       if (p === "ctrl") return "Ctrl";
       if (p === "shift") return "Shift";
       if (p === "alt") return "Alt";
       if (p === "meta") return "⌘";
-      if (p === " ") return "Space";
-      if (p === "ArrowUp") return "↑";
-      if (p === "ArrowDown") return "↓";
-      if (p === "ArrowLeft") return "←";
-      if (p === "ArrowRight") return "→";
-      if (p.length === 1) return p.toUpperCase();
-      return p;
+      return keyLabel(p);
     })
     .join(" + ");
 }

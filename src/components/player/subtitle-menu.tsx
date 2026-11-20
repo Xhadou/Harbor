@@ -21,7 +21,7 @@ import { useSubtitleContext } from "./subtitle-menu/subtitle-context-store";
 import type { SubtitleMenuProps } from "./subtitle-menu/types";
 import { buildOverlayState } from "./subtitle-menu/utils";
 import { Tooltip } from "./transport/tooltip";
-import { watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
+import { watchEscape, watchOutsideMouseDown } from "@/lib/player/overlay-dismiss";
 
 export type { SubtitleMenuProps } from "./subtitle-menu/types";
 
@@ -31,6 +31,8 @@ export function SubtitleMenu(props: Props) {
   const t = useT();
   const { settings } = useSettings();
   const [open, setOpen] = useState(false);
+  // Escape closes the menu; without this the player takes it as "leave".
+  useEffect(() => (open ? watchEscape(() => setOpen(false)) : undefined), [open]);
   const [forceInline, setForceInline] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const useOverlay = props.useOverlayPopup === true;

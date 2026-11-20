@@ -76,6 +76,11 @@ struct SearchKeyPayload: Codable, Equatable, Sendable {
     var shift: Bool
 }
 
+/// Whether the window is in (or on its way into) macOS full screen.
+struct FullScreenPayload: Codable, Equatable, Sendable {
+    var on: Bool
+}
+
 /// How much of the window the native chrome covers, in points.
 struct LayoutPayload: Codable, Equatable, Sendable {
     var titlebarInset: Double

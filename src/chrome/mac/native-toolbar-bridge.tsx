@@ -1,4 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { setWindowFullscreen } from "@/lib/fullscreen-state";
 import { findHotkeyMatch, shouldHandleGlobalKeyboardEvent } from "@/lib/hotkeys";
 import { useActiveKid } from "@/lib/profiles";
 import { useSearchActions, useSearchData, useSearchOpen } from "@/lib/search-context";
@@ -68,6 +69,10 @@ export function NativeToolbarBridge({
       onNativeEvent("layout", applyNativeLayout, () =>
         pushNativeState("mac_native_toolbar_set", toolbarState.current),
       ),
+      // The green button, the View menu and Mission Control change full screen
+      // without asking Harbor. The window reports every change, so Harbor's
+      // own flag follows the window instead of guessing.
+      onNativeEvent("fullscreen", ({ on }) => setWindowFullscreen(on)),
       onNativeEvent("toolbar-back", () => {
         actions.current.setOpen(false);
         actions.current.goBack();

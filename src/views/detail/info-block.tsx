@@ -62,10 +62,12 @@ export function InfoBlock({ detail, isAnime = false }: { detail: TmdbDetail; isA
   );
   const mediaType: "movie" | "tv" = detail.kind === "tv" ? "tv" : "movie";
 
-  const fmtMoney = (n?: number) =>
-    n && n > 0
-      ? `$${(n / 1_000_000).toFixed(n >= 1_000_000_000 ? 2 : 0)}${n >= 1_000_000_000 ? "B" : "M"}`
-      : null;
+  const fmtMoney = (n?: number) => {
+    if (!n || n <= 0) return null;
+    if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(2)}B`;
+    if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(0)}M`;
+    return `$${Math.round(n).toLocaleString("en-US")}`;
+  };
 
   const { settings } = useSettings();
   const tmdbKey = settings.tmdbKey;

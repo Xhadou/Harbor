@@ -17,6 +17,8 @@ test("settings maps to settings view", () => {
 
 test("others", () => {
   assert.deepEqual(menuCommand("back"), { kind: "back" });
+  assert.deepEqual(menuCommand("next-section"), { kind: "cycle-section", step: 1 });
+  assert.deepEqual(menuCommand("previous-section"), { kind: "cycle-section", step: -1 });
   assert.deepEqual(menuCommand("toggle-sidebar"), { kind: "toggle-sidebar" });
   assert.deepEqual(menuCommand("find"), { kind: "find" });
   assert.equal(menuCommand("nope"), null);

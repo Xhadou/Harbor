@@ -5,6 +5,7 @@ import type { View } from "@/lib/view";
 export type MenuCommand =
   | { kind: "view"; view: View }
   | { kind: "back" }
+  | { kind: "cycle-section"; step: 1 | -1 }
   | { kind: "toggle-sidebar" }
   | { kind: "find" };
 
@@ -19,6 +20,8 @@ const VIEWS: Record<string, View> = {
 
 export function menuCommand(action: string): MenuCommand | null {
   if (action === "back") return { kind: "back" };
+  if (action === "next-section") return { kind: "cycle-section", step: 1 };
+  if (action === "previous-section") return { kind: "cycle-section", step: -1 };
   if (action === "toggle-sidebar") return { kind: "toggle-sidebar" };
   if (action === "find") return { kind: "find" };
   const view = Object.hasOwn(VIEWS, action) ? VIEWS[action] : undefined;

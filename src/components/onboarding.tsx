@@ -93,7 +93,7 @@ export function OnboardingModal() {
       }`}
     >
       <div
-        className={`relative flex flex-col overflow-hidden rounded-2xl border border-edge-soft bg-elevated/95 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)] ${
+        className={`relative flex max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-2xl border border-edge-soft bg-elevated/95 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.6)] ${
           isTaste ? "w-[min(93vw,640px)]" : "w-[min(92vw,580px)]"
         } transition-[width] duration-300 ${closing ? "scale-[0.97] opacity-0 !transition-all !duration-300" : "animate-modal-in"}`}
       >
@@ -112,9 +112,13 @@ export function OnboardingModal() {
         ) : (
           <>
             <div
-              className={`flex min-h-[440px] flex-col ${isTaste ? "px-8 pt-9 pb-3" : "justify-center px-12 py-10"}`}
+              // A step taller than the window scrolls inside the card, so the
+              // footer and its Continue button never leave the screen. The
+              // step centres itself with auto margins: unlike justify-center,
+              // they do not push the top of an overflowing step out of reach.
+              className={`flex min-h-[440px] flex-col overflow-y-auto ${isTaste ? "px-8 pt-9 pb-3" : "px-12 py-10"}`}
             >
-              <div key={step} className="animate-step-in">
+              <div key={step} className={`animate-step-in ${isTaste ? "" : "my-auto"}`}>
                 {step === "language" && <LanguageStep />}
                 {step === "welcome" && <WelcomeStep />}
                 {step === "layout" && <LayoutStep />}
@@ -127,7 +131,7 @@ export function OnboardingModal() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-edge-soft bg-canvas/40 px-8 py-5">
+            <div className="flex shrink-0 items-center justify-between border-t border-edge-soft bg-canvas/40 px-8 py-5">
               <Dots
                 count={STEPS.length - 1}
                 active={Math.max(stepIdx - 1, 0)}

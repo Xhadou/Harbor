@@ -1,9 +1,10 @@
 import { Check, ExternalLink, Eye, EyeOff, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "@/lib/auth";
 import { useT } from "@/lib/i18n";
 import { openUrl } from "@/lib/window";
+import { useEscape, useFocusTrap } from "./modal-shell";
 import { StremioWebButton } from "./auth-modal/stremio-web-button";
 
 export function AuthModal({ onClose }: { onClose: () => void }) {
@@ -15,11 +16,11 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  // Capture phase: Harbor's navigation layer takes Escape as Back before a
+  // bubbling listener would ever see it.
+  useEscape(onClose);
+  const dialogRef = useRef<HTMLFormElement>(null);
+  useFocusTrap(dialogRef);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +43,11 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
       }}
     >
       <form
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
+        data-tv-focus-scope
         onMouseDown={(e) => e.stopPropagation()}
         onSubmit={submit}
         className="animate-dialog-in flex w-[min(92vw,420px)] flex-col gap-5 rounded-md bg-surface p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
@@ -50,7 +56,10 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
           <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
             {t("Stremio")}
           </span>
-          <h2 className="font-display text-[22px] font-medium tracking-tight text-ink">
+          <h2
+            id="auth-modal-title"
+            className="font-display text-[22px] font-medium tracking-tight text-ink"
+          >
             {t("Sign in")}
           </h2>
           <p className="text-[12.5px] leading-relaxed text-ink-subtle">
@@ -178,7 +187,7 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}
           autoComplete={isPassword ? "current-password" : "email"}
-          className={`h-11 w-full rounded-md bg-canvas px-3.5 text-[14px] text-ink outline-none transition-colors focus:bg-elevated disabled:opacity-50 ${
+          className={`mac-field h-11 w-full rounded-md bg-canvas px-3.5 text-[14px] text-ink outline-none transition-[background-color,box-shadow] focus:bg-elevated disabled:opacity-50 ${
             isPassword ? "pe-11" : ""
           }`}
         />

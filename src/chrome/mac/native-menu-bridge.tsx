@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useSearchActions } from "@/lib/search-context";
 import { useView } from "@/lib/view";
+import { CYCLE_SECTION_EVENT } from "@/chrome/tab-hotkeys";
 import { menuCommand } from "./menu-command";
 import { onNativeEvent } from "./native-events";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
@@ -49,6 +50,9 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
           if (!now.canGoBack) return;
           now.setOpen(false);
           now.goBack();
+        } else if (command.kind === "cycle-section") {
+          now.setOpen(false);
+          window.dispatchEvent(new CustomEvent(CYCLE_SECTION_EVENT, { detail: command.step }));
         } else if (command.kind === "toggle-sidebar") now.toggleSidebar();
         // With the sidebar shown this focuses its field (see
         // NativeToolbarBridge); hidden, Harbor's own search input opens.
