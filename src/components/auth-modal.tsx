@@ -37,7 +37,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div
-      className="animate-scrim-in fixed inset-0 z-[240] flex items-center justify-center p-8"
+      className="mac-scrim animate-scrim-in fixed inset-0 z-[240] flex items-center justify-center p-8"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -50,7 +50,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
         data-tv-focus-scope
         onMouseDown={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="mac-panel animate-dialog-in flex w-[min(92vw,420px)] flex-col gap-5 rounded-md bg-surface p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+        className="mac-dialog animate-dialog-in flex w-[min(92vw,420px)] flex-col gap-5 rounded-md bg-surface p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
       >
         <div className="flex flex-col gap-1.5">
           <span className="mac-hidden text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">

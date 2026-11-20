@@ -34,6 +34,7 @@ function loader(extra: Record<string, unknown> = {}) {
       setShowcase() {},
     },
     "./list-toast": { emitListToast() {} },
+    "@/components/modal-shell": { useEscape() {}, useFocusTrap() {} },
     ...extra,
   };
   const load = (path: string): any => {

@@ -20,17 +20,22 @@ export function ConfirmActionModal() {
       labelledBy={titleId}
     >
       <div className="px-6 pt-6">
-        <h2 id={titleId} className="text-[17px] font-semibold tracking-tight text-ink">
+        <h2
+          id={titleId}
+          className="mac-type-heading text-[17px] font-semibold tracking-tight text-ink"
+        >
           {state.title}
         </h2>
-        <p className="mt-2 text-[12.5px] leading-relaxed text-ink-subtle">{state.message}</p>
+        <p className="mac-type-body mt-2 text-[12.5px] leading-relaxed text-ink-subtle">
+          {state.message}
+        </p>
       </div>
       <div className="flex items-center justify-end gap-2 px-6 pb-6 pt-5">
         <button
           type="button"
           autoFocus
           onClick={() => resolveConfirmAction(false)}
-          className="harbor-press-pop h-9 rounded-md bg-elevated px-4 text-[12.5px] font-semibold text-ink-muted transition-colors hover:text-ink"
+          className="mac-btn mac-btn-secondary harbor-press-pop h-9 rounded-md bg-elevated px-4 text-[12.5px] font-semibold text-ink-muted transition-colors hover:text-ink"
         >
           {t("common.cancel")}
         </button>
@@ -39,8 +44,8 @@ export function ConfirmActionModal() {
           onClick={() => resolveConfirmAction(true)}
           className={
             state.destructive
-              ? "harbor-press-pop h-9 rounded-md bg-danger px-4 text-[12.5px] font-semibold text-white transition-opacity hover:opacity-90"
-              : "harbor-press-pop h-9 rounded-md bg-ink px-4 text-[12.5px] font-semibold text-canvas transition-opacity hover:opacity-90"
+              ? "mac-btn mac-btn-danger harbor-press-pop h-9 rounded-md bg-danger px-4 text-[12.5px] font-semibold text-white transition-opacity hover:opacity-90"
+              : "mac-btn mac-btn-main harbor-press-pop h-9 rounded-md bg-ink px-4 text-[12.5px] font-semibold text-canvas transition-opacity hover:opacity-90"
           }
         >
           {state.confirmLabel}

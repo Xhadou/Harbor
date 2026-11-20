@@ -8732,9 +8732,21 @@ html[data-os="macos"] .mac-hidden {
   display: none;
 }
 
-/* A dialog or sheet: the largest corner. */
-html[data-os="macos"] .mac-panel {
+/* Dialog. The panel takes the largest corner, a hairline edge and a shadow deep
+   enough to lift it off the page. `mac-scrim` is the layer behind it: it dims
+   the page and centres the panel in the area beside the sidebar. */
+html[data-os="macos"] .mac-dialog {
+  border: 0;
   border-radius: var(--mac-radius-panel);
+  background: var(--color-surface);
+  box-shadow:
+    0 0 0 0.5px var(--mac-hairline),
+    0 2px 8px rgb(0 0 0 / 0.24),
+    0 24px 64px -12px rgb(0 0 0 / 0.56);
+}
+html[data-os="macos"] .mac-scrim {
+  padding-inline: calc(var(--mac-sidebar-inset) + 2rem) 2rem;
+  background: rgb(0 0 0 / 0.4);
 }
 
 /* Text. Title and heading carry their weight; the rest keep the weight the
@@ -8844,7 +8856,7 @@ html[data-os="macos"] .mac-btn-main:active {
   background: color-mix(in srgb, var(--color-accent) 84%, #000);
 }
 
-/* Secondary: any other action, a raised grey. */
+/* Secondary: any other action, a raised grey. Cancel in a dialog. */
 html[data-os="macos"] .mac-btn-secondary {
   background: var(--mac-fill);
   box-shadow: inset 0 0 0 0.5px var(--mac-hairline);
@@ -8857,7 +8869,7 @@ html[data-os="macos"] .mac-btn-secondary:active {
   background: var(--mac-fill-pressed);
 }
 
-/* Quiet: no fill until the pointer is on it. Cancel, Back, Skip. */
+/* Quiet: no fill until the pointer is on it. Back, Skip, Cancel on a page. */
 html[data-os="macos"] .mac-btn-quiet {
   background: transparent;
   box-shadow: none;
@@ -8871,9 +8883,22 @@ html[data-os="macos"] .mac-btn-quiet:active {
   background: var(--mac-fill);
 }
 
+/* Danger: the main action of a dialog that deletes or cannot be undone. */
+html[data-os="macos"] .mac-btn-danger {
+  background: var(--color-danger);
+  box-shadow: none;
+  color: #fff;
+}
+html[data-os="macos"] .mac-btn-danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 88%, #fff);
+}
+html[data-os="macos"] .mac-btn-danger:active {
+  background: color-mix(in srgb, var(--color-danger) 84%, #000);
+}
+
 /* Off. A main button that cannot be pressed is not a paler main button: it
    loses its colour, so "fill this in first" and "ready" never look alike. */
-html[data-os="macos"] :is(.mac-btn-main, .mac-btn-secondary):disabled {
+html[data-os="macos"] :is(.mac-btn-main, .mac-btn-secondary, .mac-btn-danger):disabled {
   background: var(--mac-fill-well);
   box-shadow: none;
   color: var(--mac-ink-off);
@@ -8904,6 +8929,13 @@ html[data-os="macos"] :is(.mac-field, .mac-field-box).mac-field-lg {
 }
 html[data-os="macos"] .mac-field-box {
   padding-inline: 10px;
+}
+/* A field of several lines grows with its rows. */
+html[data-os="macos"] textarea.mac-field {
+  block-size: auto;
+  padding-block: 7px;
+  padding-inline: 10px;
+  line-height: var(--mac-lh-body);
 }
 html[data-os="macos"] .mac-field-box > input {
   block-size: 100%;

@@ -126,12 +126,15 @@ export function ModalShell({
   const dialogRef = useRef<HTMLDivElement>(null);
   useEscape(onDismiss, true, dialogRef);
   useFocusTrap(dialogRef);
+  // A dialog that only dims the page takes the shared macOS look. One that
+  // brings a backdrop class of its own styles its panel through it.
+  const shared = !backdropClassName || /^bg-black\/\d+$/.test(backdropClassName);
 
   return createPortal(
     <div
       className={`fixed inset-0 z-[240] grid place-items-center p-8 ${backdropClassName ?? ""} ${
-        closing ? "animate-scrim-out" : "animate-scrim-in"
-      }`}
+        shared ? "mac-scrim" : ""
+      } ${closing ? "animate-scrim-out" : "animate-scrim-in"}`}
       data-harbor-modal
       data-tauri-drag-region={dismissOnBackdrop ? undefined : ""}
       onMouseDown={(e) => {
@@ -146,8 +149,8 @@ export function ModalShell({
         onMouseDown={(e) => e.stopPropagation()}
         style={{ width: `min(${width}px, 100%)` }}
         className={`flex max-h-[86vh] flex-col overflow-hidden rounded-md bg-surface ${
-          closing ? "animate-dialog-out" : "animate-dialog-in"
-        }`}
+          shared ? "mac-dialog" : ""
+        } ${closing ? "animate-dialog-out" : "animate-dialog-in"}`}
       >
         {children}
       </div>

@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MAX_LISTS, sharedLists, type ListStore } from "@/lib/custom-lists";
 import { mangaLists } from "@/lib/manga-lists";
 import { useT } from "@/lib/i18n";
+import { useEscape, useFocusTrap } from "@/components/modal-shell";
 import { emitListToast } from "./list-toast";
 
 export function CreateListModal({
@@ -26,11 +27,12 @@ export function CreateListModal({
   const [description, setDescription] = useState("");
   const atMax = lists.length >= MAX_LISTS;
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  // Capture phase: Harbor's navigation layer takes Escape as Back before a
+  // bubbling listener would ever see it. Opened from a context menu, the layer
+  // below keeps Tab inside itself.
+  useEscape(onClose);
+  const dialogRef = useRef<HTMLFormElement>(null);
+  useFocusTrap(dialogRef, !contextLayer);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +51,7 @@ export function CreateListModal({
       data-context-submenu={contextLayer || undefined}
       data-harbor-menu-panel={contextLayer || undefined}
       style={contextLayer ? { zIndex: 2147482002 } : undefined}
-      className="animate-fade-in fixed inset-0 z-[230] flex items-center justify-center bg-canvas/80"
+      className="mac-scrim animate-fade-in fixed inset-0 z-[230] flex items-center justify-center bg-canvas/80"
       onClick={onClose}
       onKeyDown={(event) => {
         if (contextLayer && event.key === "Escape") {
@@ -60,6 +62,7 @@ export function CreateListModal({
       }}
     >
       <form
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={t("New list")}
@@ -82,13 +85,13 @@ export function CreateListModal({
           }
         }}
         onSubmit={submit}
-        className="animate-modal-in flex w-[min(92vw,380px)] flex-col gap-5 rounded-2xl border border-edge-soft bg-elevated p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+        className="mac-dialog animate-modal-in flex w-[min(92vw,380px)] flex-col gap-5 rounded-2xl border border-edge-soft bg-elevated p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
       >
         <div className="flex flex-col gap-1.5">
-          <h2 className="font-display text-[22px] font-medium tracking-tight text-ink">
+          <h2 className="mac-type-heading font-display text-[22px] font-medium tracking-tight text-ink">
             {t("New list")}
           </h2>
-          <p className="text-[13px] leading-snug text-ink-muted">
+          <p className="mac-type-body text-[13px] leading-snug text-ink-muted">
             {store === mangaLists
               ? t("Group the manga you want to keep close.")
               : t("Group the movies and shows you want to keep close.")}
@@ -96,7 +99,7 @@ export function CreateListModal({
         </div>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
+          <span className="mac-label text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
             {t("List name")}
           </span>
           <input
@@ -107,12 +110,12 @@ export function CreateListModal({
             onChange={(e) => setName(e.target.value)}
             placeholder={t("Weekend watchlist")}
             spellCheck={false}
-            className="h-11 w-full rounded-xl border border-edge bg-canvas px-3.5 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink disabled:opacity-50"
+            className="mac-field mac-field-lg h-11 w-full rounded-xl border border-edge bg-canvas px-3.5 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink disabled:opacity-50"
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
+          <span className="mac-label text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
             {t("Description")}
           </span>
           <textarea
@@ -122,17 +125,17 @@ export function CreateListModal({
             onChange={(e) => setDescription(e.target.value)}
             placeholder={t("A short note about this list")}
             rows={3}
-            className="w-full resize-none rounded-xl border border-edge bg-canvas px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink disabled:opacity-50"
+            className="mac-field w-full resize-none rounded-xl border border-edge bg-canvas px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink disabled:opacity-50"
           />
         </label>
 
         {error && (
-          <p role="alert" className="text-[12.5px] text-danger">
+          <p role="alert" className="mac-type-small text-[12.5px] text-danger">
             {error}
           </p>
         )}
         {atMax && (
-          <p className="rounded-lg bg-danger/12 px-3 py-2 text-[12.5px] text-danger">
+          <p className="mac-type-small rounded-lg bg-danger/12 px-3 py-2 text-[12.5px] text-danger">
             {t("You have reached {max} lists. Remove one to make room.", { max: MAX_LISTS })}
           </p>
         )}
@@ -141,14 +144,14 @@ export function CreateListModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 items-center rounded-xl px-4 text-[13px] font-medium text-ink-subtle transition-colors hover:text-ink"
+            className="mac-btn mac-btn-lg mac-btn-secondary flex h-11 items-center rounded-xl px-4 text-[13px] font-medium text-ink-subtle transition-colors hover:text-ink"
           >
             {t("Cancel")}
           </button>
           <button
             type="submit"
             disabled={!name.trim() || atMax}
-            className="flex h-11 items-center rounded-xl border border-edge bg-raised px-5 text-[14px] font-semibold text-ink transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="mac-btn mac-btn-lg mac-btn-main flex h-11 items-center rounded-xl border border-edge bg-raised px-5 text-[14px] font-semibold text-ink transition-colors hover:bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t("Create")}
           </button>
