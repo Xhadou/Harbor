@@ -101,6 +101,8 @@ async function fixture({
     "@/components/drop-show-confirm-modal": { DropShowConfirmModal: empty },
     "@/components/lists/list-toast": { emitListToast: empty },
     "@/lib/deep-link": { shareDeepLink: empty },
+    "@/lib/platform": { isMacDesktop: () => false },
+    "@/lib/smart-play": { smartPlayEpisode: () => undefined },
     "@/lib/settings": {
       useSettings: () => ({ settings: { navCustomization: {} }, update: empty }),
     },

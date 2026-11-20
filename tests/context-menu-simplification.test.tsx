@@ -55,6 +55,8 @@ function harness() {
   let queueSurface = false;
   const queued: string[] = [];
   let player: any = null;
+  let mac = false;
+  const played: unknown[][] = [];
   let watched: any = { loading: true, summary: null, refresh: empty };
   const nav = [
     { id: "page:back", label: "Back", run: empty },
@@ -83,7 +85,7 @@ function harness() {
     openManga: empty,
     setView: empty,
     openQueue: empty,
-    openPicker: empty,
+    openPicker: (...args: unknown[]) => void played.push(args),
     openPerson: empty,
     openService: empty,
     openAddonDetail: empty,
@@ -154,9 +156,14 @@ function harness() {
         </>
       ),
     },
+    "@/lib/platform": { isMacDesktop: () => mac },
+    "@/lib/smart-play": {
+      smartPlayEpisode: (meta: { type: string }) =>
+        meta.type === "series" ? { season: 1, episode: 1 } : undefined,
+    },
     "@/lib/settings": {
       useSettings: () => ({
-        settings: { navCustomization: { order: [], hidden: [] } },
+        settings: { navCustomization: { order: [], hidden: [] }, instantPlay: true },
         update: empty,
       }),
     },
@@ -294,6 +301,10 @@ function harness() {
     set player(value: any) {
       player = value;
     },
+    set mac(value: boolean) {
+      mac = value;
+    },
+    played,
     set queueSurface(value: boolean) {
       queueSurface = value;
     },
@@ -479,6 +490,27 @@ test("a docked live player keeps page-background navigation without adding it to
       false,
     );
     assert.ok(h.labels().includes("Full screen"));
+  } finally {
+    await h.dispose();
+  }
+});
+
+test("on macOS a title's menu opens with Play, which resumes through the picker", async () => {
+  const h = harness();
+  h.mac = true;
+  await h.render();
+  try {
+    const meta = { id: "fixture", type: "series", name: "Show", poster: "fixture.png" };
+    await h.open({ kind: "meta", meta } as any);
+    assert.deepEqual(h.labels().slice(0, 2), ["Play", "View details"]);
+    const play = [...document.querySelectorAll<HTMLButtonElement>('[role="menuitem"]')].find(
+      (e) => e.textContent?.trim() === "Play",
+    )!;
+    await React.act(async () => play.click());
+    assert.deepEqual(h.played, [
+      [meta, { season: 1, episode: 1 }, { autoPlay: true, resume: true }],
+    ]);
+    assert.equal(h.state, null, "playing closes the menu");
   } finally {
     await h.dispose();
   }

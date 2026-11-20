@@ -17,6 +17,7 @@ import {
   Info,
   Navigation,
   Pencil,
+  Play,
   RotateCcw,
   Share2,
   UserPlus,
@@ -55,6 +56,8 @@ import { useTmdbImdbId } from "@/lib/providers/tmdb";
 import { useIsFavorite } from "@/lib/media-favorites";
 import { MyListSubmenu } from "./context-menu/my-list-submenu";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
+import { smartPlayEpisode } from "@/lib/smart-play";
 import { DropShowConfirmModal } from "@/components/drop-show-confirm-modal";
 import { getAnimeCanonicalId, getAnimeCwId } from "@/lib/anime-cw-ids";
 import { useCanDropShow } from "@/lib/drop-show-eligibility";
@@ -508,6 +511,30 @@ export function ContextMenu() {
     index: number;
     props: React.ComponentProps<typeof MyListSubmenu>;
   } | null = null;
+  // On macOS a title's menu opens with what the poster is for. Play resumes
+  // where the title was left, or starts the episode the menu was opened on.
+  if (
+    isMacDesktop() &&
+    state.target.kind === "meta" &&
+    !playerActions &&
+    ["movie", "series", "anime"].includes(state.target.meta.type)
+  ) {
+    const meta = state.target.meta;
+    items.push(
+      <Item
+        key="play"
+        icon={<Play size={14} strokeWidth={2} />}
+        label={t("Play")}
+        onClick={() => {
+          openPicker(meta, targetEpisode ?? smartPlayEpisode(meta), {
+            autoPlay: appSettings.instantPlay,
+            resume: true,
+          });
+          close();
+        }}
+      />,
+    );
+  }
   if (
     state.target.kind === "meta" &&
     state.target.primary &&
