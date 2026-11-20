@@ -27,6 +27,33 @@ Offering things like a native player, a stream ranking engine, Wikidata, watch p
 
 </div>
 
+## Harbor for Mac (this fork)
+
+This branch, `mac-native`, reshapes [Harbor](https://github.com/Harborofficial/Harbor) into an app that behaves like the ones that ship with macOS. Everything Harbor does is still here; what changes is how it sits on a Mac. The rest of this README is upstream's and describes Harbor on every platform.
+
+**What is different on macOS**
+
+- **System window chrome.** The sidebar, search field, Back button and sidebar toggle are native AppKit and SwiftUI views (`macos/HarborNative`), drawn in the system's glass material and driven by the web app.
+- **Settings in the sidebar.** Opening Settings swaps the sidebar for its 32 pages in 10 groups, the way System Settings lists its panes, with compact system-style controls.
+- **One page layout.** Pages without an artwork hero share one title style, one left edge and one control size. Heroes keep their size when the interface is zoomed.
+- **System scrollbars and motion.** Scrollbars float over the content and show only while scrolling. Pages fade in when they change.
+- **A shorter sidebar.** Music, Games, Manga and eBook start hidden. Settings › Get started › Sidebar brings each one back.
+
+**Requirements:** macOS 26 or later.
+
+**Build it for your own Mac**
+
+```bash
+brew install mpv pkgconf
+pnpm install
+pnpm run setup
+sh scripts/mac-build.sh
+```
+
+The app lands in `src-tauri/target/<your-target>/release/bundle/macos/Harbor.app`. It links the mpv Homebrew installed, so it is only promised to run on your macOS version or newer. If the build stops in `android-extension-compat` with unresolved Kotlin references, run `sh android-extension-compat/tools/deps.sh` once and build again.
+
+**Status.** A personal build: not notarised, no published releases, and only macOS is tested on this branch. Working notes, measurements and known gaps are in [`docs/mac-fork/BASELINE.md`](docs/mac-fork/BASELINE.md).
+
 > [!NOTE]
 > Some information in this README is outdated. Please visit our [community Discord](https://discord.gg/yvafyeZmXh) for the latest updates and project information. It will be updated later.
 
@@ -216,8 +243,8 @@ parse  ->  trust  ->  score  ->  rank
 | Stage     | What happens                                                                                                                                                                                                                                                                                                       |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Parse** | Extracts resolution, HDR flavor (Dolby Vision, HDR10, HDR10+, HLG), video codec, source type, audio codec and channel layout (Atmos, TrueHD, DTS-HD MA, 5.1/7.1), languages, file size, seeders, container, release group, edition tags, season/episode, and an anime aware filename pass for CRC and batch ranges |
-| **Trust** | Filters dead links, placeholders, low quality sources, trailers and extras, undersized files, and title, year, season, or episode mismatches using metadata and source reliability signals |
-| **Score** | Weighs availability, resolution, HDR, audio quality, source reliability, and preferred language matches; penalizes mismatches and implausible sizes. Every signal is recorded so the reason is inspectable |
+| **Trust** | Filters dead links, placeholders, low quality sources, trailers and extras, undersized files, and title, year, season, or episode mismatches using metadata and source reliability signals                                                                                                                         |
+| **Score** | Weighs availability, resolution, HDR, audio quality, source reliability, and preferred language matches; penalizes mismatches and implausible sizes. Every signal is recorded so the reason is inspectable                                                                                                         |
 | **Rank**  | Sorts into quality tiers (4K DV, 4K HDR, 4K, 1080p HDR, 1080p, 720p, SD) and surfaces the best cached pick first, with partial results streamed to the UI as addons respond                                                                                                                                        |
 
 Optional debrid integrations support **Real-Debrid, AllDebrid, Premiumize, Debrid-Link, and TorBox**. Harbor checks availability through your configured services and reads cache metadata supplied by addons. These services are not required to play local files or supported streams. All keys stay on your device. Use connected services only for content you are authorized to access.
@@ -347,7 +374,7 @@ Harbor's theme engine changes more than colors. A theme can reshape the entire n
 | **Kitsu / AniZip**  | Anime metadata, cross database ID mapping, and per episode detail                                                                                                                                                                 |
 | **Trakt**           | OAuth device sign in, automatic scrobbling, watchlist and history, personalized movie and series recommendations, an Up Next calendar rail, and your avatar in the sidebar                                                        |
 | **Stremio**         | Account sign in, Continue Watching sync, installed-addon collection sync, and catalog, meta, stream, and subtitle resources from every installed addon                                                                            |
-| **Debrid**          | Optional Real-Debrid, AllDebrid, Premiumize, Debrid-Link, and TorBox integrations for availability checks and playback through your configured account |
+| **Debrid**          | Optional Real-Debrid, AllDebrid, Premiumize, Debrid-Link, and TorBox integrations for availability checks and playback through your configured account                                                                            |
 
 Awards laurels surface across detail pages, covering Oscar, Emmy, BAFTA, Golden Globe, SAG, Cannes, Berlin, Critics Choice, and Annie/Kobe honors.
 
@@ -405,11 +432,11 @@ Harbor is built to keep your data on your machine.
 
 Download the latest build for macOS or Windows from the [Releases page](https://github.com/Harborofficial/Harbor/releases), use the [unofficial Linux packages](https://github.com/Thunderhawkk/harbor-linux), or open Harbor in your browser.
 
-| Platform    | Format                                                                                                   |
-| ----------- | -------------------------------------------------------------------------------------------------------- |
-| **macOS**   | `.dmg` (macOS 15.0 or newer, Apple silicon)                                                              |
-| **Windows** | Harbor Shipyard installer (current user install), or `winget install HarborStremio.Harbor`               |
-| **Web**     | Open in any modern browser, nothing to install                                                           |
+| Platform    | Format                                                                                          |
+| ----------- | ----------------------------------------------------------------------------------------------- |
+| **macOS**   | `.dmg` (macOS 15.0 or newer, Apple silicon)                                                     |
+| **Windows** | Harbor Shipyard installer (current user install), or `winget install HarborStremio.Harbor`      |
+| **Web**     | Open in any modern browser, nothing to install                                                  |
 | **Linux**   | [Unofficial `.deb`, `.rpm`, and Flatpak packages](https://github.com/Thunderhawkk/harbor-linux) |
 
 > [!NOTE]

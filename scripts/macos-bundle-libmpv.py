@@ -59,7 +59,9 @@ from macos_macho import (
 )
 
 
-HIGHEST_ALLOWED_MINIMUM_MAJOR = 15
+# A build meant only for the Mac it is made on can lift the ceiling with
+# HARBOR_MACOS_MINIMUM_CEILING; release builds leave it unset.
+HIGHEST_ALLOWED_MINIMUM_MAJOR = int(os.environ.get("HARBOR_MACOS_MINIMUM_CEILING", "15"))
 
 
 def declared_minimum(root: Path) -> tuple[int, int, int]:
