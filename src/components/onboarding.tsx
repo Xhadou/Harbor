@@ -146,7 +146,7 @@ export function OnboardingModal() {
                   <button
                     key={`skip-${step}`}
                     onClick={skip}
-                    className="animate-skip-in h-11 rounded-full px-4 text-[13px] font-medium text-ink-subtle transition-colors hover:text-ink"
+                    className="mac-btn mac-btn-lg mac-btn-quiet animate-skip-in h-11 rounded-full px-4 text-[13px] font-medium text-ink-subtle transition-colors hover:text-ink"
                   >
                     {t("Skip for now")}
                   </button>
@@ -154,7 +154,7 @@ export function OnboardingModal() {
                 {stepIdx > 1 && stepIdx < STEPS.length - 1 && (
                   <button
                     onClick={back}
-                    className="h-11 rounded-full px-5 text-[14px] font-medium text-ink-muted transition-colors hover:text-ink"
+                    className="mac-btn mac-btn-lg mac-btn-quiet h-11 rounded-full px-5 text-[14px] font-medium text-ink-muted transition-colors hover:text-ink"
                   >
                     {t("Back")}
                   </button>
@@ -162,7 +162,7 @@ export function OnboardingModal() {
                 {stepIdx < STEPS.length - 1 ? (
                   <button
                     onClick={next}
-                    className="flex h-11 items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-semibold text-canvas transition-transform hover:scale-[1.03] active:scale-[0.97]"
+                    className="mac-btn mac-btn-lg mac-btn-main flex h-11 items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-semibold text-canvas transition-transform hover:scale-[1.03] active:scale-[0.97]"
                   >
                     {step === "welcome" ? t("Get Started") : t("Continue")}
                     <ArrowRight size={15} strokeWidth={2.4} className="dir-icon" />
@@ -170,7 +170,7 @@ export function OnboardingModal() {
                 ) : (
                   <button
                     onClick={finish}
-                    className="flex h-11 items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-semibold text-canvas transition-transform hover:scale-[1.03] active:scale-[0.97]"
+                    className="mac-btn mac-btn-lg mac-btn-main flex h-11 items-center gap-2 rounded-full bg-ink px-6 text-[14px] font-semibold text-canvas transition-transform hover:scale-[1.03] active:scale-[0.97]"
                   >
                     {t("Enter Harbor")}
                     <ArrowRight size={15} strokeWidth={2.4} className="dir-icon" />

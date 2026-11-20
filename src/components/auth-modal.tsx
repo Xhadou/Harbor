@@ -50,26 +50,26 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
         data-tv-focus-scope
         onMouseDown={(e) => e.stopPropagation()}
         onSubmit={submit}
-        className="animate-dialog-in flex w-[min(92vw,420px)] flex-col gap-5 rounded-md bg-surface p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
+        className="mac-panel animate-dialog-in flex w-[min(92vw,420px)] flex-col gap-5 rounded-md bg-surface p-7 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)]"
       >
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
+          <span className="mac-hidden text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
             {t("Stremio")}
           </span>
           <h2
             id="auth-modal-title"
-            className="font-display text-[22px] font-medium tracking-tight text-ink"
+            className="mac-type-heading font-display text-[22px] font-medium tracking-tight text-ink"
           >
             {t("Sign in")}
           </h2>
-          <p className="text-[12.5px] leading-relaxed text-ink-subtle">
+          <p className="mac-type-body text-[12.5px] leading-relaxed text-ink-subtle">
             {t("Brings in your library, watchlist, and installed addons.")}
           </p>
         </div>
 
         <StremioWebButton onDone={onClose} disabled={busy} />
 
-        <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
+        <span className="mac-label text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
           {t("or use email")}
         </span>
 
@@ -105,14 +105,14 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
           </span>
           <span className="flex flex-col">
             <span className="text-[13px] font-medium text-ink">{t("Remember me")}</span>
-            <span className="text-[11.5px] text-ink-subtle">
+            <span className="mac-type-caption text-[11.5px] text-ink-subtle">
               {t("Stays signed in on this device only.")}
             </span>
           </span>
         </button>
 
         {error && (
-          <p className="rounded-md bg-danger/10 px-3.5 py-2.5 text-[12.5px] leading-snug text-danger">
+          <p className="mac-type-small rounded-md bg-danger/10 px-3.5 py-2.5 text-[12.5px] leading-snug text-danger">
             {error}
           </p>
         )}
@@ -120,7 +120,7 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
         <button
           type="submit"
           disabled={busy || !email || !password}
-          className="harbor-press-pop flex h-11 items-center justify-center gap-2 rounded-md bg-ink text-[13.5px] font-semibold text-canvas transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          className="mac-btn mac-btn-lg mac-btn-secondary harbor-press-pop flex h-11 items-center justify-center gap-2 rounded-md bg-ink text-[13.5px] font-semibold text-canvas transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {busy ? (
             <>
@@ -136,14 +136,14 @@ export function AuthModal({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
+            className="mac-btn mac-btn-quiet mac-btn-edge-start text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
             onClick={() => openUrl("https://www.stremio.com/register")}
-            className="flex items-center gap-1.5 text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
+            className="mac-btn mac-btn-quiet mac-btn-edge-end flex items-center gap-1.5 text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
           >
             <span>{t("Create account")}</span>
             <ExternalLink size={11} />
@@ -175,7 +175,7 @@ function Field({
   const isPassword = type === "password";
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
+      <span className="mac-label text-[10.5px] font-bold uppercase tracking-[0.18em] text-ink-subtle">
         {label}
       </span>
       <div className="relative">
@@ -187,7 +187,7 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           spellCheck={false}
           autoComplete={isPassword ? "current-password" : "email"}
-          className={`mac-field h-11 w-full rounded-md bg-canvas px-3.5 text-[14px] text-ink outline-none transition-[background-color,box-shadow] focus:bg-elevated disabled:opacity-50 ${
+          className={`mac-field mac-field-lg h-11 w-full rounded-md bg-canvas px-3.5 text-[14px] text-ink outline-none transition-[background-color,box-shadow] focus:bg-elevated disabled:opacity-50 ${
             isPassword ? "pe-11" : ""
           }`}
         />

@@ -87,7 +87,7 @@ export function MediaStartPage({
           <button
             ref={actionRef}
             type="button"
-            className="media-start-primary rounded-lg bg-ink text-canvas"
+            className="mac-btn mac-btn-lg mac-btn-main media-start-primary rounded-lg bg-ink text-canvas"
             onClick={onSetup}
           >
             {actionLabel ??

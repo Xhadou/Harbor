@@ -31,7 +31,7 @@ export function StremioWebButton({ onDone, disabled }: { onDone: () => void; dis
         type="button"
         onClick={start}
         disabled={busy || disabled}
-        className="flex h-12 items-center justify-center gap-2 rounded-xl bg-ink text-[14.5px] font-semibold text-canvas transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+        className="mac-btn mac-btn-lg mac-btn-main flex h-12 items-center justify-center gap-2 rounded-xl bg-ink text-[14.5px] font-semibold text-canvas transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
       >
         {busy ? (
           <>
@@ -45,11 +45,13 @@ export function StremioWebButton({ onDone, disabled }: { onDone: () => void; dis
           </>
         )}
       </button>
-      <p className="text-center text-[11.5px] leading-snug text-ink-subtle">
+      <p className="mac-type-caption text-center text-[11.5px] leading-snug text-ink-subtle">
         {t("Opens Stremio in your browser. Works with email, Facebook, and Apple accounts.")}
       </p>
       {error && (
-        <p className="rounded-lg bg-danger/15 px-3 py-2 text-[12px] text-danger">{error}</p>
+        <p className="mac-type-small rounded-lg bg-danger/15 px-3 py-2 text-[12px] text-danger">
+          {error}
+        </p>
       )}
     </div>
   );

@@ -122,7 +122,7 @@ function Form({
       <div className="media-start-inner flex flex-col gap-8">
         <button
           onClick={onBack}
-          className="group inline-flex h-11 items-center gap-2 self-start rounded-lg border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink-muted transition-all duration-150 ease-out hover:border-edge hover:bg-elevated hover:text-ink active:scale-[0.97]"
+          className="mac-btn mac-btn-quiet mac-btn-edge-start group inline-flex h-11 items-center gap-2 self-start rounded-lg border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink-muted transition-all duration-150 ease-out hover:border-edge hover:bg-elevated hover:text-ink active:scale-[0.97]"
         >
           <ArrowLeft
             size={16}
@@ -132,10 +132,10 @@ function Form({
           {t("Back")}
         </button>
         <header className="flex flex-col gap-3">
-          <h2 className="font-display text-[32px] font-semibold leading-tight tracking-tight text-ink">
+          <h2 className="mac-type-title font-display text-[32px] font-semibold leading-tight tracking-tight text-ink">
             {t("Connect your provider.")}
           </h2>
-          <p className="text-[14.5px] leading-relaxed text-ink-muted">
+          <p className="mac-type-body text-[14.5px] leading-relaxed text-ink-muted">
             {t("Pick how you authenticate. Everything is stored locally.")}
           </p>
         </header>
@@ -163,8 +163,10 @@ function Form({
                   {k.icon}
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="text-[14.5px] font-semibold text-ink">{t(k.label)}</span>
-                  <span className="text-[12.5px] text-ink-muted">{t(k.blurb)}</span>
+                  <span className="mac-type-body text-[14.5px] font-semibold text-ink">
+                    {t(k.label)}
+                  </span>
+                  <span className="mac-type-small text-[12.5px] text-ink-muted">{t(k.blurb)}</span>
                 </div>
                 <span
                   className={`h-4 w-4 shrink-0 rounded-full border transition-colors ${
@@ -189,7 +191,7 @@ function Form({
               onChange={(e) => setName(e.target.value)}
               placeholder={t(defaultName(kind))}
               onKeyDown={(e) => e.key === "Enter" && submit()}
-              className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 text-[14.5px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+              className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 text-[14.5px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
             />
           </Field>
 
@@ -204,7 +206,7 @@ function Form({
                   placeholder="https://example.com/get.php?username=…&password=…&type=m3u_plus"
                   spellCheck={false}
                   onKeyDown={(e) => e.key === "Enter" && submit()}
-                  className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+                  className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
                 />
               </Field>
               <Field label={t("EPG URL")} hint={t("Optional")}>
@@ -215,7 +217,7 @@ function Form({
                   placeholder="https://example.com/xmltv.php?username=…&password=…"
                   spellCheck={false}
                   onKeyDown={(e) => e.key === "Enter" && submit()}
-                  className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+                  className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
                 />
               </Field>
             </>
@@ -232,7 +234,7 @@ function Form({
                   placeholder="https://example-iptv.com:8080"
                   spellCheck={false}
                   onKeyDown={(e) => e.key === "Enter" && submit()}
-                  className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+                  className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
                 />
               </Field>
               <div className="grid grid-cols-2 gap-4">
@@ -245,7 +247,7 @@ function Form({
                     autoComplete="off"
                     spellCheck={false}
                     onKeyDown={(e) => e.key === "Enter" && submit()}
-                    className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+                    className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
                   />
                 </Field>
                 <Field label={t("Password")}>
@@ -257,7 +259,7 @@ function Form({
                     autoComplete="new-password"
                     spellCheck={false}
                     onKeyDown={(e) => e.key === "Enter" && submit()}
-                    className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+                    className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
                   />
                 </Field>
               </div>
@@ -274,7 +276,7 @@ function Form({
                 placeholder="https://example.com/epg.xml"
                 spellCheck={false}
                 onKeyDown={(e) => e.key === "Enter" && submit()}
-                className="h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
+                className="mac-field mac-field-lg h-12 w-full rounded-xl border border-edge-soft/70 bg-canvas/70 px-4 font-mono text-[13px] text-ink placeholder:text-ink-subtle/70 transition-colors focus:border-edge focus:outline-none"
               />
             </Field>
           )}
@@ -282,14 +284,14 @@ function Form({
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               onClick={onBack}
-              className="h-12 rounded-lg px-5 text-[13.5px] font-medium text-ink-muted transition-colors hover:text-ink"
+              className="mac-btn mac-btn-lg mac-btn-quiet h-12 rounded-lg px-5 text-[13.5px] font-medium text-ink-muted transition-colors hover:text-ink"
             >
               {t("Cancel")}
             </button>
             <button
               disabled={!canSave}
               onClick={submit}
-              className="flex h-12 items-center gap-2 rounded-lg bg-ink px-6 text-[14px] font-semibold text-canvas transition-all duration-150 ease-out hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-30"
+              className="mac-btn mac-btn-lg mac-btn-main flex h-12 items-center gap-2 rounded-lg bg-ink px-6 text-[14px] font-semibold text-canvas transition-all duration-150 ease-out hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-30"
             >
               {t("Save and continue")}
               <ArrowRight size={15} strokeWidth={2.4} className="dir-icon" />
@@ -297,7 +299,7 @@ function Form({
           </div>
         </div>
 
-        <p className="text-[11.5px] leading-relaxed text-ink-subtle">
+        <p className="mac-type-caption text-[11.5px] leading-relaxed text-ink-subtle">
           {t(
             "Stored locally on this device. Credentials never leave your machine. If a channel fails to play, your provider may rate-limit shared accounts: refresh the playlist or check with them.",
           )}
@@ -324,7 +326,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="flex items-baseline gap-2 text-[11.5px] font-bold uppercase tracking-[0.2em] text-ink-subtle">
+      <span className="mac-label flex items-baseline gap-2 text-[11.5px] font-bold uppercase tracking-[0.2em] text-ink-subtle">
         {label}
         {hint && (
           <span className="font-normal normal-case tracking-normal text-ink-subtle/60">{hint}</span>

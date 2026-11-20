@@ -80,7 +80,7 @@ export function TmdbStep() {
       <div className="flex items-center gap-2.5">
         <div
           key={`pulse-${pulseKey}`}
-          className={`flex flex-1 items-center gap-2.5 rounded-xl border border-edge bg-canvas px-4 transition-colors focus-within:border-ink-subtle ${
+          className={`mac-field-box mac-field-lg flex flex-1 items-center gap-2.5 rounded-xl border border-edge bg-canvas px-4 transition-colors focus-within:border-ink-subtle ${
             status === "ok" ? "animate-verified-pulse" : ""
           }`}
         >
@@ -114,10 +114,10 @@ export function TmdbStep() {
         <button
           onClick={validate}
           disabled={!draft.trim() || status === "checking" || status === "ok"}
-          className={`flex h-12 min-w-[112px] items-center justify-center gap-1.5 rounded-xl px-5 text-[14px] font-semibold transition-all duration-300 ${
+          className={`mac-btn mac-btn-lg flex h-12 min-w-[112px] items-center justify-center gap-1.5 rounded-xl px-5 text-[14px] font-semibold transition-all duration-300 ${
             status === "ok"
               ? "bg-accent-soft text-accent"
-              : "bg-ink text-canvas hover:scale-[1.02] active:scale-[0.98] disabled:scale-100 disabled:opacity-50"
+              : "mac-btn-secondary bg-ink text-canvas hover:scale-[1.02] active:scale-[0.98] disabled:scale-100 disabled:opacity-50"
           } ${status === "ok" ? "animate-verified-button-pulse" : ""}`}
         >
           {status === "checking" ? (

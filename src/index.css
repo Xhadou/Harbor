@@ -8557,19 +8557,13 @@ html[data-os="macos"] .mac-page-top {
 html[data-os="macos"] .mac-page-eyebrow {
   display: none;
 }
-html[data-os="macos"] .mac-page-title {
-  font-family: inherit;
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 32px;
-  letter-spacing: -0.4px;
-}
+/* The title's type is `mac-type-title`, under "Shared parts on macOS". */
 html[data-os="macos"] .mac-page-sub {
   max-inline-size: 72ch;
   margin-block-start: 0;
   color: var(--color-ink-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: var(--mac-text-body);
+  line-height: var(--mac-lh-body);
 }
 /* A centred reading column becomes a left-aligned one, on the shared edge. */
 html[data-os="macos"] .mac-page-body {
@@ -8599,13 +8593,6 @@ html[data-os="macos"] .media-start-page {
 }
 html[data-os="macos"] .media-start-inner {
   margin-inline: 0;
-}
-html[data-os="macos"] .media-start-copy h1 {
-  font-family: inherit;
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 32px;
-  letter-spacing: -0.4px;
 }
 
 /* A page's "Customize" button rides on the bottom corner of its hero, as it
@@ -8694,7 +8681,242 @@ html[data-os="macos"][data-os]
   outline: none !important;
   box-shadow: none !important;
 }
-html[data-os="macos"] .mac-field:focus {
+html[data-os="macos"] .mac-field:focus,
+html[data-os="macos"] .mac-field-box:focus-within {
   outline: none !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 45%, transparent) !important;
+  box-shadow: var(--mac-focus-ring) !important;
+}
+
+/* ── Shared parts on macOS ─────────────────────────────────────────────────
+   One set of sizes and one of each control, so a dialog, a form and the setup
+   card stop inventing their own. An element opts in with a `mac-*` hook and
+   keeps the classes it already carries, which is all other platforms see.
+   These rules sit outside every layer, so they outrank the utilities on the
+   same element, hover and disabled variants included, without `!important`. */
+html[data-os="macos"] {
+  /* Text: six sizes, each with its line height. */
+  --mac-text-title: 26px;
+  --mac-lh-title: 32px;
+  --mac-text-heading: 17px;
+  --mac-lh-heading: 22px;
+  --mac-text-lead: 15px;
+  --mac-lh-lead: 20px;
+  --mac-text-body: 13px;
+  --mac-lh-body: 18px;
+  --mac-text-small: 12px;
+  --mac-lh-small: 16px;
+  --mac-text-caption: 11px;
+  --mac-lh-caption: 14px;
+
+  /* Corners: a control, a card or menu, a dialog. */
+  --mac-radius-control: 8px;
+  --mac-radius-card: 12px;
+  --mac-radius-panel: 16px;
+
+  /* Control heights: regular, and large for a dialog or the setup card. */
+  --mac-control-h: 30px;
+  --mac-control-h-lg: 36px;
+
+  --mac-focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-accent) 45%, transparent);
+
+  /* Fills are the text colour at low strength, so they hold on any surface. */
+  --mac-fill-well: color-mix(in srgb, var(--color-ink) 7%, transparent);
+  --mac-fill: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --mac-fill-hover: color-mix(in srgb, var(--color-ink) 17%, transparent);
+  --mac-fill-pressed: color-mix(in srgb, var(--color-ink) 22%, transparent);
+  --mac-hairline: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  --mac-ink-off: color-mix(in srgb, var(--color-ink) 32%, transparent);
+}
+
+html[data-os="macos"] .mac-hidden {
+  display: none;
+}
+
+/* A dialog or sheet: the largest corner. */
+html[data-os="macos"] .mac-panel {
+  border-radius: var(--mac-radius-panel);
+}
+
+/* Text. Title and heading carry their weight; the rest keep the weight the
+   element already has and only lose odd sizes, tracking and capitals. */
+html[data-os="macos"] :is(.mac-type-title, .mac-page-title, .media-start-copy h1) {
+  font-family: inherit;
+  font-size: var(--mac-text-title);
+  font-weight: 700;
+  line-height: var(--mac-lh-title);
+  letter-spacing: -0.4px;
+}
+html[data-os="macos"] .mac-type-heading {
+  font-family: inherit;
+  font-size: var(--mac-text-heading);
+  font-weight: 600;
+  line-height: var(--mac-lh-heading);
+  letter-spacing: -0.2px;
+}
+html[data-os="macos"] .mac-type-lead {
+  font-size: var(--mac-text-lead);
+  line-height: var(--mac-lh-lead);
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-os="macos"] .mac-type-body {
+  font-size: var(--mac-text-body);
+  line-height: var(--mac-lh-body);
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-os="macos"] :is(.mac-type-small, .mac-label) {
+  font-size: var(--mac-text-small);
+  line-height: var(--mac-lh-small);
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-os="macos"] .mac-type-caption {
+  font-size: var(--mac-text-caption);
+  line-height: var(--mac-lh-caption);
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* The caption over a field or a group: sentence case, one step quieter than text. */
+html[data-os="macos"] .mac-label {
+  color: var(--color-ink-muted);
+  font-weight: 500;
+}
+
+/* Button. `mac-btn` is the shape; one of main, secondary or quiet is the look.
+   A button that changes look by state (a "Saved" confirmation) keeps the shape
+   and drops the look for that state. */
+html[data-os="macos"] .mac-btn {
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  block-size: var(--mac-control-h);
+  min-block-size: 0;
+  padding-block: 0;
+  padding-inline: 12px;
+  border: 0;
+  border-radius: var(--mac-radius-control);
+  font-family: inherit;
+  font-size: var(--mac-text-body);
+  font-weight: 500;
+  line-height: var(--mac-lh-small);
+  letter-spacing: 0;
+  opacity: 1;
+  scale: none;
+  cursor: default;
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out),
+    box-shadow 120ms var(--ease-out);
+}
+html[data-os="macos"] .mac-btn-lg {
+  block-size: var(--mac-control-h-lg);
+  padding-inline: 16px;
+}
+html[data-os="macos"] .mac-btn > img {
+  block-size: 18px;
+}
+/* A quiet button at the edge of a column: its text lines up with the column,
+   and the fill it shows under the pointer reaches past it. */
+html[data-os="macos"] .mac-btn-edge-start {
+  margin-inline-start: -12px;
+}
+html[data-os="macos"] .mac-btn-edge-end {
+  margin-inline-end: -12px;
+}
+/* `!important`: the keyboard-navigation outline is drawn by a rule that
+   outranks this one, and the two rings would show together. */
+html[data-os="macos"] .mac-btn:focus-visible {
+  outline: none !important;
+  box-shadow: var(--mac-focus-ring);
+}
+
+/* Main: the one action a surface is there for. */
+html[data-os="macos"] .mac-btn-main {
+  background: var(--color-accent);
+  box-shadow: none;
+  color: #fff;
+}
+html[data-os="macos"] .mac-btn-main:hover {
+  background: color-mix(in srgb, var(--color-accent) 88%, #fff);
+}
+html[data-os="macos"] .mac-btn-main:active {
+  background: color-mix(in srgb, var(--color-accent) 84%, #000);
+}
+
+/* Secondary: any other action, a raised grey. */
+html[data-os="macos"] .mac-btn-secondary {
+  background: var(--mac-fill);
+  box-shadow: inset 0 0 0 0.5px var(--mac-hairline);
+  color: var(--color-ink);
+}
+html[data-os="macos"] .mac-btn-secondary:hover {
+  background: var(--mac-fill-hover);
+}
+html[data-os="macos"] .mac-btn-secondary:active {
+  background: var(--mac-fill-pressed);
+}
+
+/* Quiet: no fill until the pointer is on it. Cancel, Back, Skip. */
+html[data-os="macos"] .mac-btn-quiet {
+  background: transparent;
+  box-shadow: none;
+  color: var(--color-ink-muted);
+}
+html[data-os="macos"] .mac-btn-quiet:hover {
+  background: var(--mac-fill-well);
+  color: var(--color-ink);
+}
+html[data-os="macos"] .mac-btn-quiet:active {
+  background: var(--mac-fill);
+}
+
+/* Off. A main button that cannot be pressed is not a paler main button: it
+   loses its colour, so "fill this in first" and "ready" never look alike. */
+html[data-os="macos"] :is(.mac-btn-main, .mac-btn-secondary):disabled {
+  background: var(--mac-fill-well);
+  box-shadow: none;
+  color: var(--mac-ink-off);
+}
+html[data-os="macos"] .mac-btn-quiet:disabled {
+  background: transparent;
+  color: var(--mac-ink-off);
+}
+
+/* Text field. `mac-field` goes on the input; `mac-field-box` on a wrapper that
+   holds an icon beside the input and takes the field's look for both. */
+html[data-os="macos"] :is(.mac-field, .mac-field-box) {
+  block-size: var(--mac-control-h);
+  border: 0;
+  border-radius: var(--mac-radius-control);
+  background: var(--mac-fill-well);
+  box-shadow: inset 0 0 0 0.5px var(--mac-hairline);
+  color: var(--color-ink);
+  font-size: var(--mac-text-body);
+  letter-spacing: 0;
+  transition: box-shadow 120ms var(--ease-out);
+}
+html[data-os="macos"] .mac-field {
+  padding-inline-start: 10px;
+}
+html[data-os="macos"] :is(.mac-field, .mac-field-box).mac-field-lg {
+  block-size: var(--mac-control-h-lg);
+}
+html[data-os="macos"] .mac-field-box {
+  padding-inline: 10px;
+}
+html[data-os="macos"] .mac-field-box > input {
+  block-size: 100%;
+  font-size: inherit;
+}
+html[data-os="macos"] :is(.mac-field, .mac-field-box > input)::placeholder {
+  color: var(--color-ink-subtle);
+}
+/* An address or a key is set in the fixed-width face, one size down. */
+html[data-os="macos"] .mac-field.font-mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: var(--mac-text-small);
+}
+html[data-os="macos"] .mac-field:disabled {
+  opacity: 0.5;
 }

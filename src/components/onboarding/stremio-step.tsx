@@ -3,6 +3,7 @@ import { useState } from "react";
 import stremioLogo from "@/assets/stremio-wordmark.png";
 import { useAuth } from "@/lib/auth";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { openUrl } from "@/lib/window";
 
 const STREMIO_REGISTER = "https://www.stremio.com/register";
@@ -97,7 +98,7 @@ export function StremioStep() {
         <button
           type="button"
           onClick={goToIntro}
-          className="flex w-fit items-center gap-1.5 text-[12.5px] font-medium text-ink-subtle transition-colors hover:text-ink-muted"
+          className="mac-btn mac-btn-quiet mac-btn-edge-start flex w-fit items-center gap-1.5 text-[12.5px] font-medium text-ink-subtle transition-colors hover:text-ink-muted"
         >
           <ChevronLeft size={14} strokeWidth={2.2} className="dir-icon" />
           {t("Back")}
@@ -133,11 +134,16 @@ export function StremioStep() {
         <button
           type="submit"
           disabled={busy || !email || !password}
-          className="flex h-12 items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-          style={{
-            background: "linear-gradient(135deg, #6c5cff 0%, #8b5cff 100%)",
-            boxShadow: "0 10px 30px -12px rgba(108, 92, 255, 0.55)",
-          }}
+          className="mac-btn mac-btn-lg mac-btn-main flex h-12 items-center justify-center gap-2 rounded-xl text-[15px] font-semibold text-white transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+          // macOS: the shared main button; an inline fill would outrank its states.
+          style={
+            isMacDesktop()
+              ? undefined
+              : {
+                  background: "linear-gradient(135deg, #6c5cff 0%, #8b5cff 100%)",
+                  boxShadow: "0 10px 30px -12px rgba(108, 92, 255, 0.55)",
+                }
+          }
         >
           {busy ? (
             <>
@@ -153,7 +159,7 @@ export function StremioStep() {
           target="_blank"
           rel="noopener noreferrer"
           onClick={openRegister}
-          className="flex items-center justify-center gap-1.5 text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
+          className="mac-type-small flex items-center justify-center gap-1.5 text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
         >
           <span>{t("Don't have an account?")}</span>
           <span className="font-medium text-ink-muted">{t("Create one")}</span>
@@ -181,9 +187,11 @@ export function StremioStep() {
       <div className="flex flex-col gap-2">
         <button
           onClick={goToForm}
-          className="group flex h-14 items-center justify-center gap-3 rounded-2xl border border-edge bg-canvas/60 px-6 transition-all hover:border-ink-subtle/40 hover:bg-canvas"
+          className="mac-btn mac-btn-lg mac-btn-secondary group flex h-14 items-center justify-center gap-3 rounded-2xl border border-edge bg-canvas/60 px-6 transition-all hover:border-ink-subtle/40 hover:bg-canvas"
         >
-          <span className="text-[14.5px] font-medium text-ink">{t("Sign in with")}</span>
+          <span className="mac-type-body text-[14.5px] font-medium text-ink">
+            {t("Sign in with")}
+          </span>
           <img
             src={stremioLogo}
             alt="Stremio"
@@ -196,7 +204,7 @@ export function StremioStep() {
           target="_blank"
           rel="noopener noreferrer"
           onClick={openRegister}
-          className="text-center text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
+          className="mac-type-small text-center text-[12.5px] text-ink-subtle transition-colors hover:text-ink-muted"
         >
           {t("Don't have an account? Create one →")}
         </a>
@@ -222,7 +230,7 @@ function FormField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
+      <span className="mac-label text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
         {label}
       </span>
       <input
@@ -233,7 +241,7 @@ function FormField({
         onChange={(e) => onChange(e.target.value)}
         spellCheck={false}
         autoComplete={type === "password" ? "current-password" : "email"}
-        className="h-12 rounded-xl border border-edge bg-canvas px-4 text-[14px] text-ink outline-none transition-colors focus:border-[#8b5cff]/60 disabled:opacity-50"
+        className="mac-field mac-field-lg h-12 rounded-xl border border-edge bg-canvas px-4 text-[14px] text-ink outline-none transition-colors focus:border-[#8b5cff]/60 disabled:opacity-50"
       />
     </label>
   );

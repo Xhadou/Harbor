@@ -98,11 +98,11 @@ export function PlaylistForm({
                     : "border-edge-soft/60 bg-canvas/40 text-ink-muted hover:border-edge hover:text-ink"
                 }`}
               >
-                <span className="flex items-center gap-1.5 text-[11.5px] font-semibold">
+                <span className="mac-type-small flex items-center gap-1.5 text-[11.5px] font-semibold">
                   {k.icon}
                   {t(k.label)}
                 </span>
-                <span className="text-[10px] text-ink-subtle">{t(k.sub)}</span>
+                <span className="mac-type-caption text-[10px] text-ink-subtle">{t(k.sub)}</span>
               </button>
             );
           })}
@@ -116,7 +116,7 @@ export function PlaylistForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t("My provider")}
-          className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 text-[13px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+          className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 text-[13px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
         />
       </Field>
 
@@ -129,7 +129,7 @@ export function PlaylistForm({
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://...get.php?username=...&password=..."
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
           <Field label={t("EPG URL (optional)")}>
@@ -139,7 +139,7 @@ export function PlaylistForm({
               onChange={(e) => setEpgUrl(e.target.value)}
               placeholder="https://...xmltv.php?username=...&password=..."
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
         </>
@@ -154,7 +154,7 @@ export function PlaylistForm({
               onChange={(e) => setXtream((x) => ({ ...x, server: e.target.value }))}
               placeholder="https://example-iptv.com:8080"
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
           <Field label={t("Username")}>
@@ -165,7 +165,7 @@ export function PlaylistForm({
               placeholder="user12345"
               autoComplete="off"
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
           <Field label={t("Password")}>
@@ -176,7 +176,7 @@ export function PlaylistForm({
               placeholder="••••••••"
               autoComplete="new-password"
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
           <Field label={t("EPG URL (optional)")}>
@@ -186,7 +186,7 @@ export function PlaylistForm({
               onChange={(e) => setEpgUrl(e.target.value)}
               placeholder="https://...xmltv.php?username=...&password=..."
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
         </>
@@ -201,10 +201,10 @@ export function PlaylistForm({
               onChange={(e) => setEpgUrl(e.target.value)}
               placeholder="https://example.com/epg.xml"
               spellCheck={false}
-              className="h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
+              className="mac-field h-10 rounded-lg border border-edge-soft/70 bg-canvas px-3 font-mono text-[11.5px] text-ink placeholder:text-ink-subtle focus:border-edge focus:outline-none"
             />
           </Field>
-          <p className="text-[11px] leading-snug text-ink-subtle">
+          <p className="mac-type-caption text-[11px] leading-snug text-ink-subtle">
             {t(
               "Stored as a standalone EPG source. No channels are loaded for EPG-only entries; they're kept here for future attachment to existing playlists.",
             )}
@@ -215,14 +215,14 @@ export function PlaylistForm({
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
           onClick={onCancel}
-          className="h-9 rounded-lg px-3 text-[12.5px] font-medium text-ink-muted transition-colors hover:text-ink"
+          className="mac-btn mac-btn-quiet h-9 rounded-lg px-3 text-[12.5px] font-medium text-ink-muted transition-colors hover:text-ink"
         >
           {t("Cancel")}
         </button>
         <button
           disabled={!canSave}
           onClick={submit}
-          className="h-9 rounded-lg bg-ink px-3 text-[12.5px] font-semibold text-canvas transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="mac-btn mac-btn-main h-9 rounded-lg bg-ink px-3 text-[12.5px] font-semibold text-canvas transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           {submitLabel}
         </button>
@@ -234,7 +234,7 @@ export function PlaylistForm({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-subtle">
+      <span className="mac-label text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-subtle">
         {label}
       </span>
       {children}
