@@ -8748,6 +8748,11 @@ html[data-os="macos"] .mac-scrim {
   padding-inline: calc(var(--mac-sidebar-inset) + 2rem) 2rem;
   background: rgb(0 0 0 / 0.4);
 }
+/* A dialog hands focus to its heading when it opens, so the keyboard starts
+   inside it. That is a place to start from, not a control: no ring. */
+html[data-os="macos"] [role="dialog"] :is(h1, h2, h3)[tabindex="-1"]:focus-visible {
+  outline: none !important;
+}
 
 /* Text. Title and heading carry their weight; the rest keep the weight the
    element already has and only lose odd sizes, tracking and capitals. */

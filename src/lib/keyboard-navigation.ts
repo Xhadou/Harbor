@@ -69,6 +69,7 @@ const BACK_KEYS = new Set(["Escape", "Esc", "BrowserBack", "GoBack", "Back"]);
 
 const MODAL_SELECTOR = '[role="dialog"], [aria-modal="true"]';
 const CONTEXT_INPUT_SELECTOR = "[data-harbor-context-layer],[data-harbor-image-viewer]";
+const SHELL_MODAL_SELECTOR = "[data-harbor-modal]";
 const LOCAL_KEYBOARD_SELECTOR = [
   // Embedded surfaces handle their own keys; shadow DOM retargets events to their host.
   "[data-local-keyboard]",
@@ -1269,7 +1270,7 @@ export function useKeyboardNavigation(options: TVNavigationOptions = {}) {
     if (!enabled) return;
     const owner = {};
 
-    const runBack = () => {
+    const runBack = (fromEscape = false) => {
       SFX.close();
       if (closeTopFocusScope()) return true;
       const modal = getActiveModal(
@@ -1279,6 +1280,16 @@ export function useKeyboardNavigation(options: TVNavigationOptions = {}) {
         const closer = modal.querySelector<HTMLElement>(MODAL_CLOSE_SELECTOR);
         if (closer) {
           closer.click();
+          return true;
+        }
+        // A dialog on the shared shell has no closer: it closes on Escape,
+        // through a listener that runs after this one. Back from a remote is
+        // handed to it as Escape. Either way the page behind stays where it is.
+        if (modal.closest(SHELL_MODAL_SELECTOR)) {
+          if (!fromEscape)
+            window.dispatchEvent(
+              new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+            );
           return true;
         }
         // Dialog without an explicit closer (e.g. search before TvModalClose) —
@@ -1363,7 +1374,7 @@ export function useKeyboardNavigation(options: TVNavigationOptions = {}) {
           e.stopPropagation();
           active.removeAttribute("data-search-editing");
           activeSearchEditEl = null;
-          runBack();
+          runBack(e.key === "Escape");
         }
         return;
       }
@@ -1380,7 +1391,7 @@ export function useKeyboardNavigation(options: TVNavigationOptions = {}) {
         // Always swallow Back/Escape so WebView/OS never treat it as close-app.
         e.preventDefault();
         e.stopPropagation();
-        runBack();
+        runBack(e.key === "Escape");
         return;
       }
 

@@ -35,6 +35,11 @@ export function useEscape(
   active = true,
   scope?: RefObject<HTMLElement | null>,
 ) {
+  // The listener must stay registered across renders. The navigation layer sees
+  // Escape first and can cause a render before this listener's turn; one that
+  // is removed and added again mid-event is skipped, and the key is lost.
+  const dismiss = useRef(onDismiss);
+  dismiss.current = onDismiss;
   useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
@@ -46,11 +51,11 @@ export function useEscape(
         if (dialogs[dialogs.length - 1] !== scope.current) return;
       }
       e.stopImmediatePropagation();
-      onDismiss();
+      dismiss.current();
     };
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [onDismiss, active, scope]);
+  }, [active, scope]);
 }
 
 const TABBABLE =

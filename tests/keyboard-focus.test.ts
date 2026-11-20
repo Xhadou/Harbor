@@ -227,7 +227,7 @@ test("home search overlay disables TV spatial navigation and binds modal close t
   );
   assert.match(
     navigationSource,
-    /if \(isSearchOverlayAutoText\) {[\s\S]*?if \(isBackKey\(e\)\) {[\s\S]*?runBack\(\);[\s\S]*?}[\s\S]*?return;/,
+    /if \(isSearchOverlayAutoText\) {[\s\S]*?if \(isBackKey\(e\)\) {[\s\S]*?runBack\([^)]*\);[\s\S]*?}[\s\S]*?return;/,
   );
   assert.match(searchOverlaySource, /data-search-overlay="true"/);
   assert.match(searchOverlaySource, /data-tv-focus-scope/);
