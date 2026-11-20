@@ -1,3 +1,6 @@
+import { FlagStack } from "@/components/flag";
+import { SourceFactsText } from "@/components/source-facts-text";
+import { isMacDesktop } from "@/lib/platform";
 import { Check, Download } from "lucide-react";
 import { Play } from "@/components/icons/play-filled";
 import { AddonLogo } from "@/components/addon-logo";
@@ -47,30 +50,50 @@ export function StremioRow({
     : queued
       ? t("Added to downloads")
       : t("Download");
+  // On macOS the row is written from the parsed facts, the same way the
+  // player's source list writes it: no addon text, no badges repeating it,
+  // and the Play button every other screen has.
+  const mac = isMacDesktop();
+  const langs = stream.audioLanguages.filter((l) => l.toLowerCase() !== "unknown");
   return (
     <div
-      className={`flex items-stretch gap-5 rounded-2xl bg-elevated/40 p-5 ring-1 transition-colors ${
+      className={`mac-card mac-source-row flex items-stretch gap-5 rounded-2xl bg-elevated/40 p-5 ring-1 transition-colors ${
         failed ? "ring-danger/40 bg-danger/5" : "ring-edge-soft/50"
       }`}
     >
-      <div className="flex w-[68px] shrink-0 flex-col items-center justify-center">
+      <div
+        className={`flex shrink-0 flex-col items-center justify-center ${mac ? "" : "w-[68px]"}`}
+      >
         <AddonLogo
           addonId={stream.addonId}
           addonName={addonName}
           manifestLogo={addonLogo}
-          size="tile"
+          size={mac ? "xl" : "tile"}
         />
       </div>
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
-        <p className="whitespace-pre-line text-[16px] font-semibold leading-snug text-ink [overflow-wrap:anywhere]">
-          {bidiLines(headline)}
-        </p>
-        {description && (
-          <p className="whitespace-pre-line text-[14px] leading-snug text-ink-muted [overflow-wrap:anywhere]">
-            {bidiLines(description)}
-          </p>
+        {mac ? (
+          <SourceFactsText stream={stream} from={addonName} />
+        ) : (
+          <>
+            <p className="whitespace-pre-line text-[16px] font-semibold leading-snug text-ink [overflow-wrap:anywhere]">
+              {bidiLines(headline)}
+            </p>
+            {description && (
+              <p className="whitespace-pre-line text-[14px] leading-snug text-ink-muted [overflow-wrap:anywhere]">
+                {bidiLines(description)}
+              </p>
+            )}
+          </>
         )}
-        {(badges.length > 0 || match || stream.edition || dubSub) && (
+        {mac && (match || dubSub) && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <HostMatchChip match={match} />
+            {dubSub && <DubSubPill kind={dubSub} size="sm" />}
+            <RuleBadges stream={stream} size="sm" />
+          </div>
+        )}
+        {!mac && (badges.length > 0 || match || stream.edition || dubSub) && (
           <div className="flex flex-wrap items-center gap-1.5">
             <HostMatchChip match={match} />
             {dubSub && <DubSubPill kind={dubSub} size="sm" />}
@@ -86,6 +109,7 @@ export function StremioRow({
         )}
       </div>
       <div className="flex shrink-0 items-center gap-2 self-center">
+        {mac && langs.length > 0 && <FlagStack languages={langs} size="sm" max={4} />}
         {link && <CopyLinkButton url={link} size={16} className="h-9 w-9" />}
         <button
           type="button"
@@ -101,7 +125,9 @@ export function StremioRow({
                     ? "border-accent/25 bg-accent-soft text-accent"
                     : "border-ink/[0.06] bg-ink/[0.04] text-ink hover:scale-[1.02] hover:bg-ink/[0.07] aria-disabled:hover:scale-100"
                 }`
-              : "flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent text-canvas shadow-[0_2px_6px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.18)] transition-[transform,box-shadow,background-color,color] duration-150 ease-out hover:shadow-[0_5px_14px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] active:scale-[0.96] active:duration-100"
+              : mac
+                ? "mac-btn mac-btn-main flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-ink px-4 text-[12.5px] font-semibold text-canvas"
+                : "flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent text-canvas shadow-[0_2px_6px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.18)] transition-[transform,box-shadow,background-color,color] duration-150 ease-out hover:shadow-[0_5px_14px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.18)] active:scale-[0.96] active:duration-100"
           }
         >
           {preparing ? (
@@ -129,6 +155,11 @@ export function StremioRow({
                 />
               </span>
               <span>{t("Download")}</span>
+            </>
+          ) : mac ? (
+            <>
+              <Play size={11} fill="currentColor" />
+              <span>{t("Play")}</span>
             </>
           ) : (
             <Play size={26} fill="currentColor" className="ml-0.5" />

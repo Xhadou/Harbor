@@ -3079,6 +3079,8 @@ const uiFallback: Record<string, string> = {
   Anime4K: "Anime4K",
   Download: "Download",
   More: "More",
+  "Unknown quality": "Unknown quality",
+  Filters: "Filters",
 };
 
 export default uiFallback;

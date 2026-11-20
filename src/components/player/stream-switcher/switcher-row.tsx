@@ -4,6 +4,8 @@ import { AddonLogo } from "@/components/addon-logo";
 import { CopyLinkButton, resolveStreamLink } from "@/components/player/copy-link-button";
 import { FlagStack } from "@/components/flag";
 import { FormatBadge, RuleBadges, streamBadges } from "@/components/format-badge";
+import { SourceFactsText } from "@/components/source-facts-text";
+import { isMacDesktop } from "@/lib/platform";
 import type { ScoredStream } from "@/lib/streams/types";
 import { useT } from "@/lib/i18n";
 
@@ -86,6 +88,9 @@ export function SwitcherRow({
     ?.find((r) => r.signal.startsWith("filtered:"))
     ?.signal.slice(9);
   const interactive = !isCurrent && !resolving;
+  // On macOS the row is written from the parsed facts, so the addon's own
+  // text and the badges that repeat it are left out.
+  const facts = isMacDesktop();
 
   useLayoutEffect(() => {
     if (expanded) return;
@@ -120,36 +125,39 @@ export function SwitcherRow({
         )}
         <AddonLogo addonId={addonId} addonName={addonName} manifestLogo={addonLogo} size="xl" />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <p className="truncate text-[14px] font-semibold leading-snug text-ink">{headline}</p>
-          {description && (
-            <p
-              ref={descRef}
-              className={`whitespace-pre-line text-[12.5px] leading-snug text-ink-muted ${
-                expanded ? "" : "line-clamp-2"
-              }`}
-            >
-              {description}
-            </p>
-          )}
-          {overflows && description && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded((v) => !v);
-              }}
-              className="mt-0.5 inline-flex w-fit items-center gap-1 text-[11.5px] font-semibold text-ink-subtle transition-colors hover:text-ink"
-            >
-              {expanded ? t("Show less") : t("Show more")}
-              <ChevronDown
-                size={12}
-                strokeWidth={2.4}
-                className={`transition-transform duration-200 motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
-              />
-            </button>
-          )}
-        </div>
+        {facts && <SourceFactsText stream={stream} from={addonName} />}
+        {!facts && (
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <p className="truncate text-[14px] font-semibold leading-snug text-ink">{headline}</p>
+            {description && (
+              <p
+                ref={descRef}
+                className={`whitespace-pre-line text-[12.5px] leading-snug text-ink-muted ${
+                  expanded ? "" : "line-clamp-2"
+                }`}
+              >
+                {description}
+              </p>
+            )}
+            {overflows && description && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded((v) => !v);
+                }}
+                className="mt-0.5 inline-flex w-fit items-center gap-1 text-[11.5px] font-semibold text-ink-subtle transition-colors hover:text-ink"
+              >
+                {expanded ? t("Show less") : t("Show more")}
+                <ChevronDown
+                  size={12}
+                  strokeWidth={2.4}
+                  className={`transition-transform duration-200 motion-reduce:transition-none ${expanded ? "rotate-180" : ""}`}
+                />
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="flex shrink-0 items-center gap-2 pt-0.5">
           {filterReason && (
@@ -174,9 +182,9 @@ export function SwitcherRow({
           {!isCurrent && langs.length > 0 && <FlagStack languages={langs} size="sm" max={3} />}
           {!isCurrent && anchor && (
             <span className="flex items-center gap-1.5">
-              <FormatBadge kind={anchor} size="sm" />
+              {!facts && <FormatBadge kind={anchor} size="sm" />}
               <RuleBadges stream={stream} size="sm" />
-              {secondary.length > 0 && (
+              {!facts && secondary.length > 0 && (
                 <span className="flex items-center gap-1 opacity-65 grayscale transition-[filter,opacity] duration-200 group-hover:opacity-100 group-hover:grayscale-0 motion-reduce:transition-none">
                   {secondary.map((b) => (
                     <FormatBadge key={b} kind={b} size="xs" />

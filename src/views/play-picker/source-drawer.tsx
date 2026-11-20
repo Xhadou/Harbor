@@ -6,6 +6,8 @@ import { CopyLinkButton, resolveStreamLink } from "@/components/player/copy-link
 import { FlagStack } from "@/components/flag";
 import { FormatBadge, RuleBadges } from "@/components/format-badge";
 import { HostMatchChip } from "@/components/host-match-chip";
+import { SourceFactsText } from "@/components/source-facts-text";
+import { isMacDesktop } from "@/lib/platform";
 import { useT } from "@/lib/i18n";
 import { useDebridClients } from "@/lib/debrid/registry";
 import { useSettings } from "@/lib/settings";
@@ -220,6 +222,11 @@ function SourceRow({
             n: stream.contributors.length - 1,
           });
 
+  // On macOS the row is written from the parsed facts, the same way the
+  // player's source list writes it, without the badges that repeat them.
+  const facts = isMacDesktop();
+  const seeds = stream.seeders != null ? [t("{n} seeds", { n: stream.seeders })] : [];
+
   return (
     <li className={divider ? "border-t border-edge-soft/30" : ""}>
       <button
@@ -227,31 +234,43 @@ function SourceRow({
         disabled={resolving}
         className="group flex w-full items-start gap-4 px-5 py-4 text-start transition-colors hover:bg-ink/5 disabled:cursor-wait disabled:opacity-60"
       >
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 truncate font-mono text-[14px] text-ink">{title}</p>
-            <EditionChip stream={stream} />
-          </div>
-          {fname && fname !== title && (
-            <p className="min-w-0 break-all font-mono text-[11px] leading-snug text-ink-subtle/75 line-clamp-2">
-              {fname}
+        {facts && (
+          <AddonLogo
+            addonId={stream.addonId}
+            addonName={stream.addonName}
+            manifestLogo={addonLogo}
+            size="xl"
+          />
+        )}
+        {facts && <SourceFactsText stream={stream} from={contributor} extra={seeds} />}
+        {!facts && (
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="min-w-0 truncate font-mono text-[14px] text-ink">{title}</p>
+              <EditionChip stream={stream} />
+            </div>
+            {fname && fname !== title && (
+              <p className="min-w-0 break-all font-mono text-[11px] leading-snug text-ink-subtle/75 line-clamp-2">
+                {fname}
+              </p>
+            )}
+            <p className="flex items-center gap-2 truncate text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-subtle">
+              <AddonLogo
+                addonId={stream.addonId}
+                addonName={stream.addonName}
+                manifestLogo={addonLogo}
+                size="sm"
+              />
+              <span className="truncate">
+                {contributor}
+                {summary.length > 0 && (
+                  <span className="text-ink-subtle/60"> · {summary.join(" · ")}</span>
+                )}
+              </span>
             </p>
-          )}
-          <p className="flex items-center gap-2 truncate text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-subtle">
-            <AddonLogo
-              addonId={stream.addonId}
-              addonName={stream.addonName}
-              manifestLogo={addonLogo}
-              size="sm"
-            />
-            <span className="truncate">
-              {contributor}
-              {summary.length > 0 && (
-                <span className="text-ink-subtle/60"> · {summary.join(" · ")}</span>
-              )}
-            </span>
-          </p>
-        </div>
+          </div>
+        )}
+
         <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
           <div className="flex items-center gap-3">
             {link && <CopyLinkButton url={link} />}
@@ -310,7 +329,8 @@ function SourceRow({
               />
             )}
           </div>
-          {tierChipBadges(stream).length > 0 && (
+          {facts && <RuleBadges stream={stream} size="sm" />}
+          {!facts && tierChipBadges(stream).length > 0 && (
             <div className="flex max-w-[320px] flex-wrap items-center justify-end gap-1.5">
               {tierChipBadges(stream).map((k) => (
                 <FormatBadge key={k} kind={k} size="sm" />

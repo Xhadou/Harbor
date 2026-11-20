@@ -1,4 +1,5 @@
-import { ChevronDown } from "lucide-react";
+import { isMacDesktop } from "@/lib/platform";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { addonLogoSrc, resolveAddonLogo } from "@/components/addon-logo";
 import type { Addon } from "@/lib/addons";
@@ -47,6 +48,10 @@ export function StremioLayout({
   const activeFilterId = settings.activeStreamFilterId;
   const setActiveFilterId = (id: string | null) => update({ activeStreamFilterId: id });
   const [builderOpen, setBuilderOpen] = useState(false);
+  // On macOS the row of filter menus stays folded away until asked for, or
+  // while one of them is narrowing the list.
+  const mac = isMacDesktop();
+  const [filtersShown, setFiltersShown] = useState(false);
   const [editingFilter, setEditingFilter] = useState<CustomStreamFilter | null>(null);
   const addonLogoMap = useMemo(() => {
     const m = new Map<string, string | null>();
@@ -117,6 +122,8 @@ export function StremioLayout({
   const filterLabel =
     filter === "all" ? t("All") : (addonOptions.find((o) => o.id === filter)?.name ?? t("All"));
   const filterLogo = filter === "all" ? null : (addonLogoMap.get(filter) ?? null);
+  const filtersActive =
+    Object.values(facet).some(Boolean) || !!activeFilterId || sourceSort !== "default";
   return (
     <div className="flex flex-col gap-3">
       <div className="relative">
@@ -178,23 +185,37 @@ export function StremioLayout({
           </div>
         )}
       </div>
-      <FacetMenuRow
-        facets={facetData}
-        onFacet={(key, v) => setFacet((prev) => ({ ...prev, [key]: v }))}
-        filters={customFilters}
-        activeFilterId={activeFilterId}
-        onSelectFilter={setActiveFilterId}
-        onNewFilter={() => {
-          setEditingFilter(null);
-          setBuilderOpen(true);
-        }}
-        onEditFilter={(f) => {
-          setEditingFilter(f);
-          setBuilderOpen(true);
-        }}
-        sourceSort={sourceSort}
-        onSourceSort={(v) => update({ sourceSort: v })}
-      />
+      {mac && (
+        <button
+          type="button"
+          onClick={() => setFiltersShown((v) => !v)}
+          aria-expanded={filtersShown || filtersActive}
+          disabled={filtersActive}
+          className="mac-btn mac-btn-quiet flex h-8 w-fit items-center gap-1.5 self-end rounded-md px-3 text-[12.5px] font-medium text-ink-muted"
+        >
+          <SlidersHorizontal size={13} strokeWidth={2} />
+          {t("Filters")}
+        </button>
+      )}
+      {(!mac || filtersShown || filtersActive) && (
+        <FacetMenuRow
+          facets={facetData}
+          onFacet={(key, v) => setFacet((prev) => ({ ...prev, [key]: v }))}
+          filters={customFilters}
+          activeFilterId={activeFilterId}
+          onSelectFilter={setActiveFilterId}
+          onNewFilter={() => {
+            setEditingFilter(null);
+            setBuilderOpen(true);
+          }}
+          onEditFilter={(f) => {
+            setEditingFilter(f);
+            setBuilderOpen(true);
+          }}
+          sourceSort={sourceSort}
+          onSourceSort={(v) => update({ sourceSort: v })}
+        />
+      )}
       <div className="flex flex-col gap-2">
         {visibleStreams.map((s, i) => (
           <StremioRow

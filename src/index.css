@@ -9153,3 +9153,9 @@ html[data-os="macos"] .mac-sub-tag {
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* A source in the picker: a row, not a tall card. */
+html[data-os="macos"] .mac-source-row {
+  gap: 14px;
+  padding: 10px 14px;
+}

@@ -1,3 +1,4 @@
+import { isMacDesktop } from "@/lib/platform";
 import { ChevronDown, ChevronLeft, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Meta } from "@/lib/cinemeta";
@@ -19,12 +20,19 @@ export function PickerNav({
   const t = useT();
   const { settings } = useSettings();
   const groupLeft = settings.pickerRefreshNextToBack;
+  // The Mac window has its own Back button in the toolbar for this screen.
+  const ownBack = !isMacDesktop();
   return (
     <div className="mt-6">
-      <div className={`flex items-center gap-3 ${groupLeft ? "justify-start" : "justify-between"}`}>
+      <div
+        className={`flex items-center gap-3 ${
+          !ownBack ? "justify-end" : groupLeft ? "justify-start" : "justify-between"
+        }`}
+      >
         <button
           type="button"
           onClick={onBack}
+          hidden={!ownBack}
           className="group/back -ms-2 flex w-fit items-center gap-3 rounded-full py-1.5 pe-6 ps-1.5 text-[17px] font-semibold text-ink-muted transition-colors hover:text-ink"
         >
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-elevated/70 ring-1 ring-edge-soft transition-colors group-hover/back:bg-elevated">
@@ -76,7 +84,7 @@ export function PickerHeader({
                 ? `${meta.name} · Season ${partSeason} · Episode ${String(episode.episode).padStart(2, "0")}`
                 : `${meta.name} · Season ${episode.imdbSeason ?? episode.season} · Episode ${String(episode.imdbEpisode ?? episode.episode).padStart(2, "0")}`}
           </p>
-          <h1 className="font-display text-[64px] font-medium leading-[0.96] tracking-tight text-ink">
+          <h1 className="mac-type-title font-display text-[64px] font-medium leading-[0.96] tracking-tight text-ink">
             {episode.name ||
               metaEpisodeName(meta, episode) ||
               `Episode ${absoluteEpisode ?? episode.episode}`}
@@ -91,7 +99,7 @@ export function PickerHeader({
               {meta.genres?.length ? ` · ${meta.genres.slice(0, 2).join(" · ")}` : ""}
             </p>
           )}
-          <h1 className="font-display text-[68px] font-medium leading-[0.96] tracking-tight text-ink">
+          <h1 className="mac-type-title font-display text-[68px] font-medium leading-[0.96] tracking-tight text-ink">
             {meta.name}
           </h1>
         </>
