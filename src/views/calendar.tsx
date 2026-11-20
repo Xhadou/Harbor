@@ -246,13 +246,13 @@ export function CalendarView({
       data-mac-bleed
       className={`flex h-full flex-col overflow-hidden${source === "games" ? " calendar-games-view" : ""}`}
     >
-      <header className="mac-pad shrink-0 border-b border-edge-soft px-12 pb-5 pt-24">
+      <header className="mac-pad mac-page-top mac-page-head shrink-0 border-b border-edge-soft px-12 pb-5 pt-24">
         <div className="flex items-end justify-between gap-6">
           <div className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-ink-subtle">
+            <span className="mac-page-eyebrow text-[11px] font-bold uppercase tracking-[0.32em] text-ink-subtle">
               {t("Releases")}
             </span>
-            <h1 className="font-display text-[44px] font-medium leading-none tracking-tight text-ink">
+            <h1 className="mac-page-title font-display text-[44px] font-medium leading-none tracking-tight text-ink">
               {t("Calendar")}
             </h1>
           </div>

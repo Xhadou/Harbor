@@ -9,7 +9,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { HERO_FULL_HEIGHT } from "@/components/hero-size";
+import { HERO_FULL_HEIGHT, heroTrailerLeadIn } from "@/components/hero-size";
 import { Play } from "@/components/icons/play-filled";
 import { ImdbIcon } from "@/components/icons/imdb-icon";
 import tmdbIcon from "@/assets/addon-logos/tmdb.png";
@@ -59,7 +59,7 @@ import { toggleWatchlist, useInWatchlist } from "@/lib/watchlist";
 import { useHeroContext } from "@/lib/context-menu";
 
 const HERO_VIDEO_CLASS =
-  "absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 object-cover";
+  "harbor-hero-video absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 object-cover";
 
 export const Hero = memo(function Hero({
   meta,
@@ -139,6 +139,7 @@ export const Hero = memo(function Hero({
     onAutoplayMuted: () => setHeroMuted(true),
     className: HERO_VIDEO_CLASS,
     loop: !audioHero,
+    startAt: heroTrailerLeadIn(),
     onEnded: () => {
       if (!audioHero) return;
       setEnded(true);

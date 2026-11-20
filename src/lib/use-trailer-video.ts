@@ -11,6 +11,8 @@ export function useTrailerVideo(opts: {
   volume?: number;
   className: string;
   loop: boolean;
+  /** Seconds to skip at the start, and again each time a loop restarts. */
+  startAt?: number;
   onEnded?: () => void;
   onAutoplayMuted?: () => void;
 }): {
@@ -26,6 +28,7 @@ export function useTrailerVideo(opts: {
     volume = 1,
     className,
     loop,
+    startAt = 0,
     onEnded,
     onAutoplayMuted,
   } = opts;
@@ -57,8 +60,16 @@ export function useTrailerVideo(opts: {
     const onFinish = () => {
       if (ownsSource()) finish.current?.();
     };
+    // Skips the lead-in (a trailer's ratings card) unless the clip is too short to spare it.
+    const skipLeadIn = () => {
+      if (startAt <= 0 || !ownsSource()) return;
+      if (Number.isFinite(node.duration) && node.duration < startAt * 4) return;
+      if (node.currentTime < startAt - 0.3) node.currentTime = startAt;
+    };
     node.addEventListener("canplay", onCanPlay);
     node.addEventListener("ended", onFinish);
+    node.addEventListener("loadedmetadata", skipLeadIn);
+    node.addEventListener("timeupdate", skipLeadIn);
     const timer = window.setTimeout(() => {
       if (video.current !== node || !trailerVideoHeldBy(mine)) return;
       if (node.getAttribute("src") === src) {
@@ -72,11 +83,13 @@ export function useTrailerVideo(opts: {
       window.clearTimeout(timer);
       node.removeEventListener("canplay", onCanPlay);
       node.removeEventListener("ended", onFinish);
+      node.removeEventListener("loadedmetadata", skipLeadIn);
+      node.removeEventListener("timeupdate", skipLeadIn);
       video.current = null;
       setReadySource(null);
       releaseTrailerVideo(mine);
     };
-  }, [src, active, className, loop]);
+  }, [src, active, className, loop, startAt]);
 
   useEffect(() => {
     const node = video.current;

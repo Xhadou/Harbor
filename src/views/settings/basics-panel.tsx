@@ -11,6 +11,7 @@ import { useSettings } from "@/lib/settings";
 import { useT } from "@/lib/i18n";
 import { getThemeById } from "@/lib/theme";
 import { ROW_ACTION } from "./kit";
+import { MacSidebarSection } from "./mac-sidebar-section";
 import { Section, useSettingsActiveContext } from "./shared";
 import { SRow } from "./ui";
 import { SportsAccessRow } from "./sports-access-row";
@@ -205,6 +206,8 @@ export function BasicsPanel() {
           }
         />
       </Section>
+
+      <MacSidebarSection />
     </>
   );
 }

@@ -109,16 +109,16 @@ export function Catalogs({ active = true }: { active?: boolean }) {
     <main
       ref={scrollRef}
       data-mac-bleed
-      className="mac-pad flex-1 overflow-y-auto px-12 pb-24 pt-28"
+      className="mac-pad mac-page-top flex-1 overflow-y-auto px-12 pb-24 pt-28"
     >
       <div {...contentDrag} className="flex flex-col gap-8">
-        <header className="flex flex-col gap-5">
+        <header className="mac-page-head flex flex-col gap-5">
           <div className="flex items-end justify-between gap-4">
             <div className="flex flex-col gap-1.5">
-              <h1 className="font-display text-[30px] font-medium tracking-tight text-ink">
+              <h1 className="mac-page-title font-display text-[30px] font-medium tracking-tight text-ink">
                 {t("Catalogs")}
               </h1>
-              <p className="text-[14px] text-ink-muted">
+              <p className="mac-page-sub text-[14px] text-ink-muted">
                 {customize
                   ? t("Choose what shows, what stays hidden, and what sits up top.")
                   : t(

@@ -57,7 +57,11 @@ export function SidePanel({
 
   const tiles = useMemo(() => {
     const sample = stills.length > 4 ? pickRandom(stills, 4, Date.now() ^ stills.length) : stills;
-    return Array.from({ length: 4 }, (_, i) => sample[i] ?? fallbackBackdrop);
+    // Only pictures that differ: padding the grid with the backdrop showed it four times over.
+    if (sample.length >= 4) return sample.slice(0, 4);
+    if (sample.length >= 2) return sample.slice(0, 2);
+    const only = sample[0] ?? fallbackBackdrop;
+    return only ? [only] : [];
   }, [stills, fallbackBackdrop]);
 
   const lightboxImages = stills.length > 0 ? stills : fallbackBackdrop ? [fallbackBackdrop] : [];
@@ -78,7 +82,7 @@ export function SidePanel({
           {String(activeIndex + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className={`grid gap-2 ${tiles.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
         {tiles.map((src, i) => (
           <Still
             meta={meta}

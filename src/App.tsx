@@ -1875,7 +1875,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
             </>
           )}
           <div
-            className={`relative flex min-h-0 min-w-0 flex-1 flex-col ${playerActive ? "invisible" : ""}`}
+            className={`mac-stage relative flex min-h-0 min-w-0 flex-1 flex-col ${playerActive ? "invisible" : ""}`}
             // macOS: pages sit beside the floating sidebar unless they opt in to
             // run under it with `data-mac-bleed` (see index.css). A margin, so
             // absolutely positioned pages are held clear of it as well.

@@ -163,13 +163,17 @@ export function DownloadsView({ active = false }: { active?: boolean }) {
     <main
       ref={scrollRef}
       data-mac-bleed
-      className="mac-pad flex-1 overflow-y-auto bg-canvas px-5 pb-24 pt-[max(6rem,var(--harbor-floating-back-space,0px))] sm:px-8 lg:px-12 lg:pt-[max(7rem,var(--harbor-floating-back-space,0px))]"
+      className="mac-pad mac-page-top flex-1 overflow-y-auto bg-canvas px-5 pb-24 pt-[max(6rem,var(--harbor-floating-back-space,0px))] sm:px-8 lg:px-12 lg:pt-[max(7rem,var(--harbor-floating-back-space,0px))]"
     >
-      <div className="mx-auto w-full max-w-4xl">
-        <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="mac-page-body mx-auto w-full max-w-4xl">
+        <header className="mac-page-head mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
           <div className="min-w-0">
-            <h1 className="text-[28px] font-semibold tracking-tight text-ink">{t("Downloads")}</h1>
-            <p className="mt-1.5 text-[13.5px] tabular-nums text-ink-subtle">{subtitle}</p>
+            <h1 className="mac-page-title text-[28px] font-semibold tracking-tight text-ink">
+              {t("Downloads")}
+            </h1>
+            <p className="mac-page-sub mt-1.5 text-[13.5px] tabular-nums text-ink-subtle">
+              {subtitle}
+            </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <StreamingNowButton active={active} />

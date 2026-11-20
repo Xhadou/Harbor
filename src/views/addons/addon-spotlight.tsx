@@ -143,7 +143,7 @@ function SpotlightCard({
         }}
       />
       <div
-        className="absolute inset-0"
+        className="addon-spotlight-scrim absolute inset-0"
         style={{
           background: "linear-gradient(80deg, oklch(0.07 0.02 260 / 0.72) 0%, transparent 58%)",
         }}

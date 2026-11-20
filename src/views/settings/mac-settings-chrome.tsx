@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import {
   buildSettingsSidebar,
   publishSettingsNav,
@@ -84,4 +84,31 @@ export function MacSettingsTabs({ reg }: { reg: SubTabReg }) {
       ))}
     </div>
   );
+}
+
+/**
+ * Changing tab swaps the content inside a page that stays mounted, so the
+ * page-change cascade never runs for it. This replays the same short rise on
+ * the element the returned ref is attached to. macOS only.
+ */
+export function useMacTabEnter(reg: SubTabReg) {
+  const panel = useRef<HTMLDivElement>(null);
+  const section = reg?.section;
+  const value = reg?.value;
+  const last = useRef({ section, value });
+  useLayoutEffect(() => {
+    const was = last.current;
+    last.current = { section, value };
+    // A different page already cascades in; a tab appearing for the first time is not a change.
+    if (was.section !== section || was.value === undefined || was.value === value) return;
+    if (!isMacDesktop() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    panel.current?.animate(
+      [
+        { opacity: 0, transform: "translateY(6px)" },
+        { opacity: 1, transform: "none" },
+      ],
+      { duration: 220, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+    );
+  }, [section, value]);
+  return panel;
 }

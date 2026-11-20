@@ -307,7 +307,8 @@ export function AddonsView({ active = true }: { active?: boolean }) {
         onClose={() => setAgeGateOpen(false)}
         onPass={() => update({ showAdultAddons: true })}
       />
-      <header className="mac-pad shrink-0 px-12 pt-20 pb-3">
+      <header className="mac-pad mac-page-top mac-page-head shrink-0 px-12 pt-20 pb-3">
+        <h1 className="mac-only mac-page-title mb-3 text-ink">{t("Addons")}</h1>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
           <nav className="flex flex-wrap items-center gap-1">
             {(["discover", "browse", "installed"] as Tab[]).map((tabId) => {

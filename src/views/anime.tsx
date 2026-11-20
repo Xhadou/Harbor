@@ -922,7 +922,7 @@ export function AnimeView({ active = true }: { active?: boolean }) {
                 title={t("Tune anime")}
                 aria-label={t("Tune anime")}
                 style={{ top: "min(22%, 200px)" }}
-                className="group absolute end-[-3rem] z-20 flex flex-col items-center gap-2.5 rounded-s-xl border border-e-0 border-edge-soft/40 bg-canvas/55 py-4 pe-2 ps-2 text-ink-subtle opacity-45 backdrop-blur-md transition-all duration-300 hover:bg-canvas/85 hover:text-ink hover:opacity-100 hover:ps-3"
+                className="anime-tune-handle group absolute end-[-3rem] z-20 flex flex-col items-center gap-2.5 rounded-s-xl border border-e-0 border-edge-soft/40 bg-canvas/55 py-4 pe-2 ps-2 text-ink-subtle opacity-45 backdrop-blur-md transition-all duration-300 hover:bg-canvas/85 hover:text-ink hover:opacity-100 hover:ps-3"
               >
                 <SlidersHorizontal
                   size={15}

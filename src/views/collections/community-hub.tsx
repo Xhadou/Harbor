@@ -154,21 +154,21 @@ function HubGrid({
       ref={scrollRef}
       style={active ? undefined : { display: "none" }}
       data-mac-bleed
-      className="mac-pad flex-1 overflow-y-auto px-5 pt-24 pb-20 sm:px-8 lg:px-12 lg:pt-28"
+      className="mac-pad mac-page-top flex-1 overflow-y-auto px-5 pt-24 pb-20 sm:px-8 lg:px-12 lg:pt-28"
     >
       <div
         data-context-page-background
         className="mx-auto flex w-full max-w-[1500px] flex-col gap-10"
       >
-        <header className="flex flex-wrap items-end justify-between gap-5">
+        <header className="mac-page-head flex flex-wrap items-end justify-between gap-5">
           <div className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
+            <span className="mac-page-eyebrow text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
               {t("Showcase")}
             </span>
-            <h1 className="font-display text-[44px] font-medium leading-[1.02] tracking-tight text-ink">
+            <h1 className="mac-page-title font-display text-[44px] font-medium leading-[1.02] tracking-tight text-ink">
               {t("Collections")}
             </h1>
-            <p className="max-w-xl text-[14px] leading-snug text-ink-muted">
+            <p className="mac-page-sub max-w-xl text-[14px] leading-snug text-ink-muted">
               {t(
                 "Curated, themed sets you can make beautiful and share by link. A Studio Ghibli shelf, the best heist movies, a marathon for a rainy weekend.",
               )}

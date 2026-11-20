@@ -270,7 +270,7 @@ export function LiveView({ active }: { active: boolean }) {
 
   if (sources.length === 0) {
     return (
-      <main data-rail-flush data-live-page className="media-start-scroll pt-24">
+      <main data-rail-flush data-live-page className="media-start-scroll mac-page-top pt-24">
         <PlaylistEmpty onSave={(entry) => addPlaylist(entry)} />
       </main>
     );

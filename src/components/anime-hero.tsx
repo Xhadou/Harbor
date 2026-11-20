@@ -227,7 +227,7 @@ export function AnimeHero({
           <h2 className="text-[20px] font-medium tracking-tight text-ink">
             {t("Top Picks for You")}
           </h2>
-          <div className="flex flex-col items-end gap-2.5">
+          <div className="anime-hero-meta flex flex-col items-end gap-2.5">
             <div className="flex min-h-[48px] items-center gap-3">
               <HeroMangaAdaptation meta={current} />
               <HeroSlideBadges meta={current} />

@@ -3060,6 +3060,11 @@ const uiFallback: Record<string, string> = {
   "Sync badge position": "Sync badge position",
   "Subtitle font size": "Subtitle font size",
   "Poster size": "Poster size",
+  "Your library is empty": "Your library is empty",
+  "Titles you save show up here. What you have watched is under History.":
+    "Titles you save show up here. What you have watched is under History.",
+  "More places you can keep in the sidebar.": "More places you can keep in the sidebar.",
+  "End of film": "End of film",
 };
 
 export default uiFallback;

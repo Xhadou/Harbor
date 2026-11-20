@@ -37,7 +37,7 @@ export function CalendarChip({
   const posterSizeClass = isLarge ? "h-10 w-7" : "h-7 w-5";
   const typeTag = !hideTypeTag && (
     <span
-      className={`hidden shrink-0 rounded-sm px-1 py-px text-[9px] font-bold uppercase tracking-[0.12em] xl:inline ${tagClass}`}
+      className={`harbor-cal-tag hidden shrink-0 rounded-sm px-1 py-px text-[9px] font-bold uppercase tracking-[0.12em] xl:inline ${tagClass}`}
     >
       {tag}
     </span>
@@ -51,7 +51,7 @@ export function CalendarChip({
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group relative flex min-w-0 items-center gap-2 rounded-md bg-canvas/50 p-1 pe-2 text-start transition-colors hover:bg-canvas/85"
+      className="harbor-cal-chip group relative flex min-w-0 items-center gap-2 rounded-md bg-canvas/50 p-1 pe-2 text-start transition-colors hover:bg-canvas/85"
     >
       <div className={`shrink-0 overflow-hidden rounded-[3px] bg-elevated/50 ${posterSizeClass}`}>
         <Poster

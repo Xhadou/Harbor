@@ -15,7 +15,7 @@ import { groupForSection, TOP_GROUPS } from "./settings/groups";
 import { requestTracker } from "./settings/tracker-request";
 import { SubTabsProvider, type SubTabReg } from "./settings/sub-tabs";
 import { SettingsSidebar } from "./settings/settings-sidebar";
-import { MacSettingsNav, MacSettingsTabs } from "./settings/mac-settings-chrome";
+import { MacSettingsNav, MacSettingsTabs, useMacTabEnter } from "./settings/mac-settings-chrome";
 import { tabsFor } from "./settings/tab-registry";
 import {
   glideSettingsToTop,
@@ -495,6 +495,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
   const subReg = subRegRaw?.section === active && subRegRaw.tabs.length > 0 ? subRegRaw : null;
   const subRegRef = useRef<SubTabReg>(null);
   subRegRef.current = subReg;
+  const tabEnter = useMacTabEnter(subReg);
   useEffect(() => {
     if (!import.meta.env.DEV || !subReg) return;
     const listed = tabsFor(active).map((tab) => tab.id);
@@ -671,6 +672,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                     )}
                     <div
                       key={active}
+                      ref={tabEnter}
                       className={`harbor-cascade flex flex-col ${landingGroup ? "hidden" : ""}`}
                     >
                       {active === "basics" && <BasicsPanel />}

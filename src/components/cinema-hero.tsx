@@ -1,5 +1,5 @@
 import { ChevronRight, Info } from "lucide-react";
-import { HERO_FULL_HEIGHT } from "@/components/hero-size";
+import { HERO_FULL_HEIGHT, heroTrailerLeadIn } from "@/components/hero-size";
 import { Play } from "@/components/icons/play-filled";
 import { useEffect, useRef, useState } from "react";
 import { ImdbIcon } from "@/components/icons/imdb-icon";
@@ -35,7 +35,7 @@ function rubberBand(distance: number, dim: number, c = 0.55): number {
 }
 
 const CINEMA_VIDEO_CLASS =
-  "absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 object-cover";
+  "harbor-hero-video absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 object-cover";
 
 export function CinemaHero({
   slides,
@@ -250,6 +250,7 @@ function CinemaSlide({
     muted: true,
     volume: 1,
     className: CINEMA_VIDEO_CLASS,
+    startAt: heroTrailerLeadIn(),
     loop: true,
   });
   const bg = upsizeTmdb(meta.background || meta.poster);

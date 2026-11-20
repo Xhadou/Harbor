@@ -80,7 +80,7 @@ function BarButtons({ editMode, hasChanges, onToggleEdit, onReset, kids }: Props
 export function CatalogCustomizeBar(props: Props) {
   return (
     <>
-      <div className="flex items-center justify-end gap-2">
+      <div className="harbor-customize-bar flex items-center justify-end gap-2">
         <BarButtons {...props} />
       </div>
       {props.editMode && (

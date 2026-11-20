@@ -805,6 +805,21 @@ main[data-kids="on"]::-webkit-scrollbar-thumb:hover {
   background-clip: padding-box;
 }
 
+/* macOS: the system's own scrollbars, which float over the content and show only
+   while scrolling. Any `::-webkit-scrollbar` rule swaps them for a drawn bar that
+   is always there and takes its width out of the page; a standard `scrollbar-width`
+   switches that off. It sits in the base layer with no specificity so every
+   `scrollbar-width: none` in the app still hides its bar. */
+@layer base {
+  :where(html[data-os="macos"]) * {
+    scrollbar-width: thin;
+  }
+}
+html[data-os="macos"] :is(.harbor-scroll, .guide-scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: auto;
+}
+
 @keyframes harbor-fade-in {
   from {
     opacity: 0;
@@ -8500,4 +8515,186 @@ html[data-os="macos"]
   > button[aria-pressed="true"] {
   background: var(--hset-mac-raised);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+/* ── Motion on macOS ───────────────────────────────────────────────────────
+   A page that comes to the front fades up into place instead of appearing in
+   one frame. It runs on the page's own root, so the sidebar and titlebar
+   controls stay still. No end state is held: once it finishes the page carries
+   no transform and no stacking context of its own. */
+@keyframes mac-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+html[data-os="macos"] .harbor-layer-active > * {
+  animation: mac-view-in 260ms var(--ease-out) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-os="macos"] .harbor-layer-active > * {
+    animation: none;
+  }
+}
+
+/* ── Page template on macOS ────────────────────────────────────────────────
+   Every page without an artwork hero opens the same way: one bold title level
+   with the Settings title, a single muted line under it, actions on the title
+   row, and content starting at the same left edge. Pages opt in with the
+   `mac-page-*` hooks; other platforms ignore them. */
+.mac-only {
+  display: none;
+}
+html[data-os="macos"] .mac-only {
+  display: revert;
+}
+html[data-os="macos"] {
+  --mac-page-top: calc(var(--mac-titlebar-inset) + 6px);
+}
+html[data-os="macos"] .mac-page-top {
+  padding-block-start: var(--mac-page-top);
+}
+html[data-os="macos"] .mac-page-eyebrow {
+  display: none;
+}
+html[data-os="macos"] .mac-page-title {
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+}
+html[data-os="macos"] .mac-page-sub {
+  max-inline-size: 72ch;
+  margin-block-start: 0;
+  color: var(--color-ink-muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+/* A centred reading column becomes a left-aligned one, on the shared edge. */
+html[data-os="macos"] .mac-page-body {
+  margin-inline: 0;
+}
+/* Header controls take the compact system size Settings uses. */
+html[data-os="macos"] .mac-page-head :is(.h-10, .h-11, .h-12) {
+  block-size: 30px;
+}
+html[data-os="macos"] .mac-page-head :is(button, a):is(.h-10, .h-11, .h-12) {
+  padding-inline: 12px;
+  font-size: 13px;
+}
+html[data-os="macos"] .mac-page-head :is(button, a):is(.h-10.w-10, .h-11.w-11, .h-12.w-12) {
+  inline-size: 30px;
+  padding-inline: 0;
+}
+/* The "connect a source" start pages: top-left on the template, not centred. */
+html[data-os="macos"] .media-start-scroll > [data-media-start] > .media-start-inner {
+  margin-block: 0 auto;
+}
+html[data-os="macos"] .media-start-scroll > [data-media-start] {
+  padding-block-start: 0 !important;
+}
+html[data-os="macos"] .media-start-page {
+  padding-inline-start: var(--mac-gutter);
+}
+html[data-os="macos"] .media-start-inner {
+  margin-inline: 0;
+}
+html[data-os="macos"] .media-start-copy h1 {
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 32px;
+  letter-spacing: -0.4px;
+}
+
+/* A page's "Customize" button rides on the bottom corner of its hero, as it
+   does on Home and Shows, instead of taking a row of its own under it. */
+html[data-os="macos"] main > .mac-pad > .harbor-customize-bar {
+  position: absolute;
+  inset-block-start: -3rem;
+  inset-inline-end: 3rem;
+  z-index: 20;
+}
+
+/* Background trailers are usually letterboxed inside their own frame. Scaled
+   far enough that a 2.39:1 picture loses its black bars at any window shape. */
+html[data-os="macos"] .harbor-hero-video {
+  inline-size: 135%;
+  block-size: 135%;
+}
+
+/* Calendar: the type badge is tied to the window's width, but beside the sidebar
+   a day is far narrower than that assumes and the badge squeezed titles down to
+   two letters. It now shows only where the day itself has room for both. */
+html[data-os="macos"] .harbor-cal-chip {
+  container-type: inline-size;
+}
+html[data-os="macos"] .harbor-cal-tag {
+  display: none;
+}
+@container (min-width: 200px) {
+  html[data-os="macos"] .harbor-cal-tag {
+    display: inline;
+  }
+}
+
+/* Content scrolls up under the titlebar controls. A short fade from the page
+   colour keeps text from running hard into the Back button and the window
+   edge; over a hero it reads as a light vignette. */
+html[data-os="macos"] .mac-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  /* The stage starts beside the sidebar, but a hero runs on under the glass.
+     The fade has to cover that part too, or it ends in a straight edge next to
+     the sidebar's corner. */
+  inset-inline-start: calc(-1 * var(--mac-sidebar-inset));
+  z-index: 35;
+  block-size: calc(var(--mac-titlebar-inset) + 20px);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-canvas) 92%, transparent),
+    color-mix(in srgb, var(--color-canvas) 60%, transparent) 55%,
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Addons: the featured card sets its text over the addon's own artwork; the
+   side scrim now runs far enough across that the text stays readable. */
+html[data-os="macos"] .addon-spotlight-scrim {
+  background: linear-gradient(
+    90deg,
+    oklch(0.07 0.02 260 / 0.94) 0%,
+    oklch(0.07 0.02 260 / 0.82) 48%,
+    transparent 82%
+  ) !important;
+}
+
+/* Anime: the hero's right-hand details stop short of the next-slide arrow, and
+   the "Tune anime" tab sits fully inside the window instead of half off it. */
+html[data-os="macos"] .anime-hero-meta {
+  margin-inline-end: 2rem;
+}
+html[data-os="macos"] .anime-tune-handle {
+  inset-inline-end: calc(-3rem + 12px);
+  border-inline-end-width: 1px;
+  border-radius: 12px;
+  opacity: 0.75;
+}
+
+/* Text fields on macOS. Harbor's remote-control navigation marks the wrapper
+   of a field that is being typed in, and two rules above outline that wrapper,
+   caption and all, even after a mouse click. A Mac shows focus on the field
+   itself: a soft ring that follows its corners. The doubled attribute outranks
+   the navigation layer's own injected rules. */
+html[data-os="macos"][data-os]
+  :is([data-tv-search-editing-focused="true"], [data-tv-search-nav-focused="true"]) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+html[data-os="macos"] .mac-field:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 45%, transparent) !important;
 }

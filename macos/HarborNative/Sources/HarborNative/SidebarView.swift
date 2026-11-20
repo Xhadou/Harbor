@@ -9,7 +9,9 @@ final class SidebarModel {
     struct Group: Identifiable {
         var section: SidebarSection
         var items: [SidebarItem]
-        var id: String { section.id }
+        /// Kept apart from row ids: a section and a row can share a name
+        /// ("library"), and the list would then select the heading with the row.
+        var id: String { "section:" + section.id }
     }
 
     private(set) var groups: [Group] = []
@@ -90,6 +92,13 @@ struct SidebarList: View {
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
+        // Rows scrolling out above the footer fade instead of being cut mid-row.
+        .mask(
+            VStack(spacing: 0) {
+                Rectangle()
+                LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 18)
+            })
     }
 
     private var selection: Binding<String?> {

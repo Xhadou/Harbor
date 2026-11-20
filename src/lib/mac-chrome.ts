@@ -22,6 +22,8 @@ type MacCoercible = {
   useNativeTitleBar: boolean;
   hybridTitleBar: boolean;
   heroFull?: boolean;
+  navCustomization?: { hidden: string[] };
+  _macNavTrimV1?: boolean;
   theme?: {
     preset: string;
     backgroundImage: string | null;
@@ -50,15 +52,20 @@ function pinnedTheme<T extends NonNullable<MacCoercible["theme"]>>(theme: T): T 
   };
 }
 
+/** Destinations the Mac sidebar starts without. Hidden once; Settings can bring any back. */
+export const MAC_NAV_TRIM: readonly string[] = ["music", "games", "manga", "ebook"];
+
 export function coerceMacSettings<T extends MacCoercible>(settings: T, os: OsClass): T {
   if (os !== "macos") return settings;
   const wantsFullHero = "heroFull" in settings && settings.heroFull !== true;
   const theme = settings.theme ? pinnedTheme(settings.theme) : undefined;
+  const nav = settings._macNavTrimV1 ? undefined : settings.navCustomization;
   if (
     settings.useNativeTitleBar &&
     !settings.hybridTitleBar &&
     !wantsFullHero &&
-    theme === settings.theme
+    theme === settings.theme &&
+    !nav
   ) {
     return settings;
   }
@@ -68,6 +75,17 @@ export function coerceMacSettings<T extends MacCoercible>(settings: T, os: OsCla
     hybridTitleBar: false,
     ...(wantsFullHero ? { heroFull: true } : null),
     ...(theme ? { theme } : null),
+    // The flag travels with the saved settings, so a destination the owner turns
+    // back on afterwards is not hidden again.
+    ...(nav
+      ? {
+          navCustomization: {
+            ...nav,
+            hidden: [...nav.hidden, ...MAC_NAV_TRIM.filter((id) => !nav.hidden.includes(id))],
+          },
+          _macNavTrimV1: true,
+        }
+      : null),
   };
 }
 
@@ -79,4 +97,41 @@ export function macLayout<L extends string>(layout: L, os: OsClass): L | "sideba
 // would throw away the system frame. macOS has real full screen instead.
 export function macFullscreenMode<M extends string>(mode: M, os: OsClass): M | "fullscreen" {
   return os === "macos" && mode === "borderless" ? "fullscreen" : mode;
+}
+
+// Harbor's shortcuts were written for Ctrl. The ones a Mac user reaches for
+// with Command get a Command default here; a shortcut the user rebound keeps
+// their choice. Player shortcuts on Ctrl+digit stay: Command+digit belongs to
+// the Go menu, and Command+H hides the app.
+export const MAC_DEFAULT_BINDINGS: Readonly<Record<string, string>> = {
+  globalSettingsOpen: "meta+,",
+  globalUiScaleUp: "meta+=",
+  globalUiScaleDown: "meta+-",
+  globalUiScaleReset: "meta+0",
+  playerScreenLock: "meta+l",
+};
+
+export function macDefaultBinding(id: string, binding: string, os: OsClass): string {
+  return os === "macos" && Object.hasOwn(MAC_DEFAULT_BINDINGS, id)
+    ? MAC_DEFAULT_BINDINGS[id]
+    : binding;
+}
+
+const MAC_KEY_SYMBOLS: Readonly<Record<string, string>> = {
+  ctrl: "\u2303",
+  alt: "\u2325",
+  shift: "\u21E7",
+  meta: "\u2318",
+  Escape: "esc",
+  Enter: "\u21A9",
+  Backspace: "\u232B",
+  Tab: "\u21E5",
+};
+
+/** A binding the way a Mac writes it: modifier symbols first, no plus signs. */
+export function macBindingLabel(parts: readonly string[]): string {
+  const order = ["ctrl", "alt", "shift", "meta"];
+  const mods = order.filter((mod) => parts.slice(0, -1).includes(mod));
+  const key = parts[parts.length - 1] ?? "";
+  return mods.map((mod) => MAC_KEY_SYMBOLS[mod]).join("") + (MAC_KEY_SYMBOLS[key] ?? key);
 }

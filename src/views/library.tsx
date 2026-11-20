@@ -30,6 +30,7 @@ import { useScrollMemory, useView } from "@/lib/view";
 import { useSettings } from "@/lib/settings";
 import { useContentDrag } from "@/lib/window-drag";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { watchlistHas } from "@/lib/watchlist";
 import { useLetterboxd } from "@/lib/stremboxd/provider";
 import { AnilistTab } from "./library/anilist-tab";
@@ -171,7 +172,7 @@ export function LibraryView({ active }: { active: boolean }) {
       ref={scrollRef}
       data-harbor-library
       data-mac-bleed
-      className="mac-pad flex-1 overflow-y-auto px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
+      className="mac-pad mac-page-top flex-1 overflow-y-auto px-5 pt-24 pb-14 sm:px-8 lg:px-12 lg:pt-28"
     >
       <LibraryFeaturedProvider>
         <div {...contentDrag} data-context-page-background className="flex flex-col gap-7">
@@ -371,16 +372,16 @@ function Header({
     hidden,
   );
   return (
-    <header className="flex flex-col gap-5">
+    <header className="mac-page-head flex flex-col gap-5">
       <div className="flex items-end justify-between gap-6">
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
+          <span className="mac-page-eyebrow text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
             {t("My library")}
           </span>
-          <h1 className="font-display text-[44px] font-medium leading-[1.05] text-ink">
-            {t("Your collection.")}
+          <h1 className="mac-page-title font-display text-[44px] font-medium leading-[1.05] text-ink">
+            {isMacDesktop() ? t("My Library") : t("Your collection.")}
           </h1>
-          <p className="text-[14px] leading-snug text-ink-muted">
+          <p className="mac-page-sub text-[14px] leading-snug text-ink-muted">
             {t(
               "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.",
             )}
