@@ -7,7 +7,8 @@ export type MenuCommand =
   | { kind: "back" }
   | { kind: "cycle-section"; step: 1 | -1 }
   | { kind: "toggle-sidebar" }
-  | { kind: "find" };
+  | { kind: "find" }
+  | { kind: "reload" };
 
 const VIEWS: Record<string, View> = {
   settings: "settings",
@@ -24,6 +25,7 @@ export function menuCommand(action: string): MenuCommand | null {
   if (action === "previous-section") return { kind: "cycle-section", step: -1 };
   if (action === "toggle-sidebar") return { kind: "toggle-sidebar" };
   if (action === "find") return { kind: "find" };
+  if (action === "reload") return { kind: "reload" };
   const view = Object.hasOwn(VIEWS, action) ? VIEWS[action] : undefined;
   return view ? { kind: "view", view } : null;
 }

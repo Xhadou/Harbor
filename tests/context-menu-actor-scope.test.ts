@@ -299,6 +299,7 @@ async function fixture({
       "@/components/ui-icon": { UiIcon: empty },
       "@/components/parental-pin-modal": { ParentalPinModal: empty },
       "@/lib/app-reload": { reloadAppWindow: empty },
+      "@/lib/platform": { isMacDesktop: () => false },
       "@/lib/parental": { useParental: () => ({ locked: false, hiddenTabs: {} }) },
       "@/lib/profiles": {
         useProfiles: () => ({ activeProfile: { id: "same-profile" } }),

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { reloadAppWindow } from "@/lib/app-reload";
 import { useSearchActions } from "@/lib/search-context";
 import { useView } from "@/lib/view";
 import { CYCLE_SECTION_EVENT } from "@/chrome/tab-hotkeys";
@@ -54,6 +55,7 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
           now.setOpen(false);
           window.dispatchEvent(new CustomEvent(CYCLE_SECTION_EVENT, { detail: command.step }));
         } else if (command.kind === "toggle-sidebar") now.toggleSidebar();
+        else if (command.kind === "reload") reloadAppWindow();
         // With the sidebar shown this focuses its field (see
         // NativeToolbarBridge); hidden, Harbor's own search input opens.
         else if (searchAllowed()) now.setOpen(true);

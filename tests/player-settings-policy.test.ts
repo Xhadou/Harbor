@@ -68,6 +68,7 @@ test("player menu Settings retains PIN-aware navigation and discards old-session
       },
     },
     "@/lib/app-reload": { reloadAppWindow: noop },
+    "@/lib/platform": { isMacDesktop: () => false },
     "@/lib/back-intercept": backHandlers,
     "@/lib/context-menu": {},
     "@/lib/context-content": {},

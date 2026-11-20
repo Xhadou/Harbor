@@ -8,6 +8,7 @@ import type { ContextAction } from "@/lib/context-actions";
 import { useContextMenu, type ContextMenuTarget } from "@/lib/context-menu";
 import { clickedContent, contextPointerPoint } from "@/lib/context-content";
 import { reloadAppWindow } from "@/lib/app-reload";
+import { isMacDesktop } from "@/lib/platform";
 import { hasBackHandlers, subscribeBackHandlers } from "@/lib/back-intercept";
 import { shareDeepLink } from "@/lib/deep-link";
 import { useT } from "@/lib/i18n";
@@ -251,7 +252,7 @@ export function usePageContextTarget({ includePlayer = false } = {}): ContextMen
       id: "page:refresh",
       label: t("Refresh"),
       icon: <RefreshCw size={14} />,
-      shortcut: "Ctrl+R",
+      shortcut: isMacDesktop() ? "⌘R" : "Ctrl+R",
       run: reloadAppWindow,
       group: "reload",
       restoreFocus: false,

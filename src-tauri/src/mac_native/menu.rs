@@ -87,6 +87,7 @@ pub fn menu_spec() -> Vec<(&'static str, Vec<MenuEntry>)> {
             vec![
                 action("toggle-sidebar", "Toggle Sidebar", "Ctrl+Cmd+S"),
                 action("find", "Search", "CmdOrCtrl+F"),
+                action("reload", "Reload", "CmdOrCtrl+R"),
                 Separator,
                 Predefined("fullscreen"),
             ],
@@ -242,7 +243,7 @@ mod tests {
         let ids = action_ids();
         let unique: std::collections::HashSet<_> = ids.iter().collect();
         assert_eq!(ids.len(), unique.len());
-        for id in ["settings", "toggle-sidebar", "find", "back", "go-home", "go-library"] {
+        for id in ["settings", "toggle-sidebar", "find", "reload", "back", "go-home", "go-library"] {
             assert!(ids.contains(&id), "missing action {id}");
         }
     }
