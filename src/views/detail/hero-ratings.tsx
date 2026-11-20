@@ -77,6 +77,7 @@ export function HeroRatings({
   compact = false,
   tmdbRating,
   ratingChain,
+  max,
 }: {
   rating?: string;
   isAnime: boolean;
@@ -91,6 +92,8 @@ export function HeroRatings({
   compact?: boolean;
   tmdbRating?: string | null;
   ratingChain?: string[];
+  /** Show at most this many scores, in their usual order. */
+  max?: number;
 }) {
   const t = useT();
   const { settings } = useSettings();
@@ -276,11 +279,12 @@ export function HeroRatings({
   }
 
   if (items.length === 0) return null;
+  const shown = max ? items.slice(0, max) : items;
 
   if (bare) {
     return (
       <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5">
-        {items.map((item, i) => (
+        {shown.map((item, i) => (
           <span key={i} className="flex items-center">
             {i > 0 && <Divider />}
             {item}
@@ -292,7 +296,7 @@ export function HeroRatings({
 
   return (
     <div className="inline-flex items-center rounded-full bg-canvas/80 px-1 py-0.5">
-      {items.map((item, i) => (
+      {shown.map((item, i) => (
         <span key={i} className="flex items-center">
           {i > 0 && <Divider />}
           {item}

@@ -134,7 +134,7 @@ function PersonCard({ person, onOpen }: { person: Person; onOpen?: (p: Person) =
         )}
       </div>
       <div className="flex flex-col gap-0.5 px-0.5">
-        <span className="line-clamp-1 text-[12.5px] font-semibold leading-tight text-white/90">
+        <span className="line-clamp-2 text-[12.5px] font-semibold leading-tight text-white/90">
           {person.name}
         </span>
         {person.role && (

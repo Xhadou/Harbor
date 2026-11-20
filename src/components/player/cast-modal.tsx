@@ -309,6 +309,7 @@ export function CastModal({
                   onOpenTitle={openTitle}
                   onOpenDetail={onOpenDetail ? requestExit : undefined}
                   onPlay={onPlay ? play : undefined}
+                  playing={view.meta.id === meta.id}
                   onOpenEpisodes={onPlay ? openEpisodes : undefined}
                   onOpenGenre={openGenre}
                 />

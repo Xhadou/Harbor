@@ -1,3 +1,4 @@
+import { isMacDesktop } from "@/lib/platform";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Play } from "@/components/icons/play-filled";
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -39,6 +40,7 @@ export function TitlePanel({
   onOpenTitle,
   onOpenDetail,
   onPlay,
+  playing = false,
   onOpenEpisodes,
   onOpenGenre,
 }: {
@@ -50,6 +52,8 @@ export function TitlePanel({
   onOpenTitle: (m: Meta) => void;
   onOpenDetail?: (m: Meta) => void;
   onPlay?: (m: Meta) => void;
+  /** This is the title on screen right now, so offering to play it is noise. */
+  playing?: boolean;
   onOpenEpisodes?: (m: Meta, imdbId: string | null) => void;
   onOpenGenre?: (name: string, genreId: number, mediaType: "movie" | "tv") => void;
 }) {
@@ -85,6 +89,8 @@ export function TitlePanel({
   const primaryRating = anime ? rating : (imdbRating ?? rating);
   const ratingSource: "imdb" | "tmdb" = imdbRating ? "imdb" : "tmdb";
   const tmdbRating = !anime && detail?.rating ? detail.rating : null;
+  // On macOS a title carries one score here, as it does on its own page.
+  const oneRating = isMacDesktop();
 
   const liveAwards = useAwards(imdbId ?? undefined, meta.type === "series");
   const awards = useMemo(
@@ -177,6 +183,7 @@ export function TitlePanel({
                 imdbId={imdbId}
                 mediaType={mediaType}
                 ratingSource={ratingSource}
+                max={oneRating ? 1 : undefined}
                 onOpenUrl={(url) =>
                   url.includes("simkl.com") ? openInAppBrowser(url, title) : openUrl(url)
                 }
@@ -212,6 +219,7 @@ export function TitlePanel({
                       </button>
                     )
                   : onPlay &&
+                    !playing &&
                     (upcoming ? (
                       <UpcomingCta detail={detail} onTry={() => onPlay(meta)} />
                     ) : (
