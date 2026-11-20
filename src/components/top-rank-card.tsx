@@ -126,7 +126,7 @@ export const TopRankCard = memo(function TopRankCard({ meta, rank }: { meta: Met
           onError={poster.onError}
           seed={meta.id}
           ratio="portrait"
-          className="harbor-card-ring rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)] transition-shadow duration-300 group-hover/card:shadow-[0_26px_50px_-16px_rgba(0,0,0,0.65)]"
+          className="mac-card harbor-card-ring rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)] transition-shadow duration-300 group-hover/card:shadow-[0_26px_50px_-16px_rgba(0,0,0,0.65)]"
         />
         {inWatchlist && <WatchlistDot />}
         <AwardDot name={meta.name} year={parseAwardYear(meta.releaseInfo)} />
@@ -206,7 +206,7 @@ export const AnimeRankCard = memo(function AnimeRankCard({
           onError={poster.onError}
           seed={meta.id}
           ratio="portrait"
-          className="harbor-card-ring rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)] transition-shadow duration-300 group-hover/card:shadow-[0_26px_50px_-16px_rgba(0,0,0,0.65)]"
+          className="mac-card harbor-card-ring rounded-xl shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)] transition-shadow duration-300 group-hover/card:shadow-[0_26px_50px_-16px_rgba(0,0,0,0.65)]"
         />
         {inWatchlist && <WatchlistDot />}
         <AwardDot name={meta.name} year={parseAwardYear(meta.releaseInfo)} />

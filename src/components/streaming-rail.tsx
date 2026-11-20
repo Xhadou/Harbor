@@ -22,7 +22,7 @@ function ServiceTile({ service, onOpen }: { service: StreamingService; onOpen: (
   return (
     <button
       onClick={onOpen}
-      className="harbor-service-tile group flex h-20 w-full items-center justify-center rounded-xl bg-elevated/40 transition-colors duration-200 hover:bg-elevated"
+      className="mac-card harbor-service-tile group flex h-20 w-full items-center justify-center rounded-xl bg-elevated/40 transition-colors duration-200 hover:bg-elevated"
     >
       <ServiceLogo service={service} height={26} />
     </button>

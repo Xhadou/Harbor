@@ -9078,6 +9078,14 @@ html[data-os="macos"] .context-menu-brand-footer {
   display: none;
 }
 
+/* Card. Anything that stands for a title, a collection or a list takes the
+   card corner. A poster does already; `mac-card` brings in the ones that
+   were drawn rounder or squarer. */
+html[data-os="macos"] .mac-card {
+  --poster-radius: var(--mac-radius-card);
+  border-radius: var(--mac-radius-card);
+}
+
 /* Poster card. Under the pointer the poster lifts and takes a light hairline.
    The accent ring belongs to the keyboard, so the two never look alike. */
 html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-ring::after {

@@ -149,7 +149,7 @@ export function CommunityCollectionCard({
         }}
         type="button"
         onClick={() => onOpen(collection.id)}
-        className="relative block aspect-[16/9] w-full overflow-hidden rounded-2xl border border-edge-soft text-start shadow-[0_6px_22px_-14px_rgba(0,0,0,0.6)] transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-edge"
+        className="mac-card relative block aspect-[16/9] w-full overflow-hidden rounded-2xl border border-edge-soft text-start shadow-[0_6px_22px_-14px_rgba(0,0,0,0.6)] transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-edge"
         style={cover ? undefined : { background: posterPlate(collection.id + collection.name) }}
       >
         {cover && (

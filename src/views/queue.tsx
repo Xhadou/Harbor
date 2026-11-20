@@ -312,7 +312,7 @@ function Strip({
               type="button"
               data-active={isActive}
               onClick={() => onJump(i)}
-              className={`harbor-queue-tile group relative aspect-video w-[200px] shrink-0 overflow-hidden rounded-md transition-all duration-200 hover:z-10 hover:scale-[1.02] ${
+              className={`mac-card harbor-queue-tile group relative aspect-video w-[200px] shrink-0 overflow-hidden rounded-md transition-all duration-200 hover:z-10 hover:scale-[1.02] ${
                 isPast ? "opacity-50" : ""
               }`}
             >
