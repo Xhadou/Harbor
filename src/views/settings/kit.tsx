@@ -307,11 +307,11 @@ export function ModalButton({
   );
 }
 
-export const ROW_ACTION = `${CTL_BASE} border-edge-soft bg-elevated text-ink-muted transition-colors hover:border-edge hover:bg-raised hover:text-ink disabled:cursor-default disabled:opacity-45`;
+export const ROW_ACTION = `${CTL_BASE} hset-btn hset-btn-plain border-edge-soft bg-elevated text-ink-muted transition-colors hover:border-edge hover:bg-raised hover:text-ink disabled:cursor-default disabled:opacity-45`;
 
-export const ROW_ACTION_PRIMARY = `${CTL_BASE} border-transparent bg-ink text-canvas transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-40`;
+export const ROW_ACTION_PRIMARY = `${CTL_BASE} hset-btn hset-btn-main border-transparent bg-ink text-canvas transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-40`;
 
-export const ROW_ACTION_DANGER = `${CTL_BASE} border-edge-soft bg-elevated text-ink-subtle transition-colors hover:border-danger/40 hover:text-danger disabled:cursor-default disabled:opacity-45`;
+export const ROW_ACTION_DANGER = `${CTL_BASE} hset-btn hset-btn-danger border-edge-soft bg-elevated text-ink-subtle transition-colors hover:border-danger/40 hover:text-danger disabled:cursor-default disabled:opacity-45`;
 
 export function Nested({ children }: { children: ReactNode }) {
   return <div className="harbor-settings-group ps-4">{children}</div>;
