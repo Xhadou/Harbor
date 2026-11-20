@@ -41,7 +41,7 @@ export function FeaturedBanner({ items }: { items: Meta[] }) {
     if (hasLoadedRef.current) return null;
     return (
       <section className="mac-zoom-fixed flex flex-col gap-5">
-        <h2 className="font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
+        <h2 className="mac-type-heading font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
           {t("Recommended")}
         </h2>
         <BannerSkeleton />
@@ -62,7 +62,7 @@ export function FeaturedBanner({ items }: { items: Meta[] }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <h2 className="font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
+      <h2 className="mac-type-heading font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
         {t("Recommended")}
       </h2>
 

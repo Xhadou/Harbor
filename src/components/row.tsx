@@ -828,7 +828,7 @@ export function Row({
             <div className="flex min-w-0 flex-col gap-1">
               <div className="flex min-w-0 items-center gap-2">
                 <h3
-                  className={`truncate font-medium tracking-tight ${titleClassName}`}
+                  className={`mac-type-heading truncate font-medium tracking-tight ${titleClassName}`}
                   style={{ fontSize: `${Math.round(17 * settings.rowTitleScale * titleScale)}px` }}
                 >
                   {title}
@@ -845,7 +845,7 @@ export function Row({
                 <button
                   type="button"
                   onClick={onViewAll}
-                  className={`group/va inline-flex shrink-0 items-center gap-1 text-[12.5px] font-medium transition-colors ${viewAllClassName}`}
+                  className={`mac-type-small group/va inline-flex shrink-0 items-center gap-1 text-[12.5px] font-medium transition-colors ${viewAllClassName}`}
                 >
                   {t(viewAllLabel)}
                   <ChevronRight

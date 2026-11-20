@@ -58,7 +58,9 @@ export function FeedShelf({
 function ShelfTitle({ shelf }: { shelf: ShelfMeta }) {
   return (
     <span className="flex flex-col gap-0.5">
-      <span className="text-[17px] font-medium tracking-tight text-ink">{shelf.title}</span>
+      <span className="mac-type-heading text-[17px] font-medium tracking-tight text-ink">
+        {shelf.title}
+      </span>
       {shelf.kicker && (
         <span className="text-[12px] font-medium text-ink-subtle">{shelf.kicker}</span>
       )}

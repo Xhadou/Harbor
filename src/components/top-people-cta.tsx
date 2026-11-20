@@ -34,7 +34,7 @@ export function TopPeopleCta({ title }: { title?: string }) {
         className="group block w-full text-start"
       >
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
+          <h2 className="mac-type-heading font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
             {title ?? t("Top People")}
           </h2>
           <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-muted transition-colors group-hover:text-ink motion-reduce:transition-none">

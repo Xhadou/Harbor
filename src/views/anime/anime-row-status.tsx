@@ -13,7 +13,9 @@ export function AnimeRowStatus({
   const t = useT();
   return (
     <section className="px-1 py-5" aria-label={title} aria-busy={loading}>
-      <h2 className="mb-3 font-display text-[26px] font-medium text-ink/85">{title}</h2>
+      <h2 className="mac-type-heading mb-3 font-display text-[26px] font-medium text-ink/85">
+        {title}
+      </h2>
       <div className="flex flex-wrap items-center gap-3 text-sm text-ink-muted">
         <span role="status" className="inline-flex items-center gap-2">
           {loading && (

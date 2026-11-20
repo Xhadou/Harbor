@@ -222,7 +222,7 @@ export function CriticsPick({ meta, title }: { meta: Meta; title?: string }) {
   return (
     <section className="flex flex-col gap-5">
       <div className="flex items-baseline justify-between">
-        <h2 className="font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
+        <h2 className="mac-type-heading font-display text-[28px] font-medium leading-tight tracking-tight text-ink">
           {title ?? t("Critics' Pick")}
         </h2>
         <span className="text-[12px] uppercase tracking-[0.22em] text-ink-subtle">

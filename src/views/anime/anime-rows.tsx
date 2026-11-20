@@ -149,7 +149,9 @@ export function RowSkeleton({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-baseline justify-between px-1">
-        <h2 className="font-display text-[26px] font-medium text-ink/85">{title}</h2>
+        <h2 className="mac-type-heading font-display text-[26px] font-medium text-ink/85">
+          {title}
+        </h2>
       </div>
       <div className="flex gap-5 overflow-hidden px-1">
         {Array.from({ length: landscape ? 8 : 14 }).map((_, i) => (

@@ -52,7 +52,7 @@ export function CWSection({ signedIn, isNuvio, items, watchedSet, onDismiss, loa
   if (loading && items.length === 0) {
     return (
       <div className="flex flex-col gap-4 animate-in fade-in duration-200">
-        <h3 className="text-[17px] font-medium tracking-tight text-ink">
+        <h3 className="mac-type-heading text-[17px] font-medium tracking-tight text-ink">
           {t("Continue Watching")}
         </h3>
         <div className="flex gap-4 overflow-hidden py-1">
@@ -99,7 +99,9 @@ export function CWSection({ signedIn, isNuvio, items, watchedSet, onDismiss, loa
   }
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-[17px] font-medium tracking-tight text-ink">{t("Continue Watching")}</h3>
+      <h3 className="mac-type-heading text-[17px] font-medium tracking-tight text-ink">
+        {t("Continue Watching")}
+      </h3>
       <div className="flex items-center justify-center rounded-2xl border border-dashed border-edge px-6 py-14 text-center">
         {signedIn ? (
           <p className="text-[15.5px] leading-relaxed text-ink-muted">

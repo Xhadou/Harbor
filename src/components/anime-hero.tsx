@@ -224,7 +224,7 @@ export function AnimeHero({
 
       <div className="mac-pad relative z-10 flex flex-col gap-5 px-12 pb-12" data-saved={savedTick}>
         <div className="flex items-end justify-between gap-4">
-          <h2 className="text-[20px] font-medium tracking-tight text-ink">
+          <h2 className="mac-type-heading text-[20px] font-medium tracking-tight text-ink">
             {t("Top Picks for You")}
           </h2>
           <div className="anime-hero-meta flex flex-col items-end gap-2.5">

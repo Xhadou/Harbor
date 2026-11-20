@@ -63,7 +63,7 @@ export function CategoryGrid({ onCategorySelect }: { onCategorySelect: (cat: str
     <section>
       <header className="mb-5 flex items-end justify-between gap-4 border-b border-edge-soft/70 pb-3">
         <div>
-          <h3 className="font-display text-[26px] font-medium tracking-tight text-ink">
+          <h3 className="mac-type-heading font-display text-[26px] font-medium tracking-tight text-ink">
             {t("Browse by category")}
           </h3>
           <p className="mt-1.5 text-[14px] leading-relaxed text-ink-muted">

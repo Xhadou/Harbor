@@ -190,7 +190,9 @@ function HubGrid({
 
         <section data-context-page-background className="flex flex-col gap-5">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-[16px] font-semibold text-ink">{t("My collections")}</h2>
+            <h2 className="mac-type-heading text-[16px] font-semibold text-ink">
+              {t("My collections")}
+            </h2>
             {collections.length > 0 && (
               <span className="text-[12px] tabular-nums text-ink-muted">
                 {t("{n} / {max}", { n: collections.length, max: MAX_COLLECTIONS })}
@@ -220,7 +222,9 @@ function HubGrid({
 
         <section data-context-page-background className="flex flex-col gap-5">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-[16px] font-semibold text-ink">{t("From the community")}</h2>
+            <h2 className="mac-type-heading text-[16px] font-semibold text-ink">
+              {t("From the community")}
+            </h2>
             <button
               type="button"
               onClick={() => void refresh()}
