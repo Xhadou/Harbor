@@ -143,7 +143,7 @@ export function CollectionsView() {
             </button>
           )}
           <div className="flex flex-col">
-            <h1 className="font-display text-[44px] font-medium leading-[1.02] tracking-tight text-ink">
+            <h1 className="mac-page-title font-display text-[44px] font-medium leading-[1.02] tracking-tight text-ink">
               {t("Collections")}
             </h1>
             <p className="mt-1 text-[13.5px] text-ink-muted">

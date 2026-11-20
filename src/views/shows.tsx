@@ -37,6 +37,7 @@ import {
 import { useCwAdvance } from "./home/hooks/use-cw-advance";
 import { useScrollMemory } from "@/lib/view";
 import { buildShowHero, bucketCopy } from "./shows/hero-curation";
+import { isMacDesktop } from "@/lib/platform";
 import { showSpecs } from "./shows/show-specs";
 import { useCollectionRowsForPage } from "@/lib/page-collection-rows";
 
@@ -382,13 +383,15 @@ function PageMast() {
   const copy = bucketCopy();
   return (
     <header data-tauri-drag-region className="flex flex-col gap-2">
-      <span className="text-[11px] font-bold uppercase tracking-[0.42em] text-ink-subtle">
+      <span className="mac-page-eyebrow text-[11px] font-bold uppercase tracking-[0.42em] text-ink-subtle">
         {t(copy.kicker)}
       </span>
-      <h1 className="font-display text-[44px] font-medium leading-[1.05] tracking-tight text-ink">
-        {t(copy.title)}
+      <h1 className="mac-page-title font-display text-[44px] font-medium leading-[1.05] tracking-tight text-ink">
+        {isMacDesktop() ? t("Shows") : t(copy.title)}
       </h1>
-      <p className="max-w-2xl text-[15px] leading-relaxed text-ink-muted">{t(copy.subtitle)}</p>
+      <p className="mac-page-sub max-w-2xl text-[15px] leading-relaxed text-ink-muted">
+        {t(copy.subtitle)}
+      </p>
     </header>
   );
 }

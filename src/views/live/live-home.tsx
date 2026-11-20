@@ -100,7 +100,7 @@ export function LiveHome({
     <div className="flex flex-col gap-8 pb-12">
       <div className="flex flex-col gap-5">
         <div className="flex items-baseline gap-2.5 ps-[9px]">
-          <h1 className="font-display text-[30px] font-medium leading-none tracking-tight text-ink">
+          <h1 className="mac-page-title font-display text-[30px] font-medium leading-none tracking-tight text-ink">
             {t("Your TV")}
           </h1>
           <span className="text-[16px] text-ink-subtle">

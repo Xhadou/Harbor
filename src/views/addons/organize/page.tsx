@@ -278,7 +278,7 @@ export function OrganizeAddonsPage({
             <ArrowLeft size={18} strokeWidth={2.2} className="dir-icon" />
           </button>
           <div className="flex min-w-0 flex-1 flex-col">
-            <h1 className="truncate font-display text-[26px] font-medium tracking-tight text-ink sm:text-[30px]">
+            <h1 className="mac-page-title truncate font-display text-[26px] font-medium tracking-tight text-ink sm:text-[30px]">
               {t("Organize addons")}
             </h1>
             <p className="hidden truncate text-[13px] text-ink-muted sm:block">

@@ -37,10 +37,10 @@ export function GroupsView() {
         <header className="flex flex-col gap-6">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex flex-col gap-1.5">
-              <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
+              <span className="mac-page-eyebrow flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
                 <UsersRound size={14} /> {t("Community")}
               </span>
-              <h1 className="font-display text-[38px] font-medium leading-[1.05] tracking-tight text-ink sm:text-[46px]">
+              <h1 className="mac-page-title font-display text-[38px] font-medium leading-[1.05] tracking-tight text-ink sm:text-[46px]">
                 {t("Groups")}
               </h1>
               <p className="max-w-[46ch] text-[13.5px] leading-relaxed text-ink-muted">

@@ -315,7 +315,7 @@ export function FolderHubView({
               <ArrowLeft size={18} strokeWidth={2.2} />
             </button>
           )}
-          <h1 className="line-clamp-1 font-display text-[32px] font-medium leading-none tracking-tight text-ink drop-shadow-sm">
+          <h1 className="mac-page-title line-clamp-1 font-display text-[32px] font-medium leading-none tracking-tight text-ink drop-shadow-sm">
             {folder.title}
           </h1>
           <div className="flex-1" />

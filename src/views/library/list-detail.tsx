@@ -215,7 +215,7 @@ export function ListDetail({
 
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">
-          <h1 className="font-display text-[34px] font-medium leading-[1.05] text-ink">
+          <h1 className="mac-type-heading font-display text-[34px] font-medium leading-[1.05] text-ink">
             {list.name}
           </h1>
           {list.description && (

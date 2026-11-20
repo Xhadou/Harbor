@@ -148,7 +148,7 @@ export function GridView({ grid }: { grid: GridSpec }) {
                 <ArrowLeft size={18} strokeWidth={2.2} />
               </button>
             )}
-            <h1 className="font-display text-[30px] font-medium leading-none tracking-tight text-ink">
+            <h1 className="mac-page-title font-display text-[30px] font-medium leading-none tracking-tight text-ink">
               {grid.title}
             </h1>
             <span className="text-[14px] text-ink-subtle">

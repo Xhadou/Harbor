@@ -53,10 +53,10 @@ export function FeedView({ onOpenProfile }: { onOpenProfile?: (handle: string) =
 
       <div className="relative mx-auto w-full max-w-[820px] px-6 pb-24 pt-28 sm:px-10">
         <header className="mb-9 flex flex-col gap-1.5">
-          <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
+          <span className="mac-page-eyebrow flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
             <Users size={14} /> {t("Friends")}
           </span>
-          <h1 className="font-display text-[34px] font-medium leading-[1.05] tracking-tight text-ink sm:text-[42px]">
+          <h1 className="mac-page-title font-display text-[34px] font-medium leading-[1.05] tracking-tight text-ink sm:text-[42px]">
             {t("Activity")}
           </h1>
           {f.phase === "ready" && f.friendCount > 0 && (

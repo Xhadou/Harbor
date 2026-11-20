@@ -604,7 +604,7 @@ function CommunityDetail({
           <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
             {t("Collection")}
           </span>
-          <h1 className="font-display text-[clamp(2.6rem,6vw,4.25rem)] font-medium leading-[1.02] tracking-tight text-ink">
+          <h1 className="mac-page-title font-display text-[clamp(2.6rem,6vw,4.25rem)] font-medium leading-[1.02] tracking-tight text-ink">
             {collection.name}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

@@ -92,7 +92,7 @@ export function WrappedView({ active }: { active: boolean }) {
               {t("My library")}
             </button>
           )}
-          <h1 className="font-display text-[40px] font-medium leading-[1.05] tracking-tight text-ink">
+          <h1 className="mac-page-title font-display text-[40px] font-medium leading-[1.05] tracking-tight text-ink">
             {t("Stats")}
           </h1>
         </div>

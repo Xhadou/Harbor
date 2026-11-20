@@ -80,7 +80,7 @@ export function CollectionView({ collectionId }: { collectionId: number }) {
               <p className="text-[12px] font-semibold uppercase tracking-[0.22em] text-ink-subtle">
                 {t("Collection")}
               </p>
-              <h1 className="mt-2 font-display text-[clamp(34px,4.4vw,56px)] font-medium leading-[1.03] tracking-tight text-ink">
+              <h1 className="mac-page-title mt-2 font-display text-[clamp(34px,4.4vw,56px)] font-medium leading-[1.03] tracking-tight text-ink">
                 {data?.name ?? t("Collection")}
               </h1>
               {data && data.parts.length > 0 && (
