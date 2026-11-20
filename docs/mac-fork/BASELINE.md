@@ -699,3 +699,75 @@ in front. Zoom was stepped by dispatching ⌘= / ⌘- key events and stepped bac
 afterwards; that goes through the owner's saved setting, so check it is
 restored. A second browser (the preview) also loads such a module; guard it
 with `"__TAURI_INTERNALS__" in window`.
+
+## Scrollbars and motion (2026-11-18)
+
+Not committed and not yet seen: the screen was locked for the whole of this
+work, so everything below was measured inside the running dev window, never
+looked at.
+
+- **Scrollbars.** Any `::-webkit-scrollbar` rule makes WebKit draw its own bar,
+  always visible and 8px out of the page. On macOS every element now gets
+  `scrollbar-width: thin` from the base layer with no specificity, which brings
+  back the system bar that floats and shows only while scrolling, and leaves
+  every `scrollbar-width: none` in the app working. Home's scroller: 7px taken
+  before, 0 after.
+- **Page changes.** `mac-view-in` (260ms fade with an 8px rise) on
+  `.harbor-layer-active > *`. Confirmed running on Movies, Shows, Discover,
+  Library, Anime, Settings, Home, a title page and Back. None of those pages had
+  fixed-position content, which a transform would misplace while it runs.
+- **Settings tabs.** `useMacTabEnter` replays a 220ms rise when the tab changes;
+  page changes already used `harbor-cascade`.
+- **Scrolling.** Stepping Home, Movies and Shows at 1800px/s held 60fps with at
+  most one frame over 50ms per pass once rows had loaded; Home's first pass had
+  six (55–77ms) as rows mounted. Harbor's own "smooth scrolling" option is off
+  and nothing else takes over the trackpad. What the owner meant by "smooth
+  scrolling is not there" is not established.
+- Screen lock can be read before trying a capture:
+  `ioreg -n Root -d1 -a | grep -A1 CGSSessionScreenIsLocked`.
+
+## One page layout, a shorter sidebar, defects and a release build (2026-11-20)
+
+Asked for after a walk of 16 pages; the owner chose compact titles, hiding
+Music, Games, Manga and eBook, and "personal now, GitHub later".
+
+- **Page template** (`mac-page-*` hooks, "Page template on macOS" in
+  `src/index.css`): Library, Collections, Calendar, Downloads, Catalogs, Addons
+  and the Live TV start page share one title (26px/700, level with Settings),
+  one left edge and 30px header controls. Seen in the dev window.
+- **Sidebar trim**: `coerceMacSettings` hides `MAC_NAV_TRIM` once
+  (`_macNavTrimV1` travels with the saved settings). Settings › Get started ›
+  Sidebar (`mac-sidebar-section.tsx`) turns each back on; the native sidebar has
+  no context menu, so that section is the only way. Trim seen; the section not.
+- **Defects**, coded but not looked at unless marked:
+  - hero trailers skip a 7s lead-in (ratings card) and are scaled to 135% to
+    lose baked-in letterbox bars;
+  - Discover's side panel no longer pads its grid with one image four times;
+  - Library's own tab has its own empty-state text;
+  - native sidebar: a section and a row shared the id `library`, so selecting
+    My Library highlighted the heading too; rows now fade above the footer
+    (Swift, compiles, not seen running);
+  - Calendar's type badge shows only when the day is 200px wide (container
+    query), so titles are no longer squeezed to two letters;
+  - Addons' featured card has a wider text scrim; Anime's right-hand details
+    clear the next arrow and the "Tune anime" tab sits inside the window;
+  - a fade under the titlebar (`.mac-stage::before`) for content scrolling up;
+  - a page's Customize button rides on its hero's corner on Movies.
+    Not done: the carousel arrow that sits on the last Addons card, and the Back
+    button that Downloads shows and Collections does not.
+- **Release build**: `sh scripts/mac-build.sh`. Three things blocked it:
+  the extension layer's jars were stale (`sh android-extension-compat/tools/deps.sh`),
+  `pkgconf` was not installed, and the libmpv staging refuses Homebrew's mpv
+  because it targets this macOS only (lifted for local builds with
+  `HARBOR_MACOS_MINIMUM_CEILING`). The bundler also stops on read-only files
+  (Homebrew-linked ffmpeg, the Java runtime); the script makes writable copies.
+  Staging rewrites `src-tauri/binaries/mpv-<target>`, which breaks
+  `pnpm tauri dev` and `tests/subtitle-native-mpv.test.ts`; the script relinks
+  it to the installed mpv when it finishes. Built, signed with the owner's
+  Apple Development certificate, verified with `codesign --verify --deep
+  --strict`, installed as `/Applications/Harbor Mac.app` (the upstream
+  `Harbor.app` is untouched) and launched; the screen locked before its window
+  could be captured, so it has not been looked at. The long-running
+  `pnpm tauri dev` died during this work and was not restarted.
+- Captures of a window on another desktop come back with an empty page (only
+  the native sidebar is drawn). Check `kCGWindowIsOnscreen` before trusting one.
