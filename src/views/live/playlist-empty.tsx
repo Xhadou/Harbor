@@ -2,6 +2,7 @@ import { MediaStartPage } from "@/components/media-start-page";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, CalendarRange, Globe2, Tv } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import {
   EMPTY_FORM,
   type PlaylistFormValue,
@@ -75,6 +76,7 @@ function Form({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const firstFieldRef = useRef<HTMLInputElement>(null);
+  const nativeBack = useNativeBack(onBack);
 
   useEffect(() => {
     firstFieldRef.current?.focus();
@@ -120,17 +122,19 @@ function Form({
   return (
     <div className="media-start-page">
       <div className="media-start-inner flex flex-col gap-8">
-        <button
-          onClick={onBack}
-          className="mac-btn mac-btn-quiet mac-btn-edge-start group inline-flex h-11 items-center gap-2 self-start rounded-lg border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink-muted transition-all duration-150 ease-out hover:border-edge hover:bg-elevated hover:text-ink active:scale-[0.97]"
-        >
-          <ArrowLeft
-            size={16}
-            strokeWidth={2.4}
-            className="dir-icon transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5"
-          />
-          {t("Back")}
-        </button>
+        {!nativeBack && (
+          <button
+            onClick={onBack}
+            className="mac-btn mac-btn-quiet mac-btn-edge-start group inline-flex h-11 items-center gap-2 self-start rounded-lg border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink-muted transition-all duration-150 ease-out hover:border-edge hover:bg-elevated hover:text-ink active:scale-[0.97]"
+          >
+            <ArrowLeft
+              size={16}
+              strokeWidth={2.4}
+              className="dir-icon transition-transform group-hover:-translate-x-0.5 rtl:group-hover:translate-x-0.5"
+            />
+            {t("Back")}
+          </button>
+        )}
         <header className="flex flex-col gap-3">
           <h2 className="mac-type-title font-display text-[32px] font-semibold leading-tight tracking-tight text-ink">
             {t("Connect your provider.")}

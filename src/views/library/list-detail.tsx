@@ -8,6 +8,7 @@ import { useT } from "@/lib/i18n";
 import { hasAnyMangaSource } from "@/lib/manga/sources";
 import { resolveMangaOpen } from "@/lib/manga/open-resolve";
 import { useView } from "@/lib/view";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import { PickCard } from "@/components/pick-card";
 import { AddTitleSearch } from "./list-detail/add-title-search";
 import { ListSettingsMenu } from "./list-detail/list-settings-menu";
@@ -39,6 +40,7 @@ export function ListDetail({
 }) {
   const t = useT();
   const list = store.useList(listId);
+  const nativeBack = useNativeBack(onBack);
   const { openManga } = useView();
   const mangaBusy = useRef<Set<string>>(new Set());
   const [missingId, setMissingId] = useState<string | null>(null);
@@ -200,14 +202,16 @@ export function ListDetail({
 
   return (
     <section className="flex flex-col gap-6">
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-1.5 self-start text-[13px] font-semibold text-ink-muted transition-colors hover:text-ink"
-      >
-        <ArrowLeft size={16} strokeWidth={2.2} />
-        {t("Back to lists")}
-      </button>
+      {!nativeBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 self-start text-[13px] font-semibold text-ink-muted transition-colors hover:text-ink"
+        >
+          <ArrowLeft size={16} strokeWidth={2.2} />
+          {t("Back to lists")}
+        </button>
+      )}
 
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1.5">

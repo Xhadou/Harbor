@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import { useTrakt } from "@/lib/trakt/provider";
 import { aggregateWrapped } from "@/lib/wrapped/aggregate";
 import { collectWatchEvents } from "@/lib/wrapped/collect";
@@ -72,6 +73,8 @@ export function WrappedView({ active }: { active: boolean }) {
   }, [active, traktConnected]);
 
   const back = () => (canGoBack ? goBack() : setView("library"));
+  // Stats is opened as a page of its own, so there is no page under it to return to.
+  const nativeBack = useNativeBack(() => setView("library"), true, active);
   const openTitle = (tt: TopTitle) =>
     openMeta({ id: tt.id, type: tt.type, name: tt.title, poster: stats?.posters[tt.id] });
 
@@ -79,14 +82,16 @@ export function WrappedView({ active }: { active: boolean }) {
     <main className="h-full w-full overflow-y-auto bg-canvas px-5 pb-28 pt-24 sm:px-8 lg:px-12 lg:pt-28">
       <div className="mx-auto flex max-w-3xl flex-col gap-6">
         <div className="flex flex-col gap-1.5">
-          <button
-            type="button"
-            onClick={back}
-            className="mb-0.5 flex w-fit items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle transition-colors hover:text-ink"
-          >
-            <ArrowLeft size={14} strokeWidth={2.4} />
-            {t("My library")}
-          </button>
+          {!nativeBack && (
+            <button
+              type="button"
+              onClick={back}
+              className="mb-0.5 flex w-fit items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle transition-colors hover:text-ink"
+            >
+              <ArrowLeft size={14} strokeWidth={2.4} />
+              {t("My library")}
+            </button>
+          )}
           <h1 className="font-display text-[40px] font-medium leading-[1.05] tracking-tight text-ink">
             {t("Stats")}
           </h1>

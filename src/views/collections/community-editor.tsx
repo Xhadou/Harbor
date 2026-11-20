@@ -56,6 +56,7 @@ import {
   uploadCollectionCover,
 } from "@/lib/social/collections-sync";
 import { alertDialog } from "@/lib/dialog";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import { authToken } from "@/lib/theme-auth";
 
 type Hit = { id: string; type: CollectionItemType; name: string; poster?: string };
@@ -86,6 +87,10 @@ export function CommunityCollectionEditor({
   const { settings } = useSettings();
   const { open: openContextMenu } = useContextMenu();
   const collection = useCollection(id);
+  const nativeBack = useNativeBack(() => {
+    syncSoon();
+    onBack();
+  });
   const scrollRef = useRef<HTMLElement>(null);
 
   const [name, setName] = useState(collection?.name ?? "");
@@ -390,15 +395,19 @@ export function CommunityCollectionEditor({
       className="flex-1 overflow-y-auto px-5 pt-24 pb-24 sm:px-8 lg:px-12 lg:pt-28"
     >
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-9">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={back}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink transition-colors hover:bg-raised"
-          >
-            <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
-            {t("Collections")}
-          </button>
+        <div
+          className={`flex flex-wrap items-center gap-3 ${nativeBack ? "justify-end" : "justify-between"}`}
+        >
+          {!nativeBack && (
+            <button
+              type="button"
+              onClick={back}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink transition-colors hover:bg-raised"
+            >
+              <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
+              {t("Collections")}
+            </button>
+          )}
           <button
             type="button"
             onClick={viewPage}

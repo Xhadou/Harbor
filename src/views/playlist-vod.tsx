@@ -12,6 +12,7 @@ import { fetchXtreamSeriesEpisodes } from "@/lib/iptv/xtream-vod";
 import { useSessionState } from "@/lib/session-state";
 import { useSettings } from "@/lib/settings";
 import { useScrollMemory, useView } from "@/lib/view";
+import { NativeBackScope } from "@/chrome/mac/native-back";
 import { SourcePicker } from "./live/source-picker";
 import { PlaylistEmpty } from "./live/playlist-empty";
 import { useIptvPlaylist } from "./live/hooks/use-iptv-playlist";
@@ -200,7 +201,9 @@ export function PlaylistVodView({ active }: { active: boolean }) {
   if (sources.length === 0) {
     return (
       <main data-rail-flush className="media-start-scroll pt-24">
-        <PlaylistEmpty onSave={addPlaylist} />
+        <NativeBackScope front={active}>
+          <PlaylistEmpty onSave={addPlaylist} />
+        </NativeBackScope>
       </main>
     );
   }

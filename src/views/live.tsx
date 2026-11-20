@@ -7,6 +7,7 @@ import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import { usePlaylists } from "@/lib/iptv/playlists-store";
 import { useScrollMemory, useView } from "@/lib/view";
+import { NativeBackScope } from "@/chrome/mac/native-back";
 import { useLocalBackCapability } from "@/lib/use-local-back-capability";
 import { FAVORITES_GROUP_KEY, useFavorites } from "@/lib/iptv/favorites";
 import { clearPlaylistCache, getCachedPlaylist } from "@/lib/iptv/store";
@@ -271,7 +272,9 @@ export function LiveView({ active }: { active: boolean }) {
   if (sources.length === 0) {
     return (
       <main data-rail-flush data-live-page className="media-start-scroll mac-page-top pt-24">
-        <PlaylistEmpty onSave={(entry) => addPlaylist(entry)} />
+        <NativeBackScope front={active}>
+          <PlaylistEmpty onSave={(entry) => addPlaylist(entry)} />
+        </NativeBackScope>
       </main>
     );
   }

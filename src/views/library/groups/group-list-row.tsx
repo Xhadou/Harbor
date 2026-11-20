@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PickCard } from "@/components/pick-card";
 import { Row } from "@/components/row";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import type { GroupList } from "@/lib/library-groups";
@@ -25,6 +26,7 @@ export function GroupListRow({
   const t = useT();
   const { settings } = useSettings();
   const { session } = useTrakt();
+  const nativeBack = useNativeBack(onBack, expanded);
   const [page, setPage] = useState<MdblistPage>({ items: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,7 +78,7 @@ export function GroupListRow({
   };
   return (
     <section className="flex flex-col gap-3">
-      {expanded && (
+      {expanded && !nativeBack && (
         <button type="button" className={`${groupButtonClass} self-start`} onClick={onBack}>
           {t("Back to group")}
         </button>

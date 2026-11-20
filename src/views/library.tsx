@@ -31,6 +31,7 @@ import { useSettings } from "@/lib/settings";
 import { useContentDrag } from "@/lib/window-drag";
 import { useT } from "@/lib/i18n";
 import { isMacDesktop } from "@/lib/platform";
+import { NativeBackScope } from "@/chrome/mac/native-back";
 import { watchlistHas } from "@/lib/watchlist";
 import { useLetterboxd } from "@/lib/stremboxd/provider";
 import { AnilistTab } from "./library/anilist-tab";
@@ -206,8 +207,10 @@ export function LibraryView({ active }: { active: boolean }) {
           {tab === "local" && <LocalTab scrollRef={scrollRef} />}
           {tab === "media-servers" && <MediaServersTab scrollRef={scrollRef} />}
           {tab === "torbox" && <TorboxTab />}
-          {tab === "lists" && <MyListsTab />}
-          {tab === "groups" && <MyGroupsTab />}
+          <NativeBackScope front={active}>
+            {tab === "lists" && <MyListsTab />}
+            {tab === "groups" && <MyGroupsTab />}
+          </NativeBackScope>
           {tab === "favorites" && <FavoritesTab />}
           {tab === "trakt" && traktConnected && <TraktTab />}
           {tab === "anilist" && anilistConnected && <AnilistTab />}

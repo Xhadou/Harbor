@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { UiIcon } from "@/components/ui-icon";
 import { useT } from "@/lib/i18n";
 import { useScrollMemory, useView } from "@/lib/view";
+import { NativeBackScope, useNativeBack } from "@/chrome/mac/native-back";
 import { BackToTop } from "@/components/back-to-top";
 import { posterPlate } from "@/components/poster";
 import { ResultPoster } from "@/components/search/result-poster";
@@ -75,23 +76,25 @@ export function CommunityCollectionsView({ active }: { active: boolean }) {
         onEdit={(id) => open({ kind: "editor", id })}
         onOpenCommunity={(collection) => open({ kind: "community", collection })}
       />
-      {screen.kind === "editor" && (
-        <CommunityCollectionEditor
-          id={screen.id}
-          onBack={back}
-          onViewPage={(id) => setScreen({ kind: "page", id })}
-        />
-      )}
-      {screen.kind === "page" && (
-        <CommunityCollectionPage
-          id={screen.id}
-          onBack={back}
-          onEdit={(id) => setScreen({ kind: "editor", id })}
-        />
-      )}
-      {screen.kind === "community" && (
-        <CommunityDetail collection={screen.collection} onBack={back} />
-      )}
+      <NativeBackScope front={active}>
+        {screen.kind === "editor" && (
+          <CommunityCollectionEditor
+            id={screen.id}
+            onBack={back}
+            onViewPage={(id) => setScreen({ kind: "page", id })}
+          />
+        )}
+        {screen.kind === "page" && (
+          <CommunityCollectionPage
+            id={screen.id}
+            onBack={back}
+            onEdit={(id) => setScreen({ kind: "editor", id })}
+          />
+        )}
+        {screen.kind === "community" && (
+          <CommunityDetail collection={screen.collection} onBack={back} />
+        )}
+      </NativeBackScope>
     </>
   );
 }
@@ -545,6 +548,7 @@ function CommunityDetail({
 }) {
   const t = useT();
   const { openMeta, openManga } = useView();
+  const nativeBack = useNativeBack(onBack);
   const scrollRef = useRef<HTMLElement>(null);
   const items = collection.items;
   const seed = collection.id + collection.name;
@@ -580,15 +584,19 @@ function CommunityDetail({
       </div>
 
       <div className="relative mx-auto flex w-full max-w-[1400px] flex-col gap-9 px-5 pb-24 pt-24 sm:px-8 lg:px-12 lg:pt-28">
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink backdrop-blur-md transition-colors hover:bg-raised"
-          >
-            <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
-            {t("Collections")}
-          </button>
+        <div
+          className={`flex items-center gap-3 ${nativeBack ? "justify-end" : "justify-between"}`}
+        >
+          {!nativeBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink backdrop-blur-md transition-colors hover:bg-raised"
+            >
+              <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
+              {t("Collections")}
+            </button>
+          )}
           <SaveCollectionButton collection={collection} />
         </div>
 

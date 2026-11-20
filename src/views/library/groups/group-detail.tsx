@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { HarborMark } from "@/components/icons/harbor-mark";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import { useT } from "@/lib/i18n";
 import { randomUuid } from "@/lib/uuid";
 import { moveGroupItem, parseGroupListUrl, type LibraryGroup } from "@/lib/library-groups";
@@ -27,6 +28,8 @@ export function GroupDetail({
   const [deleting, setDeleting] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
+  // The editor has its own Cancel; Back must not drop what is being typed.
+  const nativeBack = useNativeBack(onBack, !editing);
   if (editing)
     return (
       <GroupEditor
@@ -40,9 +43,11 @@ export function GroupDetail({
     );
   return (
     <section className="flex flex-col gap-6">
-      <button type="button" className={`${groupButtonClass} self-start`} onClick={onBack}>
-        {t("Back to My Groups")}
-      </button>
+      {!nativeBack && (
+        <button type="button" className={`${groupButtonClass} self-start`} onClick={onBack}>
+          {t("Back to My Groups")}
+        </button>
+      )}
       <header className="flex flex-wrap items-center gap-4">
         {group.image ? (
           <img src={group.image} alt="" className="h-20 w-32 rounded-xl bg-elevated object-cover" />

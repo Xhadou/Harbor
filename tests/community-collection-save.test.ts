@@ -106,6 +106,11 @@ function loadHub() {
       useScrollMemory: empty,
       useView: () => ({ openMeta: unexpected, openManga: unexpected }),
     },
+    // Off macOS: the detail page keeps its own Back.
+    "@/chrome/mac/native-back": {
+      NativeBackScope: ({ children }) => children,
+      useNativeBack: () => false,
+    },
     "@/components/back-to-top": { BackToTop: empty },
     "@/components/poster": { posterPlate: () => "transparent" },
     "@/components/search/result-poster": { ResultPoster: empty },

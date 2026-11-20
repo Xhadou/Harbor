@@ -5,6 +5,7 @@ import { posterPlate } from "@/components/poster";
 import { ResultPoster } from "@/components/search/result-poster";
 import { BackToTop } from "@/components/back-to-top";
 import { useView } from "@/lib/view";
+import { useNativeBack } from "@/chrome/mac/native-back";
 import { MangaMatchPicker } from "./manga-match-picker";
 import {
   getCollection,
@@ -49,6 +50,7 @@ export function CommunityCollectionPage({
 }) {
   const t = useT();
   const collection = useCollection(id);
+  const nativeBack = useNativeBack(onBack);
   const { openMeta, openManga } = useView();
   const self = useSelfAvatar();
   const savedCollection = !!(collection?.sourceHandle || collection?.sourceId);
@@ -209,15 +211,19 @@ export function CommunityCollectionPage({
       </div>
 
       <div className="relative mx-auto flex w-full max-w-[1400px] flex-col gap-9 px-5 pb-24 pt-24 sm:px-8 lg:px-12 lg:pt-28">
-        <div className="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink backdrop-blur-md transition-colors hover:bg-raised"
-          >
-            <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
-            {t("Collections")}
-          </button>
+        <div
+          className={`flex items-center gap-3 ${nativeBack ? "justify-end" : "justify-between"}`}
+        >
+          {!nativeBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink backdrop-blur-md transition-colors hover:bg-raised"
+            >
+              <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
+              {t("Collections")}
+            </button>
+          )}
           <div className="flex items-center gap-2">
             <button
               ref={pageBtnRef}
