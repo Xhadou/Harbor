@@ -365,16 +365,16 @@ export const Hero = memo(function Hero({
           title={ended ? t("Replay") : muted ? t("Unmute") : t("Mute")}
           className={
             mac
-              ? "absolute bottom-5 end-6 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/80 ring-1 ring-white/10 backdrop-blur-md transition-colors duration-150 hover:bg-black/50 hover:text-white"
+              ? "absolute bottom-5 end-6 z-30 flex h-9 w-9 items-center justify-center text-white/70 drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] transition-colors duration-150 hover:text-white"
               : `absolute end-6 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur-md transition-all duration-200 hover:bg-black/75 active:scale-90 ${full ? "top-28 lg:top-32" : "top-6"}`
           }
         >
           {ended ? (
-            <RotateCcw size={mac ? 15 : 18} />
+            <RotateCcw size={mac ? 18 : 18} />
           ) : muted ? (
-            <VolumeX size={mac ? 15 : 18} />
+            <VolumeX size={mac ? 18 : 18} />
           ) : (
-            <Volume2 size={mac ? 15 : 18} />
+            <Volume2 size={mac ? 18 : 18} />
           )}
         </button>
       )}
