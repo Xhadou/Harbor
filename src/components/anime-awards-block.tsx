@@ -21,7 +21,7 @@ export function AnimeAwardsBlock({ name, year }: { name: string; year?: number }
   return (
     <div id="anime-awards-section" className="scroll-mt-24 border-t border-edge-soft pt-14">
       <div className="mb-10 flex items-baseline justify-between gap-4">
-        <h3 className="text-[24px] font-medium tracking-tight text-ink">
+        <h3 className="mac-type-heading text-[24px] font-medium tracking-tight text-ink">
           {t("Anime Awards & Recognition")}
         </h3>
         <span className="text-[12px] font-semibold uppercase tracking-[0.16em] text-ink-subtle">

@@ -79,7 +79,7 @@ export function AwardsBlock({
 
   return (
     <div id="awards-section" className="scroll-mt-24 border-t border-edge-soft pt-14">
-      <h3 className="mb-10 text-[24px] font-medium tracking-tight text-ink">
+      <h3 className="mac-type-heading mb-10 text-[24px] font-medium tracking-tight text-ink">
         {t("Awards & Recognition")}
       </h3>
       <div className="flex flex-col gap-14">

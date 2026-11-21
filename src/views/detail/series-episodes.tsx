@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { isMacDesktop } from "@/lib/platform";
+import { MacEpisodesMore } from "./mac-episodes-more";
 import { Eye, EyeOff } from "lucide-react";
 import { EpisodeJumper } from "@/components/episode-jumper";
 import { providerForModel } from "@/lib/ai-models";
@@ -628,10 +629,12 @@ export function SeriesEpisodes({
     allowProxy: false,
   });
 
+  const mac = isMacDesktop();
+
   return (
     <div data-episodes className="flex scroll-mt-24 flex-col gap-6">
       {/* macOS chooses the season in one place, the menu beside the heading. */}
-      {showExplorer && !isMacDesktop() && (
+      {showExplorer && !mac && (
         <SeasonExplorer
           key={`${meta.id}:${source}:${settings.tvdbSeasonType}`}
           data={explorer}
@@ -646,11 +649,13 @@ export function SeriesEpisodes({
         </h3>
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 xl:gap-2.5">
           <EpisodeDownloadsMenu meta={meta} episodes={downloadEpisodes} />
-          <RandomEpisodeButton meta={meta} seasons={seasons} />
-          <EpisodeLayoutToggle
-            value={settings.episodeLayout}
-            onChange={(v) => update({ episodeLayout: v })}
-          />
+          {!mac && <RandomEpisodeButton meta={meta} seasons={seasons} />}
+          {!mac && (
+            <EpisodeLayoutToggle
+              value={settings.episodeLayout}
+              onChange={(v) => update({ episodeLayout: v })}
+            />
+          )}
           {settings.episodeHiding && hiddenSet.size > 0 && (
             <button
               type="button"
@@ -671,7 +676,7 @@ export function SeriesEpisodes({
               {hiddenSet.size}
             </button>
           )}
-          {!altActive && (
+          {!altActive && !mac && (
             <EpisodeGridControls
               sort={settings.episodeSort}
               onSort={(s) => update({ episodeSort: s })}
@@ -712,6 +717,20 @@ export function SeriesEpisodes({
                 onModeChange={arcAvailable ? setMode : undefined}
               />
             )
+          )}
+          {/* macOS keeps search and the season on the bar; layout, order,
+              marking the season and a random episode are in one menu. */}
+          {mac && (
+            <MacEpisodesMore
+              meta={meta}
+              seasons={seasons}
+              layout={settings.episodeLayout}
+              onLayout={(v) => update({ episodeLayout: v })}
+              sort={altActive ? undefined : settings.episodeSort}
+              onSort={altActive ? undefined : (s) => update({ episodeSort: s })}
+              allWatched={altActive ? undefined : allWatched}
+              onMarkSeason={altActive ? undefined : markSeason}
+            />
           )}
         </div>
       </div>

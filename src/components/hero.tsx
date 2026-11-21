@@ -363,7 +363,9 @@ export const Hero = memo(function Hero({
         data-hero-shade="bottom"
         className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-canvas via-canvas/70 via-50% to-transparent"
       />
-      <MetaAwardsCorner meta={meta} imdbId={resolvedImdb} />
+      {/* The Mac hero says what a title won on its page, not in a corner that
+          the page's own controls sit over. */}
+      {!mac && <MetaAwardsCorner meta={meta} imdbId={resolvedImdb} />}
 
       <div
         className={`harbor-hero-content relative flex h-full flex-col p-14 ${bottomAlign ? "justify-end pb-24" : "justify-center"} ${full ? "pt-28 lg:pt-32" : ""}`}
