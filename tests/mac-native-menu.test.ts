@@ -22,6 +22,7 @@ test("others", () => {
   assert.deepEqual(menuCommand("toggle-sidebar"), { kind: "toggle-sidebar" });
   assert.deepEqual(menuCommand("find"), { kind: "find" });
   assert.deepEqual(menuCommand("reload"), { kind: "reload" });
+  assert.deepEqual(menuCommand("watch-together"), { kind: "watch-together" });
   assert.equal(menuCommand("nope"), null);
   assert.equal(menuCommand("go-nowhere"), null);
 });

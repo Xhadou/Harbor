@@ -23,6 +23,7 @@ import { useT } from "@/lib/i18n";
 import { useActiveKid } from "@/lib/profiles";
 import { useSearchActions } from "@/lib/search-context";
 import { isMacDesktop } from "@/lib/platform";
+import { pushBackHandler } from "@/lib/back-intercept";
 import { searchHiddenFor } from "@/chrome/mac/toolbar-payload";
 import { useSettings } from "@/lib/settings";
 import { usePlaylists } from "@/lib/iptv/playlists-store";
@@ -304,6 +305,27 @@ export function TogetherButton({
     if (modalOwner === "auto") openModal(modalId);
   }, [modalId, modalOwner, openModal]);
 
+  // Keyboard navigation takes Escape and Back before this panel's own listener
+  // hears them, so the panel answers through the Back handlers instead.
+  useEffect(() => {
+    if (!ownsModal) return;
+    return pushBackHandler(() => {
+      closeModal();
+      return true;
+    });
+  }, [ownsModal, closeModal]);
+
+  // A click in the native Mac sidebar is not a click in the page, so the panel
+  // would stay up over the next page.
+  const { view, topKind } = useView();
+  const place = `${view}:${topKind}`;
+  const lastPlace = useRef(place);
+  useEffect(() => {
+    if (lastPlace.current === place) return;
+    lastPlace.current = place;
+    if (ownsModal && isMacDesktop()) closeModal();
+  }, [place, ownsModal, closeModal]);
+
   useEffect(() => {
     if (!ownsModal || cleanModal) return;
     const onDown = (e: MouseEvent) => {
@@ -393,6 +415,12 @@ export function TogetherButton({
     </button>
   );
 
+  // macOS: the button joins the window once there is something behind it (a relay,
+  // a room, or its panel opened from View > Watch Together…). Until then it would
+  // only lead to setup text.
+  if (isMacDesktop() && !live && modalOwner === null && !settings.togetherRelayUrl.trim()) {
+    return null;
+  }
   return (
     <div ref={wrapRef} className="relative">
       {glassControls ? (

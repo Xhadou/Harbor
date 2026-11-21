@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { reloadAppWindow } from "@/lib/app-reload";
 import { useSearchActions } from "@/lib/search-context";
+import { useTogether } from "@/lib/together/provider";
 import { useView } from "@/lib/view";
 import { CYCLE_SECTION_EVENT } from "@/chrome/tab-hotkeys";
 import { menuCommand } from "./menu-command";
@@ -18,6 +19,7 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
   const { navigate, pinModal } = useGatedNavigation();
   const toggleSidebar = useSidebarToggle();
   const { setOpen } = useSearchActions();
+  const { openModal } = useTogether();
 
   const latest = useRef({
     playerActive,
@@ -26,6 +28,7 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
     navigate,
     toggleSidebar,
     setOpen,
+    openModal,
   });
   useEffect(() => {
     latest.current = {
@@ -35,6 +38,7 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
       navigate,
       toggleSidebar,
       setOpen,
+      openModal,
     };
   });
 
@@ -56,6 +60,8 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
           window.dispatchEvent(new CustomEvent(CYCLE_SECTION_EVENT, { detail: command.step }));
         } else if (command.kind === "toggle-sidebar") now.toggleSidebar();
         else if (command.kind === "reload") reloadAppWindow();
+        // "auto" is taken up by the Watch together button on screen, which then shows its panel.
+        else if (command.kind === "watch-together") now.openModal("auto");
         // With the sidebar shown this focuses its field (see
         // NativeToolbarBridge); hidden, Harbor's own search input opens.
         else if (searchAllowed()) now.setOpen(true);
