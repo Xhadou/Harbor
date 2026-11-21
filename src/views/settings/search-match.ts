@@ -1,3 +1,5 @@
+import { SEARCH_CONCEPTS, SEARCH_PHRASES, SEARCH_WEAK_WORDS } from "./search-concepts";
+
 export type SettingsSearchTranslator = (value: string) => string;
 
 const SEPARATOR = "\n";
@@ -85,6 +87,32 @@ function tokens(text: string): string[] {
   return text.split(WORD_SPLIT).filter((w) => w.length > 1);
 }
 
+/** For each word of a concept line, the other words of its lines. */
+const SYNONYMS: ReadonlyMap<string, readonly string[]> = (() => {
+  const out = new Map<string, Set<string>>();
+  for (const line of SEARCH_CONCEPTS) {
+    for (const word of line) {
+      const others = out.get(word) ?? new Set<string>();
+      for (const other of line) if (other !== word) others.add(other);
+      out.set(word, others);
+    }
+  }
+  return new Map([...out].map(([word, others]) => [word, [...others]]));
+})();
+
+const WEAK = new Set(SEARCH_WEAK_WORDS);
+
+const PHRASES = SEARCH_PHRASES.map(
+  ([from, to]) => [new RegExp(`(^|\\s)${from}(?=\\s|$)`, "g"), `$1${to}`] as const,
+);
+
+/** The search in the index's own words: normalized, with known wordings rewritten. */
+function searchNeedle(query: string): string {
+  let needle = normalizeSearchText(query);
+  for (const [from, to] of PHRASES) needle = needle.replace(from, to);
+  return needle;
+}
+
 let vocabulary: Set<string> | null = null;
 let lastNeedle = "";
 let lastRequired: string[] = [];
@@ -146,9 +174,33 @@ function fuzzyIn(word: string, candidates: Iterable<string>): boolean {
   return false;
 }
 
+/**
+ * Other words for the same idea. A word that is not on any concept line is
+ * first read as a misspelling of one ("captoins"), within the usual budget.
+ */
+function synonymsOf(word: string): readonly string[] {
+  for (const form of forms(word)) {
+    const direct = SYNONYMS.get(form);
+    if (direct) return direct;
+  }
+  const budget = fuzzBudget(word);
+  if (!budget) return [];
+  for (const [known, others] of SYNONYMS) {
+    if (editDistance(word, known, budget) <= budget) return [known, ...others];
+  }
+  return [];
+}
+
+/** Whether an entry's words carry the same idea as `word` in other words. Whole words only. */
+function conceptHits(word: string, hayTokens: readonly string[]): boolean {
+  const synonyms = synonymsOf(word);
+  if (!synonyms.length) return false;
+  return hayTokens.some((token) => forms(token).some((form) => synonyms.includes(form)));
+}
+
 function wordHits(word: string, haystack: string, hayTokens: string[]): boolean {
   if (forms(word).some((f) => haystack.includes(f))) return true;
-  return fuzzyIn(word, hayTokens);
+  return fuzzyIn(word, hayTokens) || conceptHits(word, hayTokens);
 }
 
 function requiredWords(needle: string): string[] {
@@ -156,10 +208,18 @@ function requiredWords(needle: string): string[] {
   const words = tokens(needle).filter((w) => !forms(w).some((f) => FILLER.has(f)));
   const vocab = vocabulary;
   const known = vocab
-    ? words.filter((w) => forms(w).some((f) => vocab.has(f)) || fuzzyIn(w, vocab))
+    ? words.filter(
+        (w) =>
+          forms(w).some((f) => vocab.has(f)) ||
+          fuzzyIn(w, vocab) ||
+          // A word the index never uses still counts when it names an idea the index has.
+          synonymsOf(w).some((s) => vocab.has(s)),
+      )
     : words;
+  const candidates = known.length ? known : words;
+  const specific = candidates.filter((w) => !WEAK.has(w));
   lastNeedle = needle;
-  lastRequired = known.length ? known : words;
+  lastRequired = specific.length ? specific : candidates;
   return lastRequired;
 }
 
@@ -169,7 +229,7 @@ export function matchesSettingsSearch(
   translate: SettingsSearchTranslator,
   plain: readonly string[] = [],
 ): boolean {
-  const needle = normalizeSearchText(query);
+  const needle = searchNeedle(query);
   if (!needle) return false;
 
   const parts: string[] = [];
@@ -196,7 +256,7 @@ export function rankSettingsSearch(
   label: string,
   keywords: readonly string[] = [],
 ): number {
-  const needle = normalizeSearchText(query);
+  const needle = searchNeedle(query);
   const name = normalizeSearchText(label);
   if (!needle) return 9000;
 
@@ -218,5 +278,12 @@ export function rankSettingsSearch(
   const inLabel = words.filter(
     (w) => forms(w).some((f) => name.includes(f)) || fuzzyIn(w, nameTokens),
   ).length;
-  return 5000 - inLabel * 100 + name.length / 500;
+  // A label that says it in other words comes after one that says it outright.
+  const inLabelByMeaning = words.filter(
+    (w) =>
+      !forms(w).some((f) => name.includes(f)) &&
+      !fuzzyIn(w, nameTokens) &&
+      conceptHits(w, nameTokens),
+  ).length;
+  return 5000 - inLabel * 100 - inLabelByMeaning * 60 + name.length / 500;
 }
