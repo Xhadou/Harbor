@@ -46,6 +46,8 @@ import { anilistCharacterSearch, type CharacterHit } from "@/lib/anilist/charact
 import { gatherCatalogAddons, type Addon } from "@/lib/addons";
 import { useAuth } from "@/lib/auth";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
+import { placeShownForSearch } from "@/lib/search-sections";
 import { usePlaylists } from "@/lib/iptv/playlists-store";
 import { isMagnetInput, isDirectVideoUrl } from "@/lib/torrent/magnet";
 import { useView, type Frame } from "@/lib/view";
@@ -240,7 +242,9 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     setAddonQueries([]);
     setStatus("typing");
     const animeAllowed = !hiddenTabs.anime && !settings.hideContent.anime;
-    const mangaAllowed = settings.mangaEnabled;
+    const navHidden = settings.navCustomization.hidden;
+    const placeShown = (navId: string) => placeShownForSearch(navId, navHidden, isMacDesktop());
+    const mangaAllowed = settings.mangaEnabled && placeShown("manga");
     const franchiseAllowed = animeAllowed || mangaAllowed;
     const liveTvAllowed = !hiddenTabs.liveTv && playlists.length > 0;
     debounceRef.current = window.setTimeout(() => {
@@ -309,12 +313,15 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       const mangaPromise: Promise<MangaSummary[]> = mangaAllowed
         ? guard(searchManga(trimmed), [])
         : Promise.resolve([]);
-      const musicPromise: Promise<MusicSearchHit[]> = guard(
-        searchTyped(trimmed, 10).then(toMusicHits),
-        [],
-      );
-      const ebookPromise: Promise<EBook[]> = guard(searchEBooks(trimmed), []);
-      const sportsPromise: Promise<SportsEventHit[]> = guard(searchSportsEvents(trimmed), []);
+      const musicPromise: Promise<MusicSearchHit[]> = placeShown("music")
+        ? guard(searchTyped(trimmed, 10).then(toMusicHits), [])
+        : Promise.resolve([]);
+      const ebookPromise: Promise<EBook[]> = placeShown("ebook")
+        ? guard(searchEBooks(trimmed), [])
+        : Promise.resolve([]);
+      const sportsPromise: Promise<SportsEventHit[]> = placeShown("sports")
+        ? guard(searchSportsEvents(trimmed), [])
+        : Promise.resolve([]);
       const charactersPromise: Promise<CharacterHit[]> = franchiseAllowed
         ? guard(anilistCharacterSearch(trimmed), [])
         : Promise.resolve([]);
@@ -558,6 +565,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
     settings.hideContent.anime,
     hiddenTabs.liveTv,
     settings.mangaEnabled,
+    settings.navCustomization.hidden,
     authKey,
   ]);
 

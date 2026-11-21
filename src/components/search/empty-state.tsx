@@ -30,6 +30,8 @@ import { useParental } from "@/lib/parental";
 import { useT } from "@/lib/i18n";
 import { useSearch } from "@/lib/search-context";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
+import { placeShownForSearch } from "@/lib/search-sections";
 import { surpriseMe } from "@/lib/surprise-me";
 import { tmdbDiscover } from "@/lib/providers/tmdb";
 import { SERVICES, providerIdsFor } from "@/lib/providers/streaming";
@@ -251,8 +253,11 @@ export function EmptyState({
 
   const exhausted = items.length > 0 && (!wantMovies || movieDone) && (!wantSeries || tvDone);
 
+  const placeShown = (navId: string) =>
+    placeShownForSearch(navId, settings.navCustomization.hidden, isMacDesktop());
   const visibleJumps = JUMP_TARGETS.filter((j) => {
     if (j.parentalKey && hiddenTabs[j.parentalKey]) return false;
+    if (!placeShown(j.view)) return false;
     return j.view !== "manga" || settings.mangaEnabled;
   });
   const visibleGenres = Object.keys(MOVIE_GENRES).filter((name) => {
@@ -435,7 +440,7 @@ export function EmptyState({
               {t(j.label)}
             </button>
           ))}
-          {!hiddenTabs.liveTv && (
+          {!hiddenTabs.liveTv && placeShown("live") && (
             <button
               onClick={() => onOpenGuide()}
               className="group flex h-12 items-center gap-2.5 rounded-full border border-edge-soft bg-elevated/50 px-5 text-[14.5px] font-semibold text-ink transition-all hover:border-edge hover:bg-elevated active:scale-[0.97]"
