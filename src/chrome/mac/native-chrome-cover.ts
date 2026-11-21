@@ -1,5 +1,5 @@
-// Full-window web layers that the app shell does not know about (the
-// screensaver) say here that they are up, so the native sidebar and buttons,
+// Full-window web layers that the app shell does not know about (onboarding,
+// the profile picker) say here that they are up, so the native sidebar and buttons,
 // which float above the web page, get out of their way.
 
 const covering = new Set<string>();

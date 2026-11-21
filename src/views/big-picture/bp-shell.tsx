@@ -75,7 +75,6 @@ import { resetBpViewState } from "./bp-view-state";
 import { clearBpPositions } from "./bp-restore";
 import { pushBpBack, runBpBack } from "./bp-back";
 import { BpQuickPanel } from "./bp-quick-panel";
-import { BpScreensaver } from "./bp-screensaver";
 import { BpControllerToast } from "./bp-controller-toast";
 
 // The ten-foot player is NOT mounted here. It needs the player's live state,
@@ -552,7 +551,6 @@ export function BigPictureShell() {
             // search route types into an input, where the handler stands down.
             jump={layer === "" && route.kind !== "search"}
           />
-          <BpScreensaver blocked={introUp || layer !== ""} />
           <BpControllerToast />
         </div>,
         document.body,

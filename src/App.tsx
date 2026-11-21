@@ -83,7 +83,6 @@ import { EmbedViewportRoot } from "@/components/embed-viewport";
 import { InstallerViewportRoot } from "@/components/installer-viewport";
 import { UpdateRoot } from "@/components/update/update-root";
 import { VoyageRoot } from "@/components/voyage/voyage-root";
-import { ScreensaverRoot } from "@/components/screensaver/screensaver-root";
 import { CustomCodeMount } from "@/components/custom-code-mount";
 import { MemoryHud } from "@/components/memory-hud";
 import { Profiled } from "@/components/profiled";
@@ -618,7 +617,6 @@ export function App({ onReady }: { onReady?: () => void }) {
                                                       <InstallerViewportRoot />
                                                       <UpdateRoot />
                                                       <VoyageRoot />
-                                                      <ScreensaverRoot />
                                                     </HarborErrorBoundary>
                                                     <ErrorView />
                                                     <DevErrorTrigger />

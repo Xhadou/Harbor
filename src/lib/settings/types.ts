@@ -98,15 +98,6 @@ export type CardAwardDisplay = "tabs" | "badge" | "none";
 
 export type StreamPriorityEntry = { key: string; name: string };
 
-export type ScreensaverMediaKind = "image" | "gif" | "video";
-
-export type ScreensaverMedia = {
-  id: string;
-  name: string;
-  path: string;
-  kind: ScreensaverMediaKind;
-};
-
 export type MusicSpeedPreset = {
   id: string;
   name: string;
@@ -246,11 +237,6 @@ export type Settings = {
   heroTrailerAudio: boolean;
   navIconAnimations: boolean;
   bigPicturePlayerUi: "tenFoot" | "desktop";
-  screensaver: boolean;
-  screensaverStyle: "ambient" | "catBoat" | "halloween" | "custom";
-  screensaverMedia: ScreensaverMedia[];
-  screensaverMediaId: string | null;
-  screensaverDelayMin: number;
   resumePrompt: boolean;
   resumePlayback: boolean;
   keepFullscreenOnExit: boolean;

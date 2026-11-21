@@ -4,7 +4,6 @@ import test from "node:test";
 import ts from "typescript";
 import { sanitizeSeekStep } from "../src/lib/seek-step.ts";
 import * as language from "../src/lib/subtitles/language.ts";
-import { sanitizeScreensaverMedia } from "../src/lib/screensaver/media.ts";
 import * as controllerCursor from "../src/lib/gamepad/cursor.ts";
 import * as monitors from "../src/lib/monitors.ts";
 import * as relayVersion from "../src/lib/together/relay-version.ts";
@@ -24,7 +23,6 @@ function fixture() {
     },
     "@/lib/subtitles/language": language,
     "@/lib/player/audio-language": { ORIGINAL_AUDIO_LANG: "Original" },
-    "@/lib/screensaver/media": { sanitizeScreensaverMedia },
     "@/lib/seek-step": { sanitizeSeekStep },
     "@/lib/ai-models": { migrateModelId: identity, providerTabFor: () => "openrouter" },
     "@/lib/local-time": {

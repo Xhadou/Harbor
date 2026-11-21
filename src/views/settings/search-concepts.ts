@@ -58,7 +58,6 @@ export const SEARCH_CONCEPTS: readonly (readonly string[])[] = [
   ["customize", "customise", "personalize", "personalise", "custom"],
   ["favorite", "favorites", "favourite", "favourites"],
   ["mouse", "cursor", "pointer"],
-  ["screensaver", "idle", "sleep"],
   // Words and language
   ["language", "languages", "locale"],
   ["translate", "translation", "translations", "localization", "localisation"],

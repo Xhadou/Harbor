@@ -4,13 +4,11 @@ import { Dropdown } from "@/components/dropdown";
 import { GamesIcon } from "@/components/icons/games-icon";
 import {
   Droplet,
-  Hourglass,
   Image,
   Library,
   MousePointer2,
   Moon,
   Palette,
-  Sailboat,
   Play,
   Sparkles,
   Text,
@@ -27,10 +25,8 @@ import { useInstallFeatures } from "@/lib/features/install";
 import { quickLibraryAvailable } from "@/lib/features/quick-library";
 import { useT } from "@/lib/i18n";
 import { Section, ToggleRow } from "../shared";
-import { ROW_ACTION, SettingGroup, SettingRow, Nested } from "../kit";
-import { previewScreensaver } from "@/lib/screensaver/media";
+import { SettingGroup, SettingRow, Nested } from "../kit";
 import { PosterCardSection } from "./display/poster-card-section";
-import { ScreensaverMediaManager } from "./screensaver-media";
 import { SFX } from "@/lib/sfx";
 import { isSpooktoberSeason } from "@/lib/spooktober-season";
 import { MacPageLayoutSection } from "../mac-page-layout-section";
@@ -52,74 +48,6 @@ export function AmbienceSection() {
             onChange={(v) => update({ navIconAnimations: v })}
             leading={<MousePointer2 size={18} strokeWidth={2} />}
           />
-        </SettingGroup>
-      </Section>
-
-      <Section
-        title={t("Screensaver")}
-        subtitle={t(
-          "When Harbor sits idle in the foreground, it drifts through cinematic backdrops with a clock and what's trending. Any movement or key brings you back. Off by default.",
-        )}
-      >
-        <SettingGroup>
-          <ToggleRow
-            label={t("Ambient screensaver")}
-            sub={t("Drift through cinematic backdrops while Harbor sits idle.")}
-            value={settings.screensaver}
-            onChange={(v) => update({ screensaver: v })}
-            leading={<Moon size={18} strokeWidth={2} />}
-          />
-          <SettingRow
-            label={t("Screensaver style")}
-            desc={t(
-              "Default drifts through backdrops from what's trending. Boat plays a hand drawn illustration. Custom plays your own videos, GIFs, or images.",
-            )}
-            icon={<Sailboat size={18} strokeWidth={2} />}
-          >
-            <div className="flex items-center gap-2">
-              <Dropdown
-                value={settings.screensaverStyle}
-                onChange={(v) =>
-                  update({ screensaverStyle: v as typeof settings.screensaverStyle })
-                }
-                options={[
-                  { value: "ambient", label: t("Default") },
-                  { value: "catBoat", label: t("Boat") },
-                  { value: "halloween", label: t("Halloween") },
-                  { value: "custom", label: t("Custom") },
-                ]}
-              />
-              <button type="button" className={ROW_ACTION} onClick={previewScreensaver}>
-                {t("Preview")}
-              </button>
-            </div>
-          </SettingRow>
-          {settings.screensaverStyle === "custom" && (
-            <Nested>
-              <ScreensaverMediaManager />
-            </Nested>
-          )}
-          {settings.screensaver && (
-            <Nested>
-              <SettingRow
-                icon={<Hourglass size={18} strokeWidth={2} />}
-                label={t("Start after")}
-                desc={t("How long Harbor waits before drifting off.")}
-              >
-                <Picker
-                  value={String(settings.screensaverDelayMin)}
-                  options={[
-                    { value: "1", label: t("1 min") },
-                    { value: "3", label: t("3 min") },
-                    { value: "5", label: t("5 min") },
-                    { value: "10", label: t("10 min") },
-                    { value: "15", label: t("15 min") },
-                  ]}
-                  onChange={(v) => update({ screensaverDelayMin: Number(v) })}
-                />
-              </SettingRow>
-            </Nested>
-          )}
         </SettingGroup>
       </Section>
 

@@ -11,10 +11,10 @@ import {
 
 test("native chrome is covered while any full-window layer says so", () => {
   assert.equal(nativeChromeCovered(), false);
-  setNativeChromeCovered("screensaver", true);
+  setNativeChromeCovered("onboarding", true);
   setNativeChromeCovered("other", true);
   assert.equal(nativeChromeCovered(), true);
-  setNativeChromeCovered("screensaver", false);
+  setNativeChromeCovered("onboarding", false);
   assert.equal(nativeChromeCovered(), true);
   setNativeChromeCovered("other", false);
   assert.equal(nativeChromeCovered(), false);
@@ -23,13 +23,13 @@ test("native chrome is covered while any full-window layer says so", () => {
 test("listeners hear only real changes, until they unsubscribe", () => {
   let calls = 0;
   const stop = subscribeNativeChromeCovered(() => calls++);
-  setNativeChromeCovered("screensaver", true);
-  setNativeChromeCovered("screensaver", true);
+  setNativeChromeCovered("onboarding", true);
+  setNativeChromeCovered("onboarding", true);
   setNativeChromeCovered("other", true);
-  setNativeChromeCovered("screensaver", false);
+  setNativeChromeCovered("onboarding", false);
   setNativeChromeCovered("other", false);
   stop();
-  setNativeChromeCovered("screensaver", true);
-  setNativeChromeCovered("screensaver", false);
+  setNativeChromeCovered("onboarding", true);
+  setNativeChromeCovered("onboarding", false);
   assert.equal(calls, 2);
 });
