@@ -52,14 +52,18 @@ export type SettingsSidebarItem = {
 
 export type SettingsSidebar = {
   items: SettingsSidebarItem[];
-  sections: { id: string; title: string }[];
+  /** A section without a title is listed with no heading. */
+  sections: { id: string; title: string | null }[];
 };
+
+/** The row under the pages that shows or hides the pages a Mac starts without. Not a page. */
+export const SETTINGS_SHOW_ALL_ROW = "show-all";
 
 /** The native sidebar's contents for Settings: one group per band, one row per page. */
 export function buildSettingsSidebar(
   bands: readonly { section: string; sections: readonly string[] }[],
   active: string,
-  labels: { band: (section: string) => string; page: (id: string) => string },
+  labels: { band: (section: string) => string | null; page: (id: string) => string },
 ): SettingsSidebar {
   return {
     sections: bands.map((band) => ({ id: band.section, title: labels.band(band.section) })),
@@ -73,6 +77,25 @@ export function buildSettingsSidebar(
         gated: false as const,
       })),
     ),
+  };
+}
+
+/** The same list with the "Show all settings" row under it. */
+export function withShowAllRow(sidebar: SettingsSidebar, title: string): SettingsSidebar {
+  const section = "settings-more";
+  return {
+    sections: [...sidebar.sections, { id: section, title: null }],
+    items: [
+      ...sidebar.items,
+      {
+        id: SETTINGS_ROW_PREFIX + SETTINGS_SHOW_ALL_ROW,
+        title,
+        symbol: "ellipsis.circle",
+        section,
+        active: false,
+        gated: false as const,
+      },
+    ],
   };
 }
 

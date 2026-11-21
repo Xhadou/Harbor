@@ -124,3 +124,50 @@ export const BAND_LABELS: Record<string, string> = {
   PLUGINS: "Plugins",
   UPDATES: "Updates & backup",
 };
+
+/**
+ * macOS: the pages Settings lists before "Show all settings". The rest run
+ * infrastructure, decorate, or tune hardware a Mac does not have, and stay one
+ * click away.
+ */
+export const MAC_MAIN_SECTIONS: readonly SectionId[] = [
+  "basics",
+  "account",
+  "player",
+  "language",
+  "subtitles",
+  "streaming",
+  "theme",
+  "hotkeys",
+  "advanced",
+  "updates",
+];
+
+/** The heading-less band the main pages sit in. */
+export const MAC_MAIN_BAND = "MAIN";
+
+/** What a main page is called on macOS, where it differs from its own name. */
+export const MAC_SECTION_LABELS: Partial<Record<SectionId, string>> = {
+  basics: "General",
+  player: "Playback",
+  streaming: "Sources",
+  theme: "Appearance",
+  hotkeys: "Shortcuts",
+};
+
+export function isMacMainSection(id: SectionId): boolean {
+  return MAC_MAIN_SECTIONS.includes(id);
+}
+
+/** The Settings navigation on macOS: the main pages, then every other page under its own heading. */
+export function macSettingsBands(showAll: boolean): SettingsBand[] {
+  const main: SettingsBand = { section: MAC_MAIN_BAND, sections: [...MAC_MAIN_SECTIONS] };
+  if (!showAll) return [main];
+  const rest = settingsBands()
+    .map((band) => ({
+      section: band.section,
+      sections: band.sections.filter((id) => !isMacMainSection(id)),
+    }))
+    .filter((band) => band.sections.length > 0);
+  return [main, ...rest];
+}

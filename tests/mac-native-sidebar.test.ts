@@ -18,8 +18,16 @@ import {
   buildSettingsSidebar,
   SETTINGS_SYMBOLS,
   settingsPageOf,
+  SETTINGS_SHOW_ALL_ROW,
+  withShowAllRow,
 } from "../src/chrome/mac/settings-sidebar";
-import { settingsBands } from "../src/views/settings/groups";
+import {
+  isMacMainSection,
+  MAC_MAIN_BAND,
+  MAC_MAIN_SECTIONS,
+  macSettingsBands,
+  settingsBands,
+} from "../src/views/settings/groups";
 
 const entry = (id: string, primary: boolean, gated = false) => ({
   item: { id, label: `nav.${id}`, view: id },
@@ -278,4 +286,40 @@ test("every Settings page has a symbol", () => {
   for (const band of settingsBands()) {
     for (const id of band.sections) assert.ok(SETTINGS_SYMBOLS[id], id);
   }
+});
+
+test("macOS Settings starts with its main pages and no heading", () => {
+  const bands = macSettingsBands(false);
+  assert.deepEqual(bands, [{ section: MAC_MAIN_BAND, sections: [...MAC_MAIN_SECTIONS] }]);
+  const every = settingsBands().flatMap((band) => band.sections);
+  for (const id of MAC_MAIN_SECTIONS) assert.ok(every.includes(id), `${id} is not a Settings page`);
+});
+
+test("showing all settings lists every page once, main pages first", () => {
+  const bands = macSettingsBands(true);
+  assert.equal(bands[0].section, MAC_MAIN_BAND);
+  const listed = bands.flatMap((band) => band.sections);
+  const every = settingsBands().flatMap((band) => band.sections);
+  assert.deepEqual([...listed].sort(), [...every].sort());
+  assert.equal(new Set(listed).size, listed.length);
+  for (const band of bands.slice(1)) {
+    assert.ok(band.sections.length > 0);
+    for (const id of band.sections) assert.equal(isMacMainSection(id), false);
+  }
+});
+
+test("the show-all row sits under the pages and is never the open page", () => {
+  const sidebar = withShowAllRow(
+    buildSettingsSidebar([{ section: MAC_MAIN_BAND, sections: ["basics"] }], "basics", {
+      band: () => null,
+      page: (id) => id,
+    }),
+    "Show all settings",
+  );
+  assert.deepEqual(sidebar.sections.at(0), { id: MAC_MAIN_BAND, title: null });
+  const row = sidebar.items.at(-1);
+  assert.equal(row?.title, "Show all settings");
+  assert.equal(row?.active, false);
+  assert.notEqual(row?.section, MAC_MAIN_BAND);
+  assert.equal(settingsPageOf(row?.id ?? ""), SETTINGS_SHOW_ALL_ROW);
 });

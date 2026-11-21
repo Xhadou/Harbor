@@ -15,7 +15,12 @@ import { groupForSection, TOP_GROUPS } from "./settings/groups";
 import { requestTracker } from "./settings/tracker-request";
 import { SubTabsProvider, type SubTabReg } from "./settings/sub-tabs";
 import { SettingsSidebar } from "./settings/settings-sidebar";
-import { MacSettingsNav, MacSettingsTabs, useMacTabEnter } from "./settings/mac-settings-chrome";
+import {
+  MacSettingsNav,
+  settingsPageLabel,
+  MacSettingsTabs,
+  useMacTabEnter,
+} from "./settings/mac-settings-chrome";
 import { tabsFor } from "./settings/tab-registry";
 import {
   glideSettingsToTop,
@@ -619,7 +624,9 @@ export function Settings({ visible = true }: { visible?: boolean }) {
               <div className="hset-heading">
                 <div className="hset-content">
                   <h1 ref={titleRef} tabIndex={-1} className="hset-title">
-                    {t(landingGroup?.label ?? SECTION_META[active].label)}
+                    {t(
+                      landingGroup?.label ?? settingsPageLabel(active, SECTION_META[active].label),
+                    )}
                   </h1>
                 </div>
                 <button

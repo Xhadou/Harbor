@@ -1,19 +1,55 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   buildSettingsSidebar,
   publishSettingsNav,
+  SETTINGS_SHOW_ALL_ROW,
+  withShowAllRow,
   type SettingsSidebar,
 } from "@/chrome/mac/settings-sidebar";
 import { useT } from "@/lib/i18n";
 import { isMacDesktop } from "@/lib/platform";
-import { BAND_LABELS, settingsBands } from "./groups";
+import {
+  BAND_LABELS,
+  isMacMainSection,
+  MAC_MAIN_BAND,
+  MAC_SECTION_LABELS,
+  macSettingsBands,
+} from "./groups";
 import type { SectionId } from "./shared";
 import type { SubTabReg } from "./sub-tabs";
+
+const SHOW_ALL_KEY = "harbor.mac.settings.showAll";
+
+function readShowAll(): boolean {
+  try {
+    return localStorage.getItem(SHOW_ALL_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeShowAll(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(SHOW_ALL_KEY, "1");
+    else localStorage.removeItem(SHOW_ALL_KEY);
+  } catch {
+    // The choice then lasts until Settings is closed.
+  }
+}
+
+/** A Settings page's name: on macOS the main pages carry shorter names. */
+export function settingsPageLabel(id: SectionId, own: string): string {
+  return (isMacDesktop() && MAC_SECTION_LABELS[id]) || own;
+}
 
 /**
  * On macOS the Settings pages are listed in the native sidebar, the way System
  * Settings lists its panes. This hands them over while Settings is on screen
  * and takes the clicks back. Renders nothing.
+ *
+ * The list starts with the main pages and a "Show all settings" row. A page
+ * outside them that is opened another way (a link, the search field) brings
+ * the full list with it, so the open page is always in the list.
  */
 export function MacSettingsNav({
   visible,
@@ -28,15 +64,27 @@ export function MacSettingsNav({
 }) {
   const t = useT();
   const mac = isMacDesktop();
-  const select = useRef(onSelect);
-  select.current = onSelect;
+  const [showAll, setShowAll] = useState(readShowAll);
+  const all = showAll || !isMacMainSection(active);
+  const select = useRef<(page: string) => void>(() => {});
+  select.current = (page) => {
+    if (page !== SETTINGS_SHOW_ALL_ROW) return onSelect(page as SectionId);
+    writeShowAll(!all);
+    setShowAll(!all);
+    // Hiding the other pages while one of them is open would bring them straight back.
+    if (all && !isMacMainSection(active)) onSelect("basics");
+  };
   const key =
     mac && visible
       ? JSON.stringify(
-          buildSettingsSidebar(settingsBands(), active, {
-            band: (section) => t(BAND_LABELS[section] ?? section),
-            page: (id) => t(meta[id as SectionId].label),
-          }),
+          withShowAllRow(
+            buildSettingsSidebar(macSettingsBands(all), active, {
+              band: (section) =>
+                section === MAC_MAIN_BAND ? null : t(BAND_LABELS[section] ?? section),
+              page: (id) => t(settingsPageLabel(id as SectionId, meta[id as SectionId].label)),
+            }),
+            all ? t("Show fewer settings") : t("Show all settings"),
+          ),
         )
       : "";
   useEffect(() => {
@@ -45,7 +93,7 @@ export function MacSettingsNav({
       key
         ? {
             ...(JSON.parse(key) as SettingsSidebar),
-            select: (page) => select.current(page as SectionId),
+            select: (page) => select.current(page),
           }
         : null,
     );

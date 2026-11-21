@@ -3112,6 +3112,13 @@ const uiFallback: Record<string, string> = {
   "Reorder, hide and rename the rows on a page. The page opens ready to edit; choose Done editing when you have finished.":
     "Reorder, hide and rename the rows on a page. The page opens ready to edit; choose Done editing when you have finished.",
   Customize: "Customize",
+  "Show all settings": "Show all settings",
+  "Show fewer settings": "Show fewer settings",
+  General: "General",
+  Playback: "Playback",
+  Sources: "Sources",
+  Appearance: "Appearance",
+  Shortcuts: "Shortcuts",
 };
 
 export default uiFallback;
