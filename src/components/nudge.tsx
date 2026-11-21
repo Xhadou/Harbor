@@ -1,7 +1,7 @@
 import { ArrowRight, X } from "lucide-react";
 import tmdbLogo from "@/assets/addon-logos/tmdb.png";
 import { useT } from "@/lib/i18n";
-import { useOnboarding } from "@/lib/onboarding";
+import { useTipOnce } from "@/lib/use-tip-once";
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 
@@ -9,11 +9,11 @@ const KEY = "tmdb-nudge";
 
 export function TmdbNudge({ suppress }: { suppress?: boolean } = {}) {
   const { settings } = useSettings();
-  const { isDismissed, dismiss } = useOnboarding();
   const { openSettings } = useView();
   const t = useT();
+  const { visible, close } = useTipOnce(KEY, !settings.tmdbKey && !suppress);
 
-  if (settings.tmdbKey || isDismissed(KEY) || suppress) return null;
+  if (!visible) return null;
 
   return (
     <div className="group animate-nudge-in flex items-center gap-4 rounded-2xl border border-edge-soft bg-elevated/95 px-5 py-4 backdrop-blur-md shadow-[0_18px_50px_-20px_rgba(0,0,0,0.6)]">
@@ -39,7 +39,7 @@ export function TmdbNudge({ suppress }: { suppress?: boolean } = {}) {
         <ArrowRight size={13} strokeWidth={2.6} className="dir-icon" />
       </button>
       <button
-        onClick={() => dismiss(KEY)}
+        onClick={close}
         aria-label={t("Dismiss")}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-raised hover:text-ink"
       >

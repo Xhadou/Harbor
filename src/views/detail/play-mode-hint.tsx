@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { useRef } from "react";
-import { useOnboarding } from "@/lib/onboarding";
+import { useTipOnce } from "@/lib/use-tip-once";
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 import { useT } from "@/lib/i18n";
@@ -8,9 +8,8 @@ import { useT } from "@/lib/i18n";
 export function PlayModeHint({ children }: { children: React.ReactNode }) {
   const t = useT();
   const { settings } = useSettings();
-  const { isDismissed, dismiss } = useOnboarding();
   const { openSettings } = useView();
-  const visible = settings.instantPlay && !isDismissed("play-mode-hint");
+  const { visible, close } = useTipOnce("play-mode-hint", settings.instantPlay);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -19,7 +18,7 @@ export function PlayModeHint({ children }: { children: React.ReactNode }) {
       onClickCapture={(e) => {
         if (!visible) return;
         if (popoverRef.current && popoverRef.current.contains(e.target as Node)) return;
-        dismiss("play-mode-hint");
+        close();
       }}
     >
       {children}
@@ -53,7 +52,7 @@ export function PlayModeHint({ children }: { children: React.ReactNode }) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                dismiss("play-mode-hint");
+                close();
               }}
               aria-label={t("Dismiss")}
               className="-me-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-raised hover:text-ink"
