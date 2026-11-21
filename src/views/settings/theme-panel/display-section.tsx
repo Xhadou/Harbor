@@ -33,6 +33,7 @@ import { PosterCardSection } from "./display/poster-card-section";
 import { ScreensaverMediaManager } from "./screensaver-media";
 import { SFX } from "@/lib/sfx";
 import { isSpooktoberSeason } from "@/lib/spooktober-season";
+import { MacPageLayoutSection } from "../mac-page-layout-section";
 
 export function AmbienceSection() {
   const t = useT();
@@ -200,6 +201,7 @@ export function DisplaySection() {
     : 25;
   return (
     <>
+      <MacPageLayoutSection />
       {isSpooktoberSeason() && (
         <Section title="Spooktober" subtitle={t("Temporary seasonal settings for Spooktober.")}>
           <SettingGroup>

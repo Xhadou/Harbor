@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowUp } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 
 export function BackToTop({
   scrollRef,
@@ -24,6 +25,9 @@ export function BackToTop({
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [scrollRef, threshold]);
+
+  // A Mac window keeps floating controls off its content.
+  if (isMacDesktop()) return null;
 
   return (
     <button

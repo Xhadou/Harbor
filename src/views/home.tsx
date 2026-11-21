@@ -117,6 +117,8 @@ import { useLocalWatchlist } from "@/lib/local-watchlist";
 import { useScrollMemory, useHomeResetTick } from "@/lib/view";
 import { CustomizableRows } from "./home/customizable-rows";
 import { CustomizeBar } from "./home/customize-bar";
+import { isMacDesktop } from "@/lib/platform";
+import { usePageEditRequest } from "@/lib/page-edit-request";
 import { CWSection } from "./home/cw-section";
 import { NewEpisodesSection } from "./home/new-episodes-section";
 import { useNewEpisodes } from "./home/hooks/use-new-episodes";
@@ -186,6 +188,8 @@ export function Home({
   const t = useT();
   const uiLang = useUiLanguage();
   const [editMode, setEditMode] = useState(false);
+  usePageEditRequest("home", () => setEditMode(true));
+  const mac = isMacDesktop();
   const [isAddSourceModalOpen, setAddSourceModalOpen] = useState(false);
   const [rows, setRows] = useState<HomeRow[]>([]);
   const [animeRows, setAnimeRows] = useState<HomeRow[]>([]);
@@ -1508,7 +1512,7 @@ export function Home({
                     moreInfo={!!homeRowsCustom.secondaryMoreInfo}
                   />
                 </Profiled>
-                {!editMode && (
+                {!editMode && !mac && (
                   <div
                     data-home-customize
                     className="pointer-events-none absolute -bottom-3 end-5 z-20 flex justify-end [&>*]:pointer-events-auto"
@@ -1539,6 +1543,7 @@ export function Home({
             />
           )}
           {!editMode &&
+            !mac &&
             settings.homeMode !== "classic" &&
             homeRowsCustom.hidden.includes("hero") && (
               <div className="pointer-events-none absolute end-5 top-0 z-20 [&>*]:pointer-events-auto">

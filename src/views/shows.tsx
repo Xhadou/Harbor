@@ -39,6 +39,7 @@ import { useCwAdvance } from "./home/hooks/use-cw-advance";
 import { useScrollMemory } from "@/lib/view";
 import { buildShowHero, bucketCopy } from "./shows/hero-curation";
 import { isMacDesktop } from "@/lib/platform";
+import { usePageEditRequest } from "@/lib/page-edit-request";
 import { showSpecs } from "./shows/show-specs";
 import { useCollectionRowsForPage } from "@/lib/page-collection-rows";
 
@@ -64,6 +65,7 @@ export function Shows({ active = true }: { active?: boolean }) {
   const cwVersion = useCwDismissVersion();
   const t = useT();
   const pageRows = usePageRows("shows");
+  usePageEditRequest("shows", () => pageRows.setEditMode(true));
   const [hero, setHero] = useState<Meta[]>([]);
   const [rows, setRows] = useState<ShowRow[]>([]);
   const [items, setItems] = useState<LibraryItem[]>([]);
@@ -329,6 +331,7 @@ export function Shows({ active = true }: { active?: boolean }) {
       hasChanges={hasPageRowChanges(pageRows.custom)}
       onToggleEdit={() => pageRows.setEditMode((v) => !v)}
       onReset={() => pageRows.persist(resetPageRows())}
+      onlyWhileEditing={mac}
     />
   );
 
@@ -341,11 +344,10 @@ export function Shows({ active = true }: { active?: boolean }) {
       <ScrollRootContext.Provider value={scrollEl}>
         <div className="mac-pad relative flex w-full flex-col gap-12 px-12 pb-32 pt-32">
           {mac ? (
-            <MacPageHero metas={shownHero} pull="-mt-32">
-              <div data-home-customize className="absolute bottom-3 end-3 z-20">
-                {customizeBar}
-              </div>
-            </MacPageHero>
+            <>
+              <MacPageHero metas={shownHero} pull="-mt-32" />
+              {customizeBar}
+            </>
           ) : (
             <>
               <PageMast />

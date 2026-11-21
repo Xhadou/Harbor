@@ -8,6 +8,7 @@ import { TopPeopleCta } from "@/components/top-people-cta";
 import { FeaturedBanner } from "@/components/featured-banner";
 import { MacPageHero } from "@/components/mac-page-hero";
 import { isMacDesktop } from "@/lib/platform";
+import { usePageEditRequest } from "@/lib/page-edit-request";
 import { AwardTiles } from "@/components/award-tiles";
 import { GenreTiles } from "@/components/genre-tiles";
 import { LanguageTiles } from "@/components/language-tiles";
@@ -103,6 +104,7 @@ export function Discover({ active = true }: { active?: boolean }) {
   const letterboxd = useLetterboxd();
   const t = useT();
   const pageRows = usePageRows("discover");
+  usePageEditRequest("discover", () => pageRows.setEditMode(true));
   const [feat, setFeat] = useState<FeaturedResult>({ featured: [], reserve: [], pool: [] });
   const [featReady, setFeatReady] = useState(false);
   const featured = feat.featured;
@@ -474,6 +476,7 @@ export function Discover({ active = true }: { active?: boolean }) {
       hasChanges={hasPageRowChanges(pageRows.custom)}
       onToggleEdit={() => pageRows.setEditMode((v) => !v)}
       onReset={() => pageRows.persist(resetPageRows())}
+      onlyWhileEditing={isMacDesktop()}
     />
   );
 
@@ -554,13 +557,14 @@ export function Discover({ active = true }: { active?: boolean }) {
                   <FeaturedBanner items={featReady ? shownFeatured : []} />
                 )}
               </div>
-              <div
-                data-home-customize={mac ? "" : undefined}
-                className="absolute end-0 bottom-4 z-10"
-              >
-                {customizeBar}
-              </div>
+              {mac ? (
+                customizeBar
+              ) : (
+                <div className="absolute end-0 bottom-4 z-10">{customizeBar}</div>
+              )}
             </div>
+          ) : mac ? (
+            customizeBar
           ) : (
             <div className="flex justify-end">{customizeBar}</div>
           )}

@@ -3108,6 +3108,10 @@ const uiFallback: Record<string, string> = {
     "Your Stremio account has no streaming source yet. Paste the link from an addon's page; a stremio:// link works too.",
   "Paste the link from an addon's page; a stremio:// link works too.":
     "Paste the link from an addon's page; a stremio:// link works too.",
+  "Customize pages": "Customize pages",
+  "Reorder, hide and rename the rows on a page. The page opens ready to edit; choose Done editing when you have finished.":
+    "Reorder, hide and rename the rows on a page. The page opens ready to edit; choose Done editing when you have finished.",
+  Customize: "Customize",
 };
 
 export default uiFallback;

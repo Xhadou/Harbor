@@ -9,6 +9,8 @@ type Props = {
   onToggleEdit: () => void;
   onReset: () => void;
   kids?: boolean;
+  /** Draw nothing at rest: editing is started from elsewhere and only its own bar is shown. */
+  onlyWhileEditing?: boolean;
 };
 
 function BarButtons({ editMode, hasChanges, onToggleEdit, onReset, kids }: Props) {
@@ -80,9 +82,11 @@ function BarButtons({ editMode, hasChanges, onToggleEdit, onReset, kids }: Props
 export function CatalogCustomizeBar(props: Props) {
   return (
     <>
-      <div className="harbor-customize-bar flex items-center justify-end gap-2">
-        <BarButtons {...props} />
-      </div>
+      {!props.onlyWhileEditing && (
+        <div className="harbor-customize-bar flex items-center justify-end gap-2">
+          <BarButtons {...props} />
+        </div>
+      )}
       {props.editMode && (
         <FloatingPageActions>
           <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-2 rounded-xl border border-edge-soft bg-canvas/95 px-3 py-2 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.75)] backdrop-blur-md">

@@ -14,6 +14,8 @@ import { preloadAnimeGenreArt } from "@/lib/anime-genre-art-map";
 import { AnimeHero, AnimeHeroSkeleton } from "@/components/anime-hero";
 import { MacPageHero } from "@/components/mac-page-hero";
 import { isMacDesktop } from "@/lib/platform";
+import { FloatingPageActions } from "@/components/floating-page-actions";
+import { usePageEditRequest } from "@/lib/page-edit-request";
 import { BackToTop } from "@/components/back-to-top";
 import { ContinueCard } from "@/components/continue-card";
 import { dismissCw, isCwDismissed, useCwDismissVersion } from "@/lib/cw-dismiss";
@@ -141,6 +143,7 @@ export function AnimeView({ active = true }: { active?: boolean }) {
   const hideSharedCw =
     settings.cwPerProfile && anyProfileSharesStremioWith(activeProfile, profiles);
   const [editMode, setEditMode] = useState(false);
+  usePageEditRequest("anime", () => setEditMode(true));
   const contentDrag = useContentDrag();
   const [rowsByKey, setRowsByKey] = useState<Record<string, RowState>>(() => {
     const init: Record<string, RowState> = {};
@@ -898,6 +901,40 @@ export function AnimeView({ active = true }: { active?: boolean }) {
   }, []);
 
   const mac = isMacDesktop();
+  const animeTools = (
+    <>
+      {mac && (
+        <button
+          type="button"
+          onClick={() => setShowPicker(true)}
+          className="flex h-8 items-center gap-1.5 rounded-md border border-edge-soft/40 bg-canvas/80 px-2.5 text-[12px] font-medium text-ink-muted backdrop-blur-md transition-colors hover:bg-canvas hover:text-ink"
+        >
+          <SlidersHorizontal size={12} strokeWidth={2.2} />
+          {t("Tune anime")}
+        </button>
+      )}
+      {editMode && animeHasCustomization(settings.animeRows) && (
+        <button
+          onClick={() => update({ animeRows: { order: [], hidden: [], renamed: {} } })}
+          className="flex h-8 items-center gap-1.5 rounded-md border border-edge-soft/40 bg-canvas/80 px-2.5 text-[12px] font-medium text-ink-muted backdrop-blur-md transition-colors hover:bg-canvas hover:text-ink"
+        >
+          <RotateCcw size={12} strokeWidth={2.2} />
+          {t("Reset")}
+        </button>
+      )}
+      <button
+        onClick={() => setEditMode((v) => !v)}
+        className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[12px] font-medium backdrop-blur-md transition-colors ${
+          editMode
+            ? "border-ink bg-ink text-canvas hover:opacity-90"
+            : "border-edge-soft/40 bg-canvas/80 text-ink-muted hover:bg-canvas hover:text-ink"
+        }`}
+      >
+        <PencilOutlineIcon size={12} />
+        {editMode ? t("Done editing") : t("Customize anime")}
+      </button>
+    </>
+  );
 
   return (
     <main
@@ -957,38 +994,17 @@ export function AnimeView({ active = true }: { active?: boolean }) {
               ))}
             </Row>
           )}
-          <div className="-mb-6 -mt-6 flex items-center justify-end gap-2">
-            {mac && (
-              <button
-                type="button"
-                onClick={() => setShowPicker(true)}
-                className="flex h-8 items-center gap-1.5 rounded-md border border-edge-soft/40 bg-canvas/80 px-2.5 text-[12px] font-medium text-ink-muted backdrop-blur-md transition-colors hover:bg-canvas hover:text-ink"
-              >
-                <SlidersHorizontal size={12} strokeWidth={2.2} />
-                {t("Tune anime")}
-              </button>
-            )}
-            {editMode && animeHasCustomization(settings.animeRows) && (
-              <button
-                onClick={() => update({ animeRows: { order: [], hidden: [], renamed: {} } })}
-                className="flex h-8 items-center gap-1.5 rounded-md border border-edge-soft/40 bg-canvas/80 px-2.5 text-[12px] font-medium text-ink-muted backdrop-blur-md transition-colors hover:bg-canvas hover:text-ink"
-              >
-                <RotateCcw size={12} strokeWidth={2.2} />
-                {t("Reset")}
-              </button>
-            )}
-            <button
-              onClick={() => setEditMode((v) => !v)}
-              className={`flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-[12px] font-medium backdrop-blur-md transition-colors ${
-                editMode
-                  ? "border-ink bg-ink text-canvas hover:opacity-90"
-                  : "border-edge-soft/40 bg-canvas/80 text-ink-muted hover:bg-canvas hover:text-ink"
-              }`}
-            >
-              <PencilOutlineIcon size={12} />
-              {editMode ? t("Done editing") : t("Customize anime")}
-            </button>
-          </div>
+          {mac ? (
+            editMode && (
+              <FloatingPageActions>
+                <div className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-2 rounded-xl border border-edge-soft bg-canvas/95 px-3 py-2 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.75)] backdrop-blur-md">
+                  {animeTools}
+                </div>
+              </FloatingPageActions>
+            )
+          ) : (
+            <div className="-mb-6 -mt-6 flex items-center justify-end gap-2">{animeTools}</div>
+          )}
           {(() => {
             const rd: { key: string; name: string; node: ReactNode }[] = [];
             const nameOf = (key: string, fallback: string) =>

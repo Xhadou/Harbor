@@ -6,6 +6,7 @@ import { CatalogCustomizeBar } from "@/components/catalog/customize-bar";
 import { CinemaHero } from "@/components/cinema-hero";
 import { MacPageHero } from "@/components/mac-page-hero";
 import { isMacDesktop } from "@/lib/platform";
+import { usePageEditRequest } from "@/lib/page-edit-request";
 import { Row, ScrollRootContext } from "@/components/row";
 import { PickCard } from "@/components/pick-card";
 import { TmdbNudge } from "@/components/nudge";
@@ -47,6 +48,7 @@ export function Movies({ active = true }: { active?: boolean }) {
   const t = useT();
   const letterboxd = useLetterboxd();
   const pageRows = usePageRows("movies");
+  usePageEditRequest("movies", () => pageRows.setEditMode(true));
   const [hero, setHero] = useState<Meta[]>([]);
   const [rows, setRows] = useState<MovieRow[]>([]);
   const [letterboxdRows, setLetterboxdRows] = useState<HomeRow[]>([]);
@@ -323,6 +325,7 @@ export function Movies({ active = true }: { active?: boolean }) {
             hasChanges={hasPageRowChanges(pageRows.custom)}
             onToggleEdit={() => pageRows.setEditMode((v) => !v)}
             onReset={() => pageRows.persist(resetPageRows())}
+            onlyWhileEditing={mac}
           />
           {!settings.tmdbKey && <TmdbNudge />}
           {shownLetterboxdRows.map((row, i) => {
