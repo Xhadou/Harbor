@@ -295,7 +295,7 @@ export function HeroRatings({
   }
 
   return (
-    <div className="inline-flex items-center rounded-full bg-canvas/80 px-1 py-0.5">
+    <div className="detail-pill detail-ratings inline-flex items-center rounded-full bg-canvas/80 px-1 py-0.5">
       {shown.map((item, i) => (
         <span key={i} className="flex items-center">
           {i > 0 && <Divider />}

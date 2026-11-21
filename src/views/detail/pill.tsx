@@ -4,7 +4,7 @@ export function Pill({ children, onClick }: { children: React.ReactNode; onClick
       <button
         type="button"
         onClick={onClick}
-        className="flex items-center gap-1.5 rounded-full bg-canvas/85 px-3 py-1 transition-all hover:scale-[1.04] hover:bg-canvas"
+        className="detail-pill flex items-center gap-1.5 rounded-full bg-canvas/85 px-3 py-1 transition-all hover:scale-[1.04] hover:bg-canvas"
       >
         {typeof children === "string" || typeof children === "number" ? (
           <bdi>{children}</bdi>
@@ -15,7 +15,7 @@ export function Pill({ children, onClick }: { children: React.ReactNode; onClick
     );
   }
   return (
-    <span className="flex items-center gap-1.5 rounded-full bg-canvas/85 px-3 py-1">
+    <span className="detail-pill flex items-center gap-1.5 rounded-full bg-canvas/85 px-3 py-1">
       {typeof children === "string" || typeof children === "number" ? (
         <bdi>{children}</bdi>
       ) : (

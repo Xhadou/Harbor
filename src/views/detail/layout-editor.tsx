@@ -10,9 +10,12 @@ import {
   type DetailCustomization,
 } from "@/lib/detail-customization";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { ContentRails, type DetailSection } from "./content-rails";
 import "./layout-editor.css";
+
+const NO_CUSTOMIZATION: DetailCustomization = { order: [], hidden: [] };
 
 export function DetailLayoutEditor({ sections }: { sections: DetailSection[] }) {
   const t = useT();
@@ -77,6 +80,22 @@ export function DetailLayoutEditor({ sections }: { sections: DetailSection[] }) 
     });
     positions.current.clear();
   }, [layout, reducedMotion]);
+
+  // macOS has one title page: the sections in their own order, nothing to
+  // rearrange or hide, and a layout saved before is not applied.
+  if (isMacDesktop()) {
+    return (
+      <div className="harbor-fade-in-up">
+        <ContentRails
+          sections={sections}
+          custom={NO_CUSTOMIZATION}
+          editMode={false}
+          onMove={() => {}}
+          onToggleHidden={() => {}}
+        />
+      </div>
+    );
+  }
 
   return (
     <>

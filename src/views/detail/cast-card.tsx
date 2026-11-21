@@ -1,6 +1,7 @@
 import { UserRound } from "lucide-react";
 import { Poster } from "@/components/poster";
 import { RankBadge } from "@/components/rank-badge";
+import { isMacDesktop } from "@/lib/platform";
 import type { CastEntry } from "@/lib/providers/tmdb";
 import { useRankings } from "@/lib/rankings";
 import { useView } from "@/lib/view";
@@ -57,7 +58,7 @@ export function CastCard({ cast }: { cast: CastEntry }) {
           ratio="portrait"
           className={`rounded-xl shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300 ${isResolved ? "harbor-card-ring group-hover:shadow-[0_24px_44px_-14px_rgba(0,0,0,0.6)]" : ""}`}
         />
-        {r && <RankBadge rank={r} dept="Acting" />}
+        {r && !isMacDesktop() && <RankBadge rank={r} dept="Acting" />}
       </div>
       <div className="flex flex-col gap-0.5">
         <p className="line-clamp-1 text-[13px] font-medium text-ink">{cast.name}</p>

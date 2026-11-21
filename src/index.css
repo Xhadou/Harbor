@@ -8992,6 +8992,54 @@ html[data-os="macos"] .mac-btn-onart-quiet:hover {
 html[data-os="macos"] .mac-btn-onart-quiet:active {
   background: rgb(255 255 255 / 0.12);
 }
+/* A button that is only a glyph: as wide as it is tall. */
+html[data-os="macos"] .mac-btn-icon {
+  inline-size: var(--mac-control-h);
+  padding-inline: 0;
+}
+html[data-os="macos"] .mac-btn-icon.mac-btn-lg {
+  inline-size: var(--mac-control-h-lg);
+}
+/* The facts under a title: one line of plain text (year, the score, length,
+   genres), evenly spaced, in place of a row of look-alike capsules. A fact
+   that leads somewhere is still a button and brightens under the pointer. */
+html[data-os="macos"] :is(.mac-title-facts, .mac-title-facts .detail-genres) {
+  gap: 4px 14px;
+}
+html[data-os="macos"] .mac-title-facts {
+  margin-block-start: 14px;
+  color: rgb(255 255 255 / 0.72);
+  font-size: var(--mac-text-body);
+  font-weight: 400;
+  line-height: var(--mac-lh-body);
+}
+html[data-os="macos"] .mac-title-facts .detail-ratings span {
+  padding: 0;
+}
+html[data-os="macos"] .mac-title-facts .detail-pill {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  scale: none;
+}
+html[data-os="macos"] .mac-title-facts button.detail-pill:hover {
+  color: #fff;
+}
+/* The page under a title's header: even gaps between its parts. */
+html[data-os="macos"] .mac-title-body {
+  gap: 32px;
+  padding-block-start: 0;
+}
+html[data-os="macos"] .mac-title-info {
+  padding-block-start: 0;
+}
+/* The actions under a title: Play, a few named actions, More. They wrap
+   instead of running off a narrow window. */
+html[data-os="macos"] .mac-title-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-start: 20px;
+}
 
 /* Text field. `mac-field` goes on the input; `mac-field-box` on a wrapper that
    holds an icon beside the input and takes the field's look for both. */
@@ -9120,6 +9168,10 @@ html[data-os="macos"] .context-menu-item[data-danger]:focus-visible {
 }
 html[data-os="macos"] .context-menu-item:is(:disabled, [aria-disabled="true"]) {
   color: var(--mac-ink-off);
+}
+/* A divider with nothing after it (a group that came up empty) is not drawn. */
+html[data-os="macos"] .mac-menu-separator:last-child {
+  display: none;
 }
 html[data-os="macos"] :is(.context-menu-separator, .mac-menu-separator) {
   block-size: 1px;

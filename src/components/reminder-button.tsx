@@ -20,14 +20,14 @@ const TONES: Array<{ id: ReminderTone; label: string }> = [
   { id: "silent", label: "Silent" },
 ];
 
-type ReminderSeed = {
+export type ReminderSeed = {
   id: string;
   type: "movie" | "series";
   name: string;
   poster?: string;
 };
 
-function ReminderMenu({
+export function ReminderMenu({
   seed,
   anchorRef,
   open,

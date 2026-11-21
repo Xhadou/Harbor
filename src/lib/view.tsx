@@ -765,6 +765,7 @@ export function ViewProvider({ children }: { children: ReactNode }) {
     const cur = stackRef.current;
     const pages = previewPageStack(cur);
     if (pages.length <= 1) return;
+    arrivedByBack = true;
     const nextStack = navigateUnderPreview(cur, (frames) => frames.slice(0, -1));
     const nextForwardStack = pushFrame(forwardStackRef.current, pages[pages.length - 1]);
     stackRef.current = nextStack;
@@ -777,6 +778,7 @@ export function ViewProvider({ children }: { children: ReactNode }) {
     const curForward = forwardStackRef.current;
     const nextFrame = curForward[curForward.length - 1];
     if (!nextFrame) return;
+    arrivedByBack = false;
     const nextForwardStack = curForward.slice(0, -1);
     const nextStack = navigateUnderPreview(stackRef.current, (frames) =>
       pushFrame(frames, nextFrame),
@@ -796,9 +798,12 @@ export function ViewProvider({ children }: { children: ReactNode }) {
   const setNavStack = useCallback(
     (updater: (s: Frame[]) => Frame[], preserveDock = true) => {
       clearForwardStack();
-      setStack((current) =>
-        preserveDock ? navigateUnderPreview(current, updater) : updater(current),
-      );
+      setStack((current) => {
+        const next = preserveDock ? navigateUnderPreview(current, updater) : updater(current);
+        // A stack that got shorter went back; anything else opened something.
+        arrivedByBack = next.length < current.length;
+        return next;
+      });
     },
     [clearForwardStack],
   );
@@ -1789,11 +1794,23 @@ function targetForSnap(el: HTMLElement, snap: ScrollSnapshot): number | null {
   return snap.fallback >= 0 ? snap.fallback : null;
 }
 
+/**
+ * Whether the page now on show was reached by going back to it. Read when a
+ * page mounts: a page gone back to returns to where it was left, where one
+ * opened afresh may start at its top.
+ */
+let arrivedByBack = false;
+export function wasReachedByBack(): boolean {
+  return arrivedByBack;
+}
+
+/** `recall: false` keeps remembering the position but opens the view at its top. */
 export function useScrollMemory(
   key: string,
   ref: RefObject<HTMLElement | null>,
   active: boolean = true,
   hideUntilRestored: boolean = false,
+  recall: boolean = true,
 ) {
   const { rememberScroll, recallScroll } = useView();
   const { settings } = useSettings();
@@ -1816,7 +1833,7 @@ export function useScrollMemory(
     const el = ref.current;
     if (!el || !active) return;
 
-    let restoring = true;
+    let restoring = recall;
     let settleId: number | null = null;
     let saveTimer: number | null = null;
     let revealId: number | null = null;
@@ -1833,7 +1850,7 @@ export function useScrollMemory(
       }
     };
 
-    const initialSnap = recallScroll(key);
+    const initialSnap = recall ? recallScroll(key) : null;
     const wantsHide =
       hideUntilRestored && !!initialSnap && (targetForSnap(el, initialSnap) ?? 0) > 8;
     let revealed = !wantsHide;
@@ -1972,7 +1989,10 @@ export function useScrollMemory(
 
     const ro = new ResizeObserver(onResize);
     ro.observe(el);
-    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    // Every part of the page, not only its first: a page whose header keeps its
+    // size grows in the parts below it, and the position can be further down
+    // than the page is tall until they have loaded.
+    for (const child of el.children) ro.observe(child);
     el.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
@@ -1986,7 +2006,7 @@ export function useScrollMemory(
       ro.disconnect();
       el.removeEventListener("scroll", onScroll);
     };
-  }, [active, key, ref, rememberScroll, recallScroll, hideUntilRestored]);
+  }, [active, key, ref, rememberScroll, recallScroll, hideUntilRestored, recall]);
 }
 
 export { frameKey };

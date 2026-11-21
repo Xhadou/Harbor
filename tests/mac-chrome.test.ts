@@ -71,6 +71,21 @@ test("coerceMacSettings turns on the full-bleed hero on macOS when the setting e
   assert.equal("heroFull" in coerceMacSettings(without, "macos"), false);
 });
 
+test("coerceMacSettings opens title pages at the top once, then respects the switch", () => {
+  const base = { useNativeTitleBar: true, hybridTitleBar: false };
+  const first = coerceMacSettings({ ...base, resumeDetailScroll: true }, "macos");
+  assert.equal(first.resumeDetailScroll, false);
+  assert.equal((first as { _macDetailTopV1?: boolean })._macDetailTopV1, true);
+
+  // The owner turns "reopen where I left it" back on; it stays on.
+  const reopened = { ...first, resumeDetailScroll: true };
+  assert.equal(coerceMacSettings(reopened, "macos"), reopened);
+
+  const elsewhere = { ...base, resumeDetailScroll: true };
+  assert.equal(coerceMacSettings(elsewhere, "linux"), elsewhere);
+  assert.equal("resumeDetailScroll" in coerceMacSettings(base, "macos"), false);
+});
+
 test("coerceMacSettings pins the one dark look on macOS", () => {
   const theme = {
     preset: "cool-grey",

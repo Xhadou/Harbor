@@ -24,6 +24,8 @@ type MacCoercible = {
   heroFull?: boolean;
   navCustomization?: { hidden: string[] };
   _macNavTrimV1?: boolean;
+  resumeDetailScroll?: boolean;
+  _macDetailTopV1?: boolean;
   theme?: {
     preset: string;
     backgroundImage: string | null;
@@ -60,12 +62,16 @@ export function coerceMacSettings<T extends MacCoercible>(settings: T, os: OsCla
   const wantsFullHero = "heroFull" in settings && settings.heroFull !== true;
   const theme = settings.theme ? pinnedTheme(settings.theme) : undefined;
   const nav = settings._macNavTrimV1 ? undefined : settings.navCustomization;
+  // A title page opens at its top. Off once; the switch in Settings turns
+  // "reopen where I left it" back on and the flag keeps it on.
+  const opensAtTop = !settings._macDetailTopV1 && "resumeDetailScroll" in settings;
   if (
     settings.useNativeTitleBar &&
     !settings.hybridTitleBar &&
     !wantsFullHero &&
     theme === settings.theme &&
-    !nav
+    !nav &&
+    !opensAtTop
   ) {
     return settings;
   }
@@ -74,6 +80,7 @@ export function coerceMacSettings<T extends MacCoercible>(settings: T, os: OsCla
     useNativeTitleBar: true,
     hybridTitleBar: false,
     ...(wantsFullHero ? { heroFull: true } : null),
+    ...(opensAtTop ? { resumeDetailScroll: false, _macDetailTopV1: true } : null),
     ...(theme ? { theme } : null),
     // The flag travels with the saved settings, so a destination the owner turns
     // back on afterwards is not hidden again.

@@ -128,7 +128,7 @@ import { useIsFavorite, useMediaFavorites } from "@/lib/media-favorites";
 import { openUrl } from "@/lib/window";
 import { profileFromDetail, trackEvent } from "@/lib/discover";
 import { MOVIE_GENRES, TV_GENRES } from "@/lib/feed/tags";
-import { useScrollMemory, useView, type PlayEpisode } from "@/lib/view";
+import { useScrollMemory, useView, wasReachedByBack, type PlayEpisode } from "@/lib/view";
 import { prefetchSegments } from "@/lib/skip-intro";
 import { useT } from "@/lib/i18n";
 import { emitListToast } from "@/components/lists/list-toast";
@@ -163,6 +163,7 @@ import { DetailLayoutEditor } from "./detail/layout-editor";
 import { EpisodeDownloadButton } from "./detail/episode-download-button";
 import { HeroBackdrop } from "@/components/hero-backdrop";
 import { isTitleUpcoming } from "./detail/helpers";
+import { joinById } from "@/lib/join-by-id";
 import { AccoladeBadges } from "./detail/accolade-badges";
 import { HeroAwardsCorner } from "./detail/hero-awards";
 import { CrunchyrollAwardsCorner } from "./detail/crunchyroll-corner";
@@ -194,6 +195,8 @@ import {
 } from "./detail/media-rails";
 import { UiIcon } from "@/components/ui-icon";
 import { HeroActionOverflow, useHeroActionOverflow } from "./detail/hero-action-overflow";
+import { MacTitleButton } from "./detail/mac-title-button";
+import { isMacDesktop } from "@/lib/platform";
 import { useTvdbCastFallback } from "./detail/use-tvdb-cast-fallback";
 import { HeroRatings } from "./detail/hero-ratings";
 import { TrailerOverlay } from "./detail/trailer-overlay";
@@ -442,7 +445,18 @@ export function DetailView({
   const { toggle: toggleFavorite } = useMediaFavorites();
   const isFav = useIsFavorite(meta.id, [detail?.imdbId]);
   const inSession = roomSnapshot.state === "joined" && roomSnapshot.participants.length >= 2;
-  useScrollMemory(`meta:${meta.id}`, scrollRef, settings.resumeDetailScroll, true);
+  // macOS opens a title page at its top unless the switch says otherwise, but a
+  // page gone back to still returns to where it was left.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- read once per title shown
+  const reachedByBack = useMemo(wasReachedByBack, [meta.id]);
+  const macTitle = isMacDesktop();
+  useScrollMemory(
+    `meta:${meta.id}`,
+    scrollRef,
+    macTitle || settings.resumeDetailScroll,
+    true,
+    !macTitle || settings.resumeDetailScroll || reachedByBack,
+  );
 
   useEffect(() => {
     if (!meta.id.startsWith("simkl:")) return;
@@ -1735,6 +1749,12 @@ export function DetailView({
     () => orderByReason(shownSimilar, graphReasons),
     [shownSimilar, graphReasons],
   );
+  // macOS shows one row of recommendations: the two lists, joined.
+  const oneRecommendationRow = useMemo(
+    () =>
+      isMacDesktop() ? joinById(reasonedRecommendations, reasonedSimilar) : reasonedRecommendations,
+    [reasonedRecommendations, reasonedSimilar],
+  );
   const liveAwards = useAwards(detail?.imdbId ?? undefined, meta.type === "series");
   const awards = useMemo(
     () => mergeBundledAwards(liveAwards, meta.name, releaseYearNum ?? undefined),
@@ -2441,6 +2461,26 @@ export function DetailView({
     isAnime && lastPlay
       ? animePlayEpisode(animeEpisodes, lastPlay, idAnime, animeCanonicalId)
       : undefined;
+  const mac = isMacDesktop();
+  const toggleTitleWatchlist = () =>
+    toggleWatchlist({
+      id: meta.id,
+      type: meta.type,
+      name: title || meta.name,
+      poster: poster,
+      imdbId: detail?.imdbId,
+      background: meta.background,
+      logo: ownLogo || meta.logo,
+      description: meta.description,
+      releaseInfo: meta.releaseInfo,
+      imdbRating: meta.imdbRating,
+      genres: meta.genres,
+      posterShape:
+        ((meta as unknown as Record<string, unknown>).posterShape as
+          | "POSTER"
+          | "SQUARE"
+          | "LANDSCAPE") || "POSTER",
+    });
   const smartPlayLabel =
     inSession && !liveContext
       ? t("Play Together")
@@ -2580,6 +2620,7 @@ export function DetailView({
         ratingSource={primaryRating.source}
         animeImdbRating={harborImdbRating}
         onOpenUrl={openUrl}
+        max={mac ? 1 : undefined}
       />
       {runtime && (
         <HoverTooltip
@@ -2623,7 +2664,7 @@ export function DetailView({
           {meta.addonOrigin.name}
         </span>
       ) : (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="detail-genres flex flex-wrap items-center gap-3">
           {genres.slice(0, 3).map((g) => {
             const map = isSeries ? TV_GENRES : MOVIE_GENRES;
             const id = map[g];
@@ -2743,13 +2784,13 @@ export function DetailView({
                 </div>
               )}
               {awardsInDescription ? (
-                <div className="mt-6 flex flex-wrap items-center gap-3 text-[13px] font-medium text-ink-muted">
+                <div className="mac-title-facts mt-6 flex flex-wrap items-center gap-3 text-[13px] font-medium text-ink-muted">
                   {heroPills}
                 </div>
               ) : (
                 <div className="relative mt-6">
                   <div
-                    className={`flex flex-wrap items-center gap-3 text-[13px] font-medium text-ink-muted ${
+                    className={`mac-title-facts flex flex-wrap items-center gap-3 text-[13px] font-medium text-ink-muted ${
                       heroAwardsCorner || mangaAwardCorner ? "pe-[240px]" : "max-w-3xl"
                     }`}
                   >
@@ -2766,7 +2807,7 @@ export function DetailView({
               <MovieReleaseCountdowns detail={detail} />
               <div
                 ref={actionRowRef}
-                className={`mt-9 flex ${awardsInDescription ? "" : "w-fit max-w-full "}items-center gap-3 [&>*]:shrink-0`}
+                className={`mac-title-actions mt-9 flex ${awardsInDescription ? "" : "w-fit max-w-full "}items-center gap-3 [&>*]:shrink-0`}
               >
                 {upcoming ? (
                   <UpcomingCta detail={detail} onTry={() => smartPlay()} />
@@ -2780,9 +2821,13 @@ export function DetailView({
                         e.preventDefault();
                         void smartPlay(true);
                       }}
-                      className="flex h-12 items-center gap-2.5 rounded-full bg-ink px-7 text-[15px] font-semibold text-canvas transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+                      className={
+                        mac
+                          ? "mac-btn mac-btn-lg mac-btn-onart flex"
+                          : "flex h-12 items-center gap-2.5 rounded-full bg-ink px-7 text-[15px] font-semibold text-canvas transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
+                      }
                     >
-                      <Play size={18} fill="currentColor" />
+                      <Play size={mac ? 13 : 18} fill="currentColor" />
                       <span
                         key={smartPlayLabel}
                         className="inline-block transition-all duration-200 animate-in fade-in slide-in-from-bottom-1"
@@ -2792,166 +2837,202 @@ export function DetailView({
                     </button>
                   </PlayModeHint>
                 )}
-                {actionStage < 2 && (
-                  <HoverTooltip
-                    label={
-                      isNuvio
-                        ? t("Synced to Nuvio Cloud")
-                        : traktConnected
-                          ? t("Synced to Trakt")
-                          : t("Saved locally. Connect Trakt in Settings to sync.")
-                    }
-                    align="center"
-                    className="shrink-0"
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        toggleWatchlist({
+                {mac ? (
+                  <>
+                    <MacTitleButton
+                      icon={
+                        inWatchlist ? (
+                          <Check size={14} strokeWidth={2.4} />
+                        ) : (
+                          <Plus size={14} strokeWidth={2.2} />
+                        )
+                      }
+                      label={inWatchlist ? t("In Watchlist") : t("Add to Watchlist")}
+                      hint={
+                        isNuvio
+                          ? t("Synced to Nuvio Cloud")
+                          : traktConnected
+                            ? t("Synced to Trakt")
+                            : t("Saved locally. Connect Trakt in Settings to sync.")
+                      }
+                      pressed={inWatchlist}
+                      onClick={toggleTitleWatchlist}
+                    />
+                    {trailerCandidate && (
+                      <MacTitleButton
+                        icon={<UiIcon name="trailer" className="h-3.5 w-3.5" />}
+                        label={t("Trailer")}
+                        onClick={() => setTrailerOpen(true)}
+                        onWarm={prefetchTrailer}
+                      />
+                    )}
+                    {settings.showWatchedButton && meta.type === "movie" && (
+                      <MacTitleButton
+                        icon={
+                          watchedMark ? (
+                            <Check size={14} strokeWidth={2.4} />
+                          ) : (
+                            <UiIcon name="mark-watched" className="h-3.5 w-3.5" />
+                          )
+                        }
+                        label={watchedMark ? t("Watched") : t("Mark watched")}
+                        pressed={watchedMark}
+                        onClick={markThisMovieWatched}
+                      />
+                    )}
+                    {animeIdentity && (
+                      <AddToMalButton
+                        harborId={animeCanonicalId ?? meta.id}
+                        title={title || meta.name}
+                      />
+                    )}
+                    <HeroActionOverflow
+                      layout="mac"
+                      meta={meta}
+                      isFav={isFav}
+                      onToggleFavorite={() =>
+                        toggleFavorite({
                           id: meta.id,
                           type: meta.type,
                           name: title || meta.name,
                           poster: poster,
-                          imdbId: detail?.imdbId,
-                          background: meta.background,
-                          logo: ownLogo || meta.logo,
-                          description: meta.description,
-                          releaseInfo: meta.releaseInfo,
-                          imdbRating: meta.imdbRating,
-                          genres: meta.genres,
-                          posterShape:
-                            ((meta as unknown as Record<string, unknown>).posterShape as
-                              | "POSTER"
-                              | "SQUARE"
-                              | "LANDSCAPE") || "POSTER",
                         })
                       }
-                      className={`flex h-12 items-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-medium transition-[transform,background-color] duration-200 active:scale-[0.98] ${
-                        inWatchlist
-                          ? "bg-ink/15 text-ink hover:bg-ink/20"
-                          : "bg-canvas/80 text-ink hover:bg-canvas/95"
-                      }`}
-                    >
-                      <PopIcon
-                        active={inWatchlist}
-                        activeIcon={<Check size={18} strokeWidth={2.4} />}
-                        inactiveIcon={<Plus size={18} strokeWidth={2} />}
-                      />
-                      {inWatchlist ? t("In Watchlist") : t("Add to Watchlist")}
-                    </button>
-                  </HoverTooltip>
-                )}
-                {actionStage < 2 && animeIdentity && (
-                  <AddToAnilistButton
-                    harborId={animeCanonicalId ?? meta.id}
-                    title={title || meta.name}
-                  />
-                )}
-                {actionStage < 2 && animeIdentity && (
-                  <AddToMalButton
-                    harborId={animeCanonicalId ?? meta.id}
-                    title={title || meta.name}
-                  />
-                )}
-                {actionStage < 2 && (
-                  <AddToSimklButton
-                    harborId={isAnime ? (animeCanonicalId ?? meta.id) : meta.id}
-                    title={title || meta.name}
-                    type={meta.type === "movie" ? "movie" : "series"}
-                  />
-                )}
-                {actionStage < 2 && (
-                  <AddToPmdbButton
-                    harborId={isAnime ? (animeCanonicalId ?? meta.id) : meta.id}
-                    title={title || meta.name}
-                    type={meta.type === "movie" ? "movie" : "series"}
-                  />
-                )}
-                {actionStage < 2 && canDropTitle && (
-                  <button
-                    type="button"
-                    onClick={() => setDropConfirmOpen(true)}
-                    className="flex h-12 items-center gap-2.5 rounded-full border border-danger/30 bg-danger/10 px-5 text-[15px] font-medium text-danger transition-[transform,background-color,border-color] duration-200 hover:bg-danger/15 active:scale-[0.98]"
-                  >
-                    <Ban size={17} strokeWidth={2.1} />
-                    {t("Drop show")}
-                  </button>
-                )}
-                {!liveContext && (
-                  <RateButton
-                    target={ratingTarget(
-                      {
-                        id: meta.id,
-                        name: title || meta.name,
-                        poster: poster,
-                      },
-                      isAnime ? "anime" : isSeries ? "series" : "movie",
-                    )}
-                  />
-                )}
-                {actionStage >= 1 ? (
-                  <HeroActionOverflow
-                    meta={meta}
-                    isFav={isFav}
-                    onToggleFavorite={() =>
-                      toggleFavorite({
-                        id: meta.id,
-                        type: meta.type,
-                        name: title || meta.name,
-                        poster: poster,
-                      })
-                    }
-                    hasTrailer={!!trailerCandidate}
-                    onTrailer={() => setTrailerOpen(true)}
-                    canDownload={meta.type === "movie"}
-                    showWatched={settings.showWatchedButton && meta.type === "movie"}
-                    watchedMark={watchedMark}
-                    onWatched={markThisMovieWatched}
-                    showSync={actionStage >= 2}
-                    listItem={listSeed}
-                    inWatchlist={inWatchlist}
-                    onToggleWatchlist={() =>
-                      toggleWatchlist({
-                        id: meta.id,
-                        type: meta.type,
-                        name: title || meta.name,
-                        poster: poster,
-                        imdbId: detail?.imdbId,
-                        background: meta.background,
-                        logo: ownLogo || meta.logo,
-                        description: meta.description,
-                        releaseInfo: meta.releaseInfo,
-                        imdbRating: meta.imdbRating,
-                        genres: meta.genres,
-                        posterShape:
-                          ((meta as unknown as Record<string, unknown>).posterShape as
-                            | "POSTER"
-                            | "SQUARE"
-                            | "LANDSCAPE") || "POSTER",
-                      })
-                    }
-                    simkl={{
-                      harborId: isAnime ? (animeCanonicalId ?? meta.id) : meta.id,
-                      type: meta.type === "movie" ? "movie" : "series",
-                    }}
-                    anilist={isAnime ? { harborId: animeCanonicalId ?? meta.id } : null}
-                    pmdb={{
-                      harborId: isAnime ? (animeCanonicalId ?? meta.id) : meta.id,
-                      type: meta.type === "movie" ? "movie" : "series",
-                    }}
-                    canDrop={canDropTitle}
-                    onDrop={() => setDropConfirmOpen(true)}
-                  />
+                      hasTrailer={false}
+                      onTrailer={() => setTrailerOpen(true)}
+                      canDownload={meta.type === "movie"}
+                      showSync
+                      listItem={listSeed}
+                      rate={
+                        liveContext
+                          ? null
+                          : ratingTarget(
+                              { id: meta.id, name: title || meta.name, poster: poster },
+                              isAnime ? "anime" : isSeries ? "series" : "movie",
+                            )
+                      }
+                      reminder={
+                        meta.type === "series" || isAnime
+                          ? { id: meta.id, type: "series", name: title || meta.name, poster }
+                          : null
+                      }
+                      simkl={{
+                        harborId: isAnime ? (animeCanonicalId ?? meta.id) : meta.id,
+                        type: meta.type === "movie" ? "movie" : "series",
+                      }}
+                      anilist={isAnime ? { harborId: animeCanonicalId ?? meta.id } : null}
+                      pmdb={{
+                        harborId: isAnime ? (animeCanonicalId ?? meta.id) : meta.id,
+                        type: meta.type === "movie" ? "movie" : "series",
+                      }}
+                      canDrop={canDropTitle}
+                      onDrop={() => setDropConfirmOpen(true)}
+                    />
+                  </>
                 ) : (
                   <>
-                    <HoverTooltip
-                      label={isFav ? t("Favorited") : t("Add to favorites")}
-                      align="center"
-                      className="shrink-0"
-                    >
+                    {actionStage < 2 && (
+                      <HoverTooltip
+                        label={
+                          isNuvio
+                            ? t("Synced to Nuvio Cloud")
+                            : traktConnected
+                              ? t("Synced to Trakt")
+                              : t("Saved locally. Connect Trakt in Settings to sync.")
+                        }
+                        align="center"
+                        className="shrink-0"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toggleWatchlist({
+                              id: meta.id,
+                              type: meta.type,
+                              name: title || meta.name,
+                              poster: poster,
+                              imdbId: detail?.imdbId,
+                              background: meta.background,
+                              logo: ownLogo || meta.logo,
+                              description: meta.description,
+                              releaseInfo: meta.releaseInfo,
+                              imdbRating: meta.imdbRating,
+                              genres: meta.genres,
+                              posterShape:
+                                ((meta as unknown as Record<string, unknown>).posterShape as
+                                  | "POSTER"
+                                  | "SQUARE"
+                                  | "LANDSCAPE") || "POSTER",
+                            })
+                          }
+                          className={`flex h-12 items-center gap-2.5 whitespace-nowrap rounded-full px-6 text-[15px] font-medium transition-[transform,background-color] duration-200 active:scale-[0.98] ${
+                            inWatchlist
+                              ? "bg-ink/15 text-ink hover:bg-ink/20"
+                              : "bg-canvas/80 text-ink hover:bg-canvas/95"
+                          }`}
+                        >
+                          <PopIcon
+                            active={inWatchlist}
+                            activeIcon={<Check size={18} strokeWidth={2.4} />}
+                            inactiveIcon={<Plus size={18} strokeWidth={2} />}
+                          />
+                          {inWatchlist ? t("In Watchlist") : t("Add to Watchlist")}
+                        </button>
+                      </HoverTooltip>
+                    )}
+                    {actionStage < 2 && animeIdentity && (
+                      <AddToAnilistButton
+                        harborId={animeCanonicalId ?? meta.id}
+                        title={title || meta.name}
+                      />
+                    )}
+                    {actionStage < 2 && animeIdentity && (
+                      <AddToMalButton
+                        harborId={animeCanonicalId ?? meta.id}
+                        title={title || meta.name}
+                      />
+                    )}
+                    {actionStage < 2 && (
+                      <AddToSimklButton
+                        harborId={isAnime ? (animeCanonicalId ?? meta.id) : meta.id}
+                        title={title || meta.name}
+                        type={meta.type === "movie" ? "movie" : "series"}
+                      />
+                    )}
+                    {actionStage < 2 && (
+                      <AddToPmdbButton
+                        harborId={isAnime ? (animeCanonicalId ?? meta.id) : meta.id}
+                        title={title || meta.name}
+                        type={meta.type === "movie" ? "movie" : "series"}
+                      />
+                    )}
+                    {actionStage < 2 && canDropTitle && (
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={() => setDropConfirmOpen(true)}
+                        className="flex h-12 items-center gap-2.5 rounded-full border border-danger/30 bg-danger/10 px-5 text-[15px] font-medium text-danger transition-[transform,background-color,border-color] duration-200 hover:bg-danger/15 active:scale-[0.98]"
+                      >
+                        <Ban size={17} strokeWidth={2.1} />
+                        {t("Drop show")}
+                      </button>
+                    )}
+                    {!liveContext && (
+                      <RateButton
+                        target={ratingTarget(
+                          {
+                            id: meta.id,
+                            name: title || meta.name,
+                            poster: poster,
+                          },
+                          isAnime ? "anime" : isSeries ? "series" : "movie",
+                        )}
+                      />
+                    )}
+                    {actionStage >= 1 ? (
+                      <HeroActionOverflow
+                        meta={meta}
+                        isFav={isFav}
+                        onToggleFavorite={() =>
                           toggleFavorite({
                             id: meta.id,
                             type: meta.type,
@@ -2959,96 +3040,166 @@ export function DetailView({
                             poster: poster,
                           })
                         }
-                        aria-label={isFav ? t("Remove from favorites") : t("Add to favorites")}
-                        className={`group flex h-12 w-12 items-center justify-center rounded-full transition-[transform,background-color] duration-200 active:scale-[0.94] ${
-                          isFav
-                            ? "bg-accent/20 text-accent hover:bg-accent/22"
-                            : "bg-canvas/80 text-ink hover:bg-canvas/95"
-                        }`}
-                      >
-                        <PopIcon
-                          active={isFav}
-                          activeIcon={<UiIcon name="unfavorite" className="h-5 w-5" />}
-                          inactiveIcon={<UiIcon name="favorite" className="h-5 w-5" />}
+                        hasTrailer={!!trailerCandidate}
+                        onTrailer={() => setTrailerOpen(true)}
+                        canDownload={meta.type === "movie"}
+                        showWatched={settings.showWatchedButton && meta.type === "movie"}
+                        watchedMark={watchedMark}
+                        onWatched={markThisMovieWatched}
+                        showSync={actionStage >= 2}
+                        listItem={listSeed}
+                        inWatchlist={inWatchlist}
+                        onToggleWatchlist={() =>
+                          toggleWatchlist({
+                            id: meta.id,
+                            type: meta.type,
+                            name: title || meta.name,
+                            poster: poster,
+                            imdbId: detail?.imdbId,
+                            background: meta.background,
+                            logo: ownLogo || meta.logo,
+                            description: meta.description,
+                            releaseInfo: meta.releaseInfo,
+                            imdbRating: meta.imdbRating,
+                            genres: meta.genres,
+                            posterShape:
+                              ((meta as unknown as Record<string, unknown>).posterShape as
+                                | "POSTER"
+                                | "SQUARE"
+                                | "LANDSCAPE") || "POSTER",
+                          })
+                        }
+                        simkl={{
+                          harborId: isAnime ? (animeCanonicalId ?? meta.id) : meta.id,
+                          type: meta.type === "movie" ? "movie" : "series",
+                        }}
+                        anilist={isAnime ? { harborId: animeCanonicalId ?? meta.id } : null}
+                        pmdb={{
+                          harborId: isAnime ? (animeCanonicalId ?? meta.id) : meta.id,
+                          type: meta.type === "movie" ? "movie" : "series",
+                        }}
+                        canDrop={canDropTitle}
+                        onDrop={() => setDropConfirmOpen(true)}
+                      />
+                    ) : (
+                      <>
+                        <HoverTooltip
+                          label={isFav ? t("Favorited") : t("Add to favorites")}
+                          align="center"
+                          className="shrink-0"
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              toggleFavorite({
+                                id: meta.id,
+                                type: meta.type,
+                                name: title || meta.name,
+                                poster: poster,
+                              })
+                            }
+                            aria-label={isFav ? t("Remove from favorites") : t("Add to favorites")}
+                            className={`group flex h-12 w-12 items-center justify-center rounded-full transition-[transform,background-color] duration-200 active:scale-[0.94] ${
+                              isFav
+                                ? "bg-accent/20 text-accent hover:bg-accent/22"
+                                : "bg-canvas/80 text-ink hover:bg-canvas/95"
+                            }`}
+                          >
+                            <PopIcon
+                              active={isFav}
+                              activeIcon={<UiIcon name="unfavorite" className="h-5 w-5" />}
+                              inactiveIcon={<UiIcon name="favorite" className="h-5 w-5" />}
+                            />
+                          </button>
+                        </HoverTooltip>
+                        <HoverTooltip
+                          label={t("Add to list")}
+                          align="center"
+                          disabled={addToListOpen}
+                          className="shrink-0"
+                        >
+                          <button
+                            ref={addToListRef}
+                            type="button"
+                            onClick={() => setAddToListOpen((v) => !v)}
+                            aria-label={t("Add to list")}
+                            className="group flex h-12 w-12 items-center justify-center rounded-full bg-canvas/80 text-ink transition-[transform,background-color] duration-200 hover:bg-canvas/95 active:scale-[0.94]"
+                          >
+                            <UiIcon name="list" className="h-5 w-5" />
+                          </button>
+                        </HoverTooltip>
+                        <AddToListMenu
+                          item={listSeed}
+                          anchorRef={addToListRef}
+                          open={addToListOpen}
+                          onClose={() => setAddToListOpen(false)}
                         />
-                      </button>
-                    </HoverTooltip>
-                    <HoverTooltip
-                      label={t("Add to list")}
-                      align="center"
-                      disabled={addToListOpen}
-                      className="shrink-0"
-                    >
-                      <button
-                        ref={addToListRef}
-                        type="button"
-                        onClick={() => setAddToListOpen((v) => !v)}
-                        aria-label={t("Add to list")}
-                        className="group flex h-12 w-12 items-center justify-center rounded-full bg-canvas/80 text-ink transition-[transform,background-color] duration-200 hover:bg-canvas/95 active:scale-[0.94]"
-                      >
-                        <UiIcon name="list" className="h-5 w-5" />
-                      </button>
-                    </HoverTooltip>
-                    <AddToListMenu
-                      item={listSeed}
-                      anchorRef={addToListRef}
-                      open={addToListOpen}
-                      onClose={() => setAddToListOpen(false)}
-                    />
-                    {settings.showWatchedButton && meta.type === "movie" && (
-                      <HoverTooltip
-                        label={watchedMark ? t("Marked watched") : t("Mark watched")}
-                        align="center"
-                        className="shrink-0"
-                      >
-                        <button
-                          type="button"
-                          onClick={markThisMovieWatched}
-                          aria-label={t("Mark watched")}
-                          className={`group flex h-12 w-12 items-center justify-center rounded-full transition-[transform,background-color] duration-200 active:scale-[0.94] ${
-                            watchedMark
-                              ? "bg-accent/20 text-accent"
-                              : "bg-canvas/80 text-ink hover:bg-canvas/95"
-                          }`}
-                        >
-                          <PopIcon
-                            active={watchedMark}
-                            activeIcon={<UiIcon name="mark-unwatched" className="h-5 w-5" />}
-                            inactiveIcon={<UiIcon name="mark-watched" className="h-5 w-5" />}
-                          />
-                        </button>
-                      </HoverTooltip>
+                        {settings.showWatchedButton && meta.type === "movie" && (
+                          <HoverTooltip
+                            label={watchedMark ? t("Marked watched") : t("Mark watched")}
+                            align="center"
+                            className="shrink-0"
+                          >
+                            <button
+                              type="button"
+                              onClick={markThisMovieWatched}
+                              aria-label={t("Mark watched")}
+                              className={`group flex h-12 w-12 items-center justify-center rounded-full transition-[transform,background-color] duration-200 active:scale-[0.94] ${
+                                watchedMark
+                                  ? "bg-accent/20 text-accent"
+                                  : "bg-canvas/80 text-ink hover:bg-canvas/95"
+                              }`}
+                            >
+                              <PopIcon
+                                active={watchedMark}
+                                activeIcon={<UiIcon name="mark-unwatched" className="h-5 w-5" />}
+                                inactiveIcon={<UiIcon name="mark-watched" className="h-5 w-5" />}
+                              />
+                            </button>
+                          </HoverTooltip>
+                        )}
+                        {trailerCandidate && (
+                          <HoverTooltip
+                            label={t("Watch trailer")}
+                            align="center"
+                            className="shrink-0"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setTrailerOpen(true)}
+                              onPointerEnter={prefetchTrailer}
+                              onFocus={prefetchTrailer}
+                              aria-label={t("Watch trailer")}
+                              className="group flex h-12 w-12 items-center justify-center rounded-full bg-canvas/80 text-ink transition-[transform,background-color] duration-200 hover:bg-canvas/95 active:scale-[0.94]"
+                            >
+                              <UiIcon name="trailer" className="h-5 w-5" />
+                            </button>
+                          </HoverTooltip>
+                        )}
+                        {meta.type === "movie" && (
+                          <EpisodeDownloadButton meta={meta} variant="bar" />
+                        )}
+                      </>
                     )}
-                    {trailerCandidate && (
-                      <HoverTooltip label={t("Watch trailer")} align="center" className="shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setTrailerOpen(true)}
-                          onPointerEnter={prefetchTrailer}
-                          onFocus={prefetchTrailer}
-                          aria-label={t("Watch trailer")}
-                          className="group flex h-12 w-12 items-center justify-center rounded-full bg-canvas/80 text-ink transition-[transform,background-color] duration-200 hover:bg-canvas/95 active:scale-[0.94]"
-                        >
-                          <UiIcon name="trailer" className="h-5 w-5" />
-                        </button>
-                      </HoverTooltip>
+                    {(meta.type === "series" || isAnime) && (
+                      <ReminderButton
+                        id={meta.id}
+                        type="series"
+                        name={title || meta.name}
+                        poster={poster}
+                      />
                     )}
-                    {meta.type === "movie" && <EpisodeDownloadButton meta={meta} variant="bar" />}
                   </>
-                )}
-                {(meta.type === "series" || isAnime) && (
-                  <ReminderButton
-                    id={meta.id}
-                    type="series"
-                    name={title || meta.name}
-                    poster={poster}
-                  />
                 )}
                 {liveContext && (
                   <button
                     type="button"
                     onClick={promoteMetaToRoot}
-                    className="flex h-12 items-center gap-2 rounded-full bg-canvas/80 px-5 text-[14px] font-medium text-ink-muted transition-colors hover:bg-canvas/95 hover:text-ink"
+                    className={
+                      mac
+                        ? "mac-btn mac-btn-lg mac-btn-onart-quiet flex whitespace-nowrap"
+                        : "flex h-12 items-center gap-2 rounded-full bg-canvas/80 px-5 text-[14px] font-medium text-ink-muted transition-colors hover:bg-canvas/95 hover:text-ink"
+                    }
                   >
                     {meta.type === "series" || meta.type === "tv"
                       ? t("Open in TV Shows")
@@ -3063,7 +3214,10 @@ export function DetailView({
         </div>
       </section>
 
-      <div {...contentDrag} className="mac-pad flex flex-col gap-16 px-12 pb-24 pt-14">
+      <div
+        {...contentDrag}
+        className="mac-pad mac-title-body flex flex-col gap-16 px-12 pb-24 pt-14"
+      >
         {(overview || hasHeroAside) && (
           <div
             className={`grid min-w-0 grid-cols-1 items-start gap-8 xl:gap-10 ${heroGridColumns}`}
@@ -3233,7 +3387,9 @@ export function DetailView({
               label: t("Crew"),
               minHeight: 160,
               node: (
-                <div className="grid grid-cols-1 gap-x-12 gap-y-6 pb-12 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                  className={`grid grid-cols-1 gap-x-12 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 ${mac ? "" : "pb-12"}`}
+                >
                   {detail.directors.length > 0 && (
                     <Credit
                       label={detail.directors.length === 1 ? t("Director") : t("Directors")}
@@ -3267,7 +3423,7 @@ export function DetailView({
                       people={detail.editor}
                     />
                   )}
-                  <SharedCrewLine films={sharedCrewFilms} />
+                  {!mac && <SharedCrewLine films={sharedCrewFilms} />}
                 </div>
               ),
             });
@@ -3303,14 +3459,14 @@ export function DetailView({
               node: <CollectionRow collection={detail.collection} currentId={meta.id} />,
             });
           }
-          if (reasonedRecommendations.length > 0) {
+          if (oneRecommendationRow.length > 0) {
             railSections.push({
               key: "moreLikeThis",
               label: t("More Like This"),
               node: (
                 <DetailRecommendationRail
                   title={t("More Like This")}
-                  items={reasonedRecommendations}
+                  items={oneRecommendationRow}
                   reasons={graphReasons}
                 />
               ),
@@ -3319,7 +3475,7 @@ export function DetailView({
           if (
             capstanMeta &&
             capstanMeta.recommendations.length > 0 &&
-            reasonedRecommendations.length === 0
+            oneRecommendationRow.length === 0
           ) {
             railSections.push({
               key: "moreLikeThis",
@@ -3332,7 +3488,7 @@ export function DetailView({
               ),
             });
           }
-          if (reasonedSimilar.length > 0) {
+          if (reasonedSimilar.length > 0 && !mac) {
             railSections.push({
               key: "similar",
               label: t("You Might Also Like"),
@@ -3385,7 +3541,7 @@ export function DetailView({
               ),
             });
           }
-          if (detail) {
+          if (detail && !mac) {
             railSections.push({
               key: "mediaGallery",
               label: t("Media"),
