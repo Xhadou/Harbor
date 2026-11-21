@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { isMacDesktop } from "@/lib/platform";
 import { Eye, EyeOff } from "lucide-react";
 import { EpisodeJumper } from "@/components/episode-jumper";
 import { providerForModel } from "@/lib/ai-models";
@@ -629,7 +630,8 @@ export function SeriesEpisodes({
 
   return (
     <div data-episodes className="flex scroll-mt-24 flex-col gap-6">
-      {showExplorer && (
+      {/* macOS chooses the season in one place, the menu beside the heading. */}
+      {showExplorer && !isMacDesktop() && (
         <SeasonExplorer
           key={`${meta.id}:${source}:${settings.tvdbSeasonType}`}
           data={explorer}
@@ -639,7 +641,7 @@ export function SeriesEpisodes({
         />
       )}
       <div className="flex items-start justify-between gap-4">
-        <h3 className="shrink-0 pt-1 text-[22px] font-medium tracking-tight text-ink">
+        <h3 className="mac-type-heading shrink-0 pt-1 text-[22px] font-medium tracking-tight text-ink">
           {t("Episodes")}
         </h3>
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 xl:gap-2.5">

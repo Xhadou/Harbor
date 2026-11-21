@@ -140,6 +140,7 @@ test("TMDB season picker restores and persists selections across detail recreati
         update: () => {},
       }),
     },
+    "@/lib/platform": { isMacDesktop: () => false },
     "@/lib/trakt/provider": { useTrakt: () => ({ isConnected: false }) },
     "@/lib/simkl/provider": { useSimkl: () => ({ isConnected: false }) },
     "@/lib/publicmetadb/provider": { usePublicMetaDb: () => ({ isConnected: true }) },

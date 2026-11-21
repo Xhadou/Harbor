@@ -9033,6 +9033,36 @@ html[data-os="macos"] .mac-title-body {
 html[data-os="macos"] .mac-title-info {
   padding-block-start: 0;
 }
+/* An episode row shows that it plays: a small play glyph sits on the corner
+   of its still at rest and turns solid under the pointer, in place of one
+   that only appears on hover. */
+html[data-os="macos"] .episode-play-cue {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 8px;
+  background: transparent;
+  opacity: 1;
+}
+html[data-os="macos"] .episode-play-cue > div {
+  inline-size: 28px;
+  block-size: 28px;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out);
+}
+html[data-os="macos"] .episode-play-cue svg {
+  inline-size: 11px;
+  block-size: 11px;
+}
+html[data-os="macos"] .group:hover > * .episode-play-cue > div,
+html[data-os="macos"] .group:hover > .episode-play-cue > div {
+  background: #fff;
+  color: #000;
+}
 /* The actions under a title: Play, a few named actions, More. They wrap
    instead of running off a narrow window. */
 html[data-os="macos"] .mac-title-actions {

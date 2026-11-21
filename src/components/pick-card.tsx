@@ -1,4 +1,6 @@
 import { ScoreStack } from "./card-score-stack";
+import { oneCardBadge } from "@/lib/card-one-badge";
+import { isMacDesktop } from "@/lib/platform";
 import { Bookmark, Check } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TopTenRibbon } from "@/components/top-ten-ribbon";
@@ -137,11 +139,18 @@ const PosterCard = memo(function PosterCard({
   const resolvedImdb = useTmdbImdbId(meta.id);
   const imdbId = resolvedImdb ?? undefined;
   const sharedCardState = useCardSharedState({ meta, settings, imdbId, flagRerun });
-  const { hasDub, showTop10, inCinema, rerun, newBadge, watched, inWatchlist, inLocalLibrary } =
-    sharedCardState;
+  const {
+    hasDub: dubbed,
+    showTop10,
+    inCinema,
+    rerun,
+    newBadge,
+    watched,
+    inWatchlist,
+    inLocalLibrary,
+  } = sharedCardState;
   const showCinema = inCinema && !rerun;
-  const hasStatusBadge = settings.showCardBadges && (rerun || showCinema || !!newBadge);
-  const topLeftBadges = (hasDub ? 1 : 0) + (hasStatusBadge ? 1 : 0);
+  const statusBadge = settings.showCardBadges && (rerun || showCinema || !!newBadge);
   const ribbonLeft = showTop10 && settings.top10RibbonSide === "left";
   const ribbonRight = showTop10 && settings.top10RibbonSide === "right";
   const awardYear = parseAwardYear(meta.releaseInfo);
@@ -152,7 +161,20 @@ const PosterCard = memo(function PosterCard({
       ? (findTopAward(awardLookupName ?? meta.name, awardYear) ??
         findTopAward(meta.name, awardYear))
       : null;
-  const hasAwardWin = !!animeAwardWin || !!classicWin;
+  // macOS puts one badge on a poster; elsewhere each kind shows when it applies.
+  const mac = isMacDesktop();
+  const onlyBadge = mac
+    ? oneCardBadge({
+        status: statusBadge,
+        award: settings.cardAwardDisplay !== "none" && (!!animeAwardWin || !!classicWin),
+        dub: dubbed,
+      })
+    : null;
+  const hasDub = mac ? onlyBadge === "dub" : dubbed;
+  const hasStatusBadge = mac ? onlyBadge === "status" : statusBadge;
+  const showAward = !mac || onlyBadge === "award";
+  const topLeftBadges = (hasDub ? 1 : 0) + (hasStatusBadge ? 1 : 0);
+  const hasAwardWin = showAward && (!!animeAwardWin || !!classicWin);
   const awardTabTop = hasAwardWin && settings.awardTabPosition === "top";
   const awardBelow = hasAwardWin && settings.awardTabPosition === "below";
   const awardTabTopClass =
@@ -160,7 +182,9 @@ const PosterCard = memo(function PosterCard({
       ? stackTop((hasDub ? 1 : 0) + (hasStatusBadge ? 1 : 0), ribbonLeft)
       : undefined;
   const leftAwardBadge =
-    settings.cardAwardDisplay === "badge" && (isAnimeCardId ? !!animeAwardWin : !!classicWin);
+    showAward &&
+    settings.cardAwardDisplay === "badge" &&
+    (isAnimeCardId ? !!animeAwardWin : !!classicWin);
   const leftTopSlots = topLeftBadges + (leftAwardBadge ? 1 : 0) + (ribbonLeft ? 1 : 0);
   const watchlistPos =
     settings.watchlistBadge === "topEnd"
@@ -619,13 +643,13 @@ const PosterCard = memo(function PosterCard({
               DUB
             </span>
           )}
-          {settings.showCardBadges && (
+          {hasStatusBadge && (
             <>
               {rerun && (
                 <RerunBadge year={meta.releaseInfo} dubShift={hasDub} ribbonShift={ribbonLeft} />
               )}
               {showCinema && <CinemaBadge dubShift={hasDub} ribbonShift={ribbonLeft} />}
-              {newBadge && (
+              {newBadge && !(mac && (rerun || showCinema)) && (
                 <StatusBadge
                   label={t(newBadge.label)}
                   tone={newBadge.tone}
@@ -652,7 +676,7 @@ const PosterCard = memo(function PosterCard({
                 ribbonShift={ribbonLeft}
               />
             ))}
-          {settings.cardAwardDisplay === "tabs" && isAnimeCardId && (
+          {showAward && settings.cardAwardDisplay === "tabs" && isAnimeCardId && (
             <AnimeAwardTab
               name={awardLookupName ?? meta.name}
               fallbackName={meta.name}
@@ -662,7 +686,7 @@ const PosterCard = memo(function PosterCard({
               topClass={awardTabTopClass}
             />
           )}
-          {settings.cardAwardDisplay === "tabs" && classicWin && !isAnimeCardId && (
+          {showAward && settings.cardAwardDisplay === "tabs" && classicWin && !isAnimeCardId && (
             <ClassicAwardTab
               win={classicWin}
               below={awardBelow}
@@ -699,7 +723,7 @@ const PosterCard = memo(function PosterCard({
           ) : (
             <ScoreStack
               badges={cardBadges}
-              limit={settings.cardBadgeLimit}
+              limit={mac ? 1 : settings.cardBadgeLimit}
               placement={settings.badgePlacement}
               raised={awardBelow}
             />

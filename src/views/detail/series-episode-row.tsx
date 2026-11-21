@@ -120,7 +120,7 @@ export function EpisodeRow({
               onError={() => setImgIdx((i) => Math.min(i + 1, Math.max(0, candidates.length - 1)))}
             />
           </div>
-          <div className="absolute inset-0 flex items-center justify-center bg-canvas/40 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="episode-play-cue absolute inset-0 flex items-center justify-center bg-canvas/40 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-canvas">
               <Play size={18} fill="currentColor" />
             </div>

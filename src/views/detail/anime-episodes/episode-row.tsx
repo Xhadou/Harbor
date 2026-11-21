@@ -110,7 +110,7 @@ export function AnimeEpisodeRow({
               fallbacks={[ep.thumbnailFallback, meta.background]}
             />
           </div>
-          <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-canvas/40 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="episode-play-cue absolute inset-0 flex items-center justify-center rounded-lg bg-canvas/40 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-canvas">
               <Play size={18} fill="currentColor" />
             </div>

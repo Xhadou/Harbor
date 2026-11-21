@@ -336,7 +336,9 @@ export function CinemetaEpisodes({
         />
       )}
       <div className="flex items-end justify-between gap-6">
-        <h3 className="text-[22px] font-medium tracking-tight text-ink">{t("Episodes")}</h3>
+        <h3 className="mac-type-heading text-[22px] font-medium tracking-tight text-ink">
+          {t("Episodes")}
+        </h3>
         <div className="flex items-center gap-3">
           {grouped.length > 1 && (
             <SeasonDropdown
@@ -478,7 +480,7 @@ export function CinemetaEpisodeRow({
             ratio="landscape"
             lazy
           />
-          <div className="absolute inset-0 flex items-center justify-center bg-canvas/40 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="episode-play-cue absolute inset-0 flex items-center justify-center bg-canvas/40 opacity-0 transition-opacity group-hover:opacity-100">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-canvas">
               <Play size={18} fill="currentColor" />
             </div>

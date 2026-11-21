@@ -769,7 +769,7 @@ export const AnimeEpisodes = memo(function AnimeEpisodes({
       )}
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-4">
-          <h3 className="shrink-0 pt-1 text-[22px] font-medium tracking-tight text-ink">
+          <h3 className="mac-type-heading shrink-0 pt-1 text-[22px] font-medium tracking-tight text-ink">
             {isOneOff ? t("Movie") : t("Episodes")}
           </h3>
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-2 xl:gap-3">
