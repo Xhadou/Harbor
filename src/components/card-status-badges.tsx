@@ -59,7 +59,7 @@ export function StatusBadge({
       : "border border-edge-soft bg-canvas/95 text-ink";
   return (
     <span
-      className={`absolute ${side === "end" ? "end-2" : "start-2"} ${stackTop(dubShift ? 1 : 0, ribbonShift, layout)} rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${styles}`}
+      className={`card-status-chip absolute ${side === "end" ? "end-2" : "start-2"} ${stackTop(dubShift ? 1 : 0, ribbonShift, layout)} rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${styles}`}
     >
       {label}
     </span>
@@ -81,7 +81,7 @@ export function CinemaBadge({
   const t = useT();
   return (
     <span
-      className={`harbor-cinema-badge absolute ${side === "end" ? "end-2" : "start-2"} ${stackTop(dubShift ? 1 : 0, ribbonShift, layout)} flex items-center gap-1 rounded-md bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em]`}
+      className={`card-status-chip harbor-cinema-badge absolute ${side === "end" ? "end-2" : "start-2"} ${stackTop(dubShift ? 1 : 0, ribbonShift, layout)} flex items-center gap-1 rounded-md bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em]`}
     >
       <ClapperMini size={10} />
       <span>{t("In Cinema")}</span>
@@ -105,7 +105,7 @@ export function RerunBadge({
   const t = useT();
   return (
     <span
-      className={`absolute ${side === "end" ? "end-2" : "start-2"} ${stackTop(dubShift ? 1 : 0, ribbonShift, layout)} flex items-center gap-1 rounded-md border border-edge-soft bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-ink-muted`}
+      className={`card-status-chip absolute ${side === "end" ? "end-2" : "start-2"} ${stackTop(dubShift ? 1 : 0, ribbonShift, layout)} flex items-center gap-1 rounded-md border border-edge-soft bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-ink-muted`}
     >
       <RefreshCcw size={9} strokeWidth={2.4} />
       <span>

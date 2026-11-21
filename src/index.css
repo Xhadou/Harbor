@@ -9312,6 +9312,128 @@ html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-r
   box-shadow: 0 6px 14px -8px rgb(0 0 0 / 0.55);
 }
 
+/* A label on a poster (New, In cinema, Dub): one quiet chip, in ordinary
+   capitals, so the art stays the loudest thing on the card. */
+html[data-os="macos"] .card-status-chip {
+  display: inline-flex;
+  align-items: center;
+  block-size: 20px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 6px;
+  background: rgb(0 0 0 / 0.5);
+  box-shadow: none;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+html[data-os="macos"] .card-status-chip svg {
+  display: none;
+}
+/* The line under a card's title: a score, or what is left to watch. */
+html[data-os="macos"] :is(.mac-card-caption, .mac-cw-caption) {
+  overflow: hidden;
+  color: var(--color-ink-subtle);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-os="macos"] .mac-cw-caption {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-block-start: 1px;
+}
+
+/* Continue Watching card. The art stays whole: Play is one small cue in its
+   corner (the same cue an episode row has), progress is a thin bar inside the
+   lower edge, and what is left to watch is the line under the title. */
+html[data-os="macos"] .mac-cw-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms var(--ease-out);
+}
+html[data-os="macos"] .group:hover .mac-cw-art::after {
+  opacity: 1;
+}
+html[data-os="macos"] .mac-cw-play {
+  position: absolute;
+  inset-block-end: 20px;
+  inset-inline-end: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out);
+}
+html[data-os="macos"] .mac-cw-play svg {
+  margin-inline-start: 1px;
+}
+html[data-os="macos"] .group:hover .mac-cw-play {
+  background: #fff;
+  color: #000;
+}
+html[data-os="macos"] .mac-cw-progress {
+  position: absolute;
+  inset-inline: 10px;
+  inset-block-end: 10px;
+  block-size: 3px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.28);
+}
+html[data-os="macos"] .mac-cw-progress > div {
+  block-size: 100%;
+  border-radius: inherit;
+  background: #fff;
+}
+html[data-os="macos"] .mac-cw-dismiss {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 0.55);
+  color: rgb(255 255 255 / 0.85);
+  opacity: 0;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition:
+    opacity 120ms var(--ease-out),
+    background-color 120ms var(--ease-out);
+}
+html[data-os="macos"] .group:hover .mac-cw-dismiss,
+html[data-os="macos"] .mac-cw-dismiss:focus-visible {
+  opacity: 1;
+}
+html[data-os="macos"] .mac-cw-dismiss:hover {
+  background: rgb(0 0 0 / 0.8);
+  color: #fff;
+}
+
 /* Player bar. Every button is one size, and play, the main action, is one
    step larger. The readout at the end of the timeline reads like the one at
    its start. */

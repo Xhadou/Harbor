@@ -101,7 +101,7 @@ export function ClassicAwardBadge({
   const horizontalClass = side === "end" ? "end-2" : "start-2";
   return (
     <span
-      className={`pointer-events-none absolute ${horizontalClass} inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-md bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.1em] text-ink ring-1 ring-edge-soft/60 ${topClass}`}
+      className={`card-status-chip pointer-events-none absolute ${horizontalClass} inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-md bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.1em] text-ink ring-1 ring-edge-soft/60 ${topClass}`}
     >
       <AwardLogo type={win.type} size={11} />
       <span className="truncate">{labelFor(win)}</span>
@@ -180,7 +180,7 @@ export function AnimeAwardBadge({
   const horizontalClass = side === "end" ? "end-2" : "start-2";
   return (
     <span
-      className={`pointer-events-none absolute ${horizontalClass} inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-md bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-ink ring-1 ring-edge-soft/60 ${topClass}`}
+      className={`card-status-chip pointer-events-none absolute ${horizontalClass} inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-md bg-canvas/95 px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.14em] text-ink ring-1 ring-edge-soft/60 ${topClass}`}
       title={`${src.name} · ${win.categoryName} (${win.year})`}
     >
       <img

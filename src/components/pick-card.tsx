@@ -1,6 +1,7 @@
 import { ScoreStack } from "./card-score-stack";
 import { oneCardBadge } from "@/lib/card-one-badge";
 import { isMacDesktop } from "@/lib/platform";
+import { cardBadgeCaption } from "@/lib/card-badge-caption";
 import { Bookmark, Check } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TopTenRibbon } from "@/components/top-ten-ribbon";
@@ -170,6 +171,8 @@ const PosterCard = memo(function PosterCard({
         dub: dubbed,
       })
     : null;
+  // macOS: the art carries no score; it is a line under the title (when titles are shown).
+  const scoreUnderTitle = mac && !kids && !settings.hidePosterTitles;
   const hasDub = mac ? onlyBadge === "dub" : dubbed;
   const hasStatusBadge = mac ? onlyBadge === "status" : statusBadge;
   const showAward = !mac || onlyBadge === "award";
@@ -212,7 +215,8 @@ const PosterCard = memo(function PosterCard({
     prefetchPosterIds: true,
   });
   const tilt = useTilt<HTMLDivElement>();
-  const tiltable = !activeCustom;
+  // macOS: a poster under the pointer stays flat and in place.
+  const tiltable = !activeCustom && !mac;
   const bookmarkTopEnd = inWatchlist && settings.watchlistBadge === "topEnd";
   const watchedPos =
     settings.badgePlacement === "top"
@@ -579,7 +583,10 @@ const PosterCard = memo(function PosterCard({
         className={`relative w-full ${
           tiltable
             ? ""
-            : "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] motion-safe:group-hover:[transform:translate3d(0,-0.5rem,0)_scale(1.03)] motion-safe:group-hover:will-change-transform"
+            : mac
+              ? // macOS: the poster stays where it is; the hairline says it is under the pointer.
+                ""
+              : "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] motion-safe:group-hover:[transform:translate3d(0,-0.5rem,0)_scale(1.03)] motion-safe:group-hover:will-change-transform"
         } ${expandingCard.enabled ? "expanding-card-poster-frame" : ""} ${
           expandingCard.focusEnabled
             ? "group-focus:[-webkit-transform:translate3d(0,-0.5rem,0)] group-focus:[transform:translate3d(0,-0.5rem,0)]"
@@ -638,9 +645,9 @@ const PosterCard = memo(function PosterCard({
           {showTop10 && <TopTenRibbon side={settings.top10RibbonSide} />}
           {hasDub && (
             <span
-              className={`pointer-events-none absolute start-2 ${stackTop(0, ribbonLeft)} z-10 rounded-md bg-accent/90 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-canvas ring-1 ring-black/10`}
+              className={`card-status-chip pointer-events-none absolute start-2 ${stackTop(0, ribbonLeft)} z-10 rounded-md bg-accent/90 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-canvas ring-1 ring-black/10`}
             >
-              DUB
+              {mac ? "Dub" : "DUB"}
             </span>
           )}
           {hasStatusBadge && (
@@ -720,7 +727,7 @@ const PosterCard = memo(function PosterCard({
           )}
           {kids ? (
             cardRating && <KidsStarBadge value={cardRating} placement={settings.badgePlacement} />
-          ) : (
+          ) : scoreUnderTitle ? null : (
             <ScoreStack
               badges={cardBadges}
               limit={mac ? 1 : settings.cardBadgeLimit}
@@ -737,18 +744,21 @@ const PosterCard = memo(function PosterCard({
             className={
               kids
                 ? "line-clamp-2 text-[15px] font-bold leading-snug text-[#0e3a43]"
-                : `${reason && !kids ? "line-clamp-1" : "line-clamp-2"} text-[13px] font-medium leading-snug text-ink`
+                : `${(reason && !kids) || scoreUnderTitle ? "line-clamp-1" : "line-clamp-2"} text-[13px] font-medium leading-snug text-ink`
             }
           >
             {preferredTitle || translatedTitle || meta.name}
           </p>
-          {reason && !kids && (
+          {reason && !kids ? (
             <p
               className="line-clamp-1 text-[11px] leading-tight text-ink-subtle"
               title={reasonDetail}
             >
               {reason}
             </p>
+          ) : (
+            scoreUnderTitle &&
+            cardBadges[0] && <p className="mac-card-caption">{cardBadgeCaption(cardBadges[0])}</p>
           )}
         </div>
       )}

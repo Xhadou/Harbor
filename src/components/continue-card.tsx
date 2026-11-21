@@ -15,6 +15,7 @@ import { tmdbLiteMeta } from "@/lib/providers/tmdb/tmdb-lite";
 import { tmdbIdFromImdb } from "@/lib/providers/tmdb";
 import { useContextMenu } from "@/lib/context-menu";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { readSnapshot, useSnapshotVersion } from "@/lib/snapshots";
 import {
   episodeFromVideoId,
@@ -816,6 +817,20 @@ export const ContinueCard = memo(function ContinueCard({
     // Shared commands report errors for both original controls and context-menu execution.
     void command().catch(() => {});
   };
+  const mac = isMacDesktop();
+  // The line under the title on macOS: which episode, and what is left of it.
+  const macCaption = [
+    sub,
+    isWaiting && countdown
+      ? countdown
+      : upNext
+        ? t("Up Next")
+        : episodeTitle
+          ? episodeTitle
+          : remaining,
+  ]
+    .filter(Boolean)
+    .join(" \u00b7 ");
   const onCardContext = (e: React.MouseEvent) =>
     openContextMenu(e, {
       kind: "meta",
@@ -844,13 +859,24 @@ export const ContinueCard = memo(function ContinueCard({
         ref={cardRef}
         type="button"
         data-continue-card-trigger
-        onClick={(event) => runControl(event, commands.chooseSource)}
+        // macOS: the card is one thing to press and it plays. Another source is in its menu.
+        onClick={(event) => runControl(event, mac ? commands.play : commands.chooseSource)}
         disabled={pending || playbackBlocked}
-        aria-label={`${t("Choose another source")}: ${displayTitle}`}
-        title={t("Choose another source")}
+        aria-label={
+          mac
+            ? t("Play {name}", { name: displayTitle })
+            : `${t("Choose another source")}: ${displayTitle}`
+        }
+        title={mac ? undefined : t("Choose another source")}
         className="mac-card block w-full min-w-0 rounded-xl text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        <div className="mac-card harbor-poster relative aspect-[16/9] overflow-hidden rounded-xl bg-elevated shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] will-change-transform [transform:translate3d(0,0,0)] transition-transform duration-[220ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:scale-[1.02]">
+        <div
+          className={`mac-card harbor-poster relative aspect-[16/9] overflow-hidden rounded-xl bg-elevated shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] ${
+            mac
+              ? "mac-cw-art"
+              : "will-change-transform [transform:translate3d(0,0,0)] transition-transform duration-[220ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:scale-[1.02]"
+          }`}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-raised via-elevated to-surface" />
           {src && (
             <img
@@ -894,12 +920,16 @@ export const ContinueCard = memo(function ContinueCard({
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="max-h-[55%] w-auto max-w-[78%] object-contain opacity-80 transition-opacity duration-[220ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:opacity-25"
+                className={`max-h-[55%] w-auto max-w-[78%] object-contain opacity-80 ${
+                  mac
+                    ? ""
+                    : "transition-opacity duration-[220ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover:opacity-25"
+                }`}
               />
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-canvas/80 to-transparent" />
-          {(sub || remaining || isExternal || upNext || episodeTitle) && (
+          {!mac && (sub || remaining || isExternal || upNext || episodeTitle) && (
             <div className="absolute bottom-2 start-2 flex max-w-[calc(100%-16px)] items-center gap-1.5 rounded-md bg-canvas/95 px-2 py-1 text-[11px]">
               {isExternal ? (
                 <img
@@ -939,7 +969,7 @@ export const ContinueCard = memo(function ContinueCard({
           )}
           {showWatcher && watcher && (
             <div
-              className="absolute bottom-2.5 end-2 z-[1]"
+              className={`absolute z-[1] ${mac ? "bottom-5 start-2.5" : "bottom-2.5 end-2"}`}
               title={t("Watched by {name}", { name: watcher.name })}
             >
               <span
@@ -959,15 +989,29 @@ export const ContinueCard = memo(function ContinueCard({
               </span>
             </div>
           )}
-          <div className="absolute inset-x-0 bottom-0 h-[3px] bg-canvas/40">
-            <div
-              className={`h-full ${isWaiting ? "bg-amber-500" : "bg-accent"}`}
-              style={{ width: `${isWaiting ? 100 : progress * 100}%` }}
-            />
-          </div>
+          {mac ? (
+            <>
+              <span className="mac-cw-play" aria-hidden>
+                <Play size={11} fill="currentColor" />
+              </span>
+              <div className="mac-cw-progress">
+                <div
+                  className={isWaiting ? "bg-amber-500" : undefined}
+                  style={{ width: `${isWaiting ? 100 : progress * 100}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="absolute inset-x-0 bottom-0 h-[3px] bg-canvas/40">
+              <div
+                className={`h-full ${isWaiting ? "bg-amber-500" : "bg-accent"}`}
+                style={{ width: `${isWaiting ? 100 : progress * 100}%` }}
+              />
+            </div>
+          )}
         </div>
       </button>
-      {settings.liquidGlass ? (
+      {mac ? null : settings.liquidGlass ? (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex aspect-[16/9] items-center justify-center">
           <ThreeLiquidGlassSurface
             radius="9999px"
@@ -1019,8 +1063,35 @@ export const ContinueCard = memo(function ContinueCard({
       >
         {displayTitle}
       </button>
+      {mac && macCaption && (
+        <p className="mac-cw-caption">
+          {isExternal && (
+            <img
+              src={externalLogo}
+              alt=""
+              className="h-3 w-3 shrink-0 rounded-sm"
+              title={externalLabel}
+            />
+          )}
+          <span className={`truncate ${isWaiting && countdown ? "text-amber-500" : ""}`}>
+            {macCaption}
+          </span>
+        </p>
+      )}
       {onDismiss &&
-        (settings.liquidGlass ? (
+        (mac ? (
+          <button
+            type="button"
+            tabIndex={-1}
+            data-tv-skip="true"
+            onClick={(event) => runControl(event, commands.dismiss)}
+            disabled={pending}
+            aria-label={t("Remove from Continue Watching")}
+            className="mac-cw-dismiss"
+          >
+            <X size={12} strokeWidth={2.6} />
+          </button>
+        ) : settings.liquidGlass ? (
           <div className="absolute end-0.5 top-0.5 z-10 flex h-11 w-11 items-center justify-center">
             <ThreeLiquidGlassSurface
               radius="9999px"

@@ -158,6 +158,8 @@ function harness(
     "@/lib/local-cw": { localCwEntry: () => ({}) },
     "@/lib/manual-watched": { isManualWatchedDismissed: () => false },
     "@/lib/active-profile-id": { isNuvioProviderActive: () => false },
+    // These tests press the card the way every platform but macOS draws it.
+    "@/lib/platform": { isMacDesktop: () => false },
   };
   const load = (path: string) => {
     const mod = { exports: {} as any };
