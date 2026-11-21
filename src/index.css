@@ -128,6 +128,7 @@ html[data-os="macos"] [data-mac-bleed].mac-pad {
    starts level with the rows below. */
 html[data-os="macos"] {
   --mac-hero-zoom: 1;
+  --mac-hero-text-zoom: 1;
 }
 html[data-os="macos"] .mac-zoom-fixed {
   zoom: var(--mac-hero-zoom);
@@ -194,6 +195,56 @@ html[data-os="macos"] [data-mac-bleed] .harbor-hero-full {
 html[data-os="macos"] [data-mac-bleed] .harbor-hero-full [data-home-customize] {
   bottom: 3.25rem;
   inset-inline-end: 3rem;
+}
+
+/* The one hero. Every browse page shows Home's (`MacPageHero`); these pages
+   pad 3rem at every width, where Home's padding steps with the window. */
+html[data-os="macos"] [data-mac-bleed] .mac-page-hero {
+  margin-inline-end: -3rem;
+}
+/* Its text: a narrow column at the bottom-left, so the title's logo and the
+   synopsis stay off the subject of the picture. The words and buttons undo
+   the hero's zoom, so they are the size they are on the rest of the page. */
+html[data-os="macos"] .mac-zoom-fixed .mac-hero-text {
+  zoom: var(--mac-hero-text-zoom);
+}
+html[data-os="macos"] .harbor-hero-plate {
+  min-block-size: 0;
+}
+html[data-os="macos"] .harbor-hero-logo {
+  max-block-size: 96px;
+  max-inline-size: 320px;
+}
+html[data-os="macos"] .harbor-hero-name {
+  max-inline-size: 440px;
+  font-family: inherit;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 44px;
+  letter-spacing: -0.4px;
+}
+html[data-os="macos"] .harbor-hero-desc {
+  max-inline-size: 400px;
+  margin-block-start: 14px;
+  font-size: var(--mac-text-lead);
+  line-height: var(--mac-lh-lead);
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+html[data-os="macos"] .mac-hero-facts {
+  gap: 4px 12px;
+  margin-block-start: 10px;
+  color: var(--color-ink-muted);
+  font-size: var(--mac-text-body);
+  line-height: var(--mac-lh-body);
+}
+html[data-os="macos"] .mac-hero-score {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+html[data-os="macos"] .mac-hero-actions {
+  gap: 8px;
+  margin-block-start: 16px;
 }
 
 /* Heroes that break out of the page padding (Anime, Manga): artwork to the
@@ -8914,6 +8965,32 @@ html[data-os="macos"]
 html[data-os="macos"] .mac-btn-quiet:disabled {
   background: transparent;
   color: var(--mac-ink-off);
+}
+
+/* On artwork (a hero, a title page's header): the picture behind changes, so
+   the main action is white and the other is glass, whatever the theme. */
+html[data-os="macos"] .mac-btn-onart {
+  background: #fff;
+  color: #000;
+}
+html[data-os="macos"] .mac-btn-onart:hover {
+  background: rgb(255 255 255 / 0.86);
+}
+html[data-os="macos"] .mac-btn-onart:active {
+  background: rgb(255 255 255 / 0.72);
+}
+html[data-os="macos"] .mac-btn-onart-quiet {
+  background: rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.2);
+  color: #fff;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+}
+html[data-os="macos"] .mac-btn-onart-quiet:hover {
+  background: rgb(255 255 255 / 0.24);
+}
+html[data-os="macos"] .mac-btn-onart-quiet:active {
+  background: rgb(255 255 255 / 0.12);
 }
 
 /* Text field. `mac-field` goes on the input; `mac-field-box` on a wrapper that

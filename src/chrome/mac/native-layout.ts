@@ -33,11 +33,23 @@ export function heroZoom(scale = 1): number {
   return Math.round((HERO_SCALE / zoom) * 10000) / 10000;
 }
 
+/**
+ * The CSS `zoom` that undoes `heroZoom` for a hero's text and buttons
+ * (`.mac-hero-text`): the picture keeps its size, the words follow the page.
+ */
+export function heroTextZoom(scale = 1): number {
+  return Math.round((1 / heroZoom(scale)) * 10000) / 10000;
+}
+
 let lastLayout: NativeLayout | null = null;
 let interfaceScale = 1;
 
 function write(): void {
   document.documentElement.style.setProperty("--mac-hero-zoom", String(heroZoom(interfaceScale)));
+  document.documentElement.style.setProperty(
+    "--mac-hero-text-zoom",
+    String(heroTextZoom(interfaceScale)),
+  );
   if (!lastLayout) return;
   const insets = layoutInsets(lastLayout, interfaceScale);
   const style = document.documentElement.style;

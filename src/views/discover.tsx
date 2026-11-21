@@ -6,6 +6,8 @@ import { BrandTiles } from "@/components/brand-tiles";
 import { DiscoveryQueueCta } from "@/components/discovery-queue-cta";
 import { TopPeopleCta } from "@/components/top-people-cta";
 import { FeaturedBanner } from "@/components/featured-banner";
+import { MacPageHero } from "@/components/mac-page-hero";
+import { isMacDesktop } from "@/lib/platform";
 import { AwardTiles } from "@/components/award-tiles";
 import { GenreTiles } from "@/components/genre-tiles";
 import { LanguageTiles } from "@/components/language-tiles";
@@ -524,6 +526,8 @@ export function Discover({ active = true }: { active?: boolean }) {
     }
   };
 
+  const mac = isMacDesktop();
+
   return (
     <main
       ref={scrollCb}
@@ -544,9 +548,18 @@ export function Discover({ active = true }: { active?: boolean }) {
                 />
               )}
               <div className={hiddenFeatured ? "pointer-events-none opacity-40" : ""}>
-                <FeaturedBanner items={featReady ? shownFeatured : []} />
+                {mac ? (
+                  <MacPageHero metas={featReady ? shownFeatured : []} pull="-mt-28" />
+                ) : (
+                  <FeaturedBanner items={featReady ? shownFeatured : []} />
+                )}
               </div>
-              <div className="absolute end-0 bottom-4 z-10">{customizeBar}</div>
+              <div
+                data-home-customize={mac ? "" : undefined}
+                className="absolute end-0 bottom-4 z-10"
+              >
+                {customizeBar}
+              </div>
             </div>
           ) : (
             <div className="flex justify-end">{customizeBar}</div>

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 // @ts-expect-error Node test types are intentionally outside the browser-only tsconfig.
 import test from "node:test";
 
-import { HERO_SCALE, heroZoom, layoutInsets } from "../src/chrome/mac/native-layout";
+import { HERO_SCALE, heroTextZoom, heroZoom, layoutInsets } from "../src/chrome/mac/native-layout";
 import { registerOnPage, subscribe } from "../src/chrome/mac/native-subscription";
 import { searchHiddenFor, toolbarPayload } from "../src/chrome/mac/toolbar-payload";
 
@@ -83,6 +83,13 @@ test("a hero's zoom cancels the interface scale, so it stays the size it has at 
   // A missing or nonsensical scale means no zoom.
   assert.equal(heroZoom(0), heroZoom(1));
   assert.equal(heroZoom(), heroZoom(1));
+});
+
+test("a hero's words undo the hero's zoom, so they are the page's size at every scale", () => {
+  for (const scale of [0.8, 0.95, 1, 1.25, 1.6]) {
+    assert.ok(Math.abs(heroZoom(scale) * heroTextZoom(scale) - 1) < 0.001, `scale ${scale}`);
+  }
+  assert.equal(heroTextZoom(HERO_SCALE), 1);
 });
 
 function deferred<T>() {

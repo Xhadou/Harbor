@@ -6,6 +6,7 @@ import { CatalogCustomizeBar } from "@/components/catalog/customize-bar";
 import { ContinueCard } from "@/components/continue-card";
 import { dismissCw, isCwDismissed, useCwDismissVersion } from "@/lib/cw-dismiss";
 import { PeekHero } from "@/components/peek-hero";
+import { MacPageHero } from "@/components/mac-page-hero";
 import { Row, ScrollRootContext } from "@/components/row";
 import { TmdbNudge } from "@/components/nudge";
 import { useAuth } from "@/lib/auth";
@@ -321,6 +322,16 @@ export function Shows({ active = true }: { active?: boolean }) {
     ];
   }, [top10, rows, allRestRows]);
 
+  const mac = isMacDesktop();
+  const customizeBar = (
+    <CatalogCustomizeBar
+      editMode={pageRows.editMode}
+      hasChanges={hasPageRowChanges(pageRows.custom)}
+      onToggleEdit={() => pageRows.setEditMode((v) => !v)}
+      onReset={() => pageRows.persist(resetPageRows())}
+    />
+  );
+
   return (
     <main
       ref={scrollCb}
@@ -329,18 +340,21 @@ export function Shows({ active = true }: { active?: boolean }) {
     >
       <ScrollRootContext.Provider value={scrollEl}>
         <div className="mac-pad relative flex w-full flex-col gap-12 px-12 pb-32 pt-32">
-          <PageMast />
-          <div className="relative">
-            <PeekHero slides={shownHero} />
-            <div className="absolute bottom-3 end-3 z-20">
-              <CatalogCustomizeBar
-                editMode={pageRows.editMode}
-                hasChanges={hasPageRowChanges(pageRows.custom)}
-                onToggleEdit={() => pageRows.setEditMode((v) => !v)}
-                onReset={() => pageRows.persist(resetPageRows())}
-              />
-            </div>
-          </div>
+          {mac ? (
+            <MacPageHero metas={shownHero} pull="-mt-32">
+              <div data-home-customize className="absolute bottom-3 end-3 z-20">
+                {customizeBar}
+              </div>
+            </MacPageHero>
+          ) : (
+            <>
+              <PageMast />
+              <div className="relative">
+                <PeekHero slides={shownHero} />
+                <div className="absolute bottom-3 end-3 z-20">{customizeBar}</div>
+              </div>
+            </>
+          )}
           {!settings.tmdbKey && <TmdbNudge />}
           {cwItems.length > 0 && (
             <Row
@@ -387,7 +401,7 @@ function PageMast() {
         {t(copy.kicker)}
       </span>
       <h1 className="mac-page-title font-display text-[44px] font-medium leading-[1.05] tracking-tight text-ink">
-        {isMacDesktop() ? t("Shows") : t(copy.title)}
+        {t(copy.title)}
       </h1>
       <p className="mac-page-sub max-w-2xl text-[15px] leading-relaxed text-ink-muted">
         {t(copy.subtitle)}

@@ -4,6 +4,8 @@ import { BackToTop } from "@/components/back-to-top";
 import { CatalogRows } from "@/components/catalog/catalog-rows";
 import { CatalogCustomizeBar } from "@/components/catalog/customize-bar";
 import { CinemaHero } from "@/components/cinema-hero";
+import { MacPageHero } from "@/components/mac-page-hero";
+import { isMacDesktop } from "@/lib/platform";
 import { Row, ScrollRootContext } from "@/components/row";
 import { PickCard } from "@/components/pick-card";
 import { TmdbNudge } from "@/components/nudge";
@@ -304,6 +306,8 @@ export function Movies({ active = true }: { active?: boolean }) {
     ];
   }, [top10, rows, allRestRows]);
 
+  const mac = isMacDesktop();
+
   return (
     <main
       ref={scrollCb}
@@ -311,8 +315,9 @@ export function Movies({ active = true }: { active?: boolean }) {
       className="relative h-full overflow-y-auto overflow-x-hidden bg-canvas"
     >
       <ScrollRootContext.Provider value={scrollEl}>
-        <CinemaHero slides={shownHero} eyebrow={t("Featured tonight")} />
+        {!mac && <CinemaHero slides={shownHero} eyebrow={t("Featured tonight")} />}
         <div className="mac-pad relative flex w-full flex-col gap-12 px-12 pb-32 pt-12">
+          {mac && <MacPageHero metas={shownHero} pull="-mt-12" />}
           <CatalogCustomizeBar
             editMode={pageRows.editMode}
             hasChanges={hasPageRowChanges(pageRows.custom)}

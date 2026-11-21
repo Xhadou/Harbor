@@ -12,6 +12,8 @@ import {
 import { AnimeGenrePicker } from "@/components/anime-genre-picker";
 import { preloadAnimeGenreArt } from "@/lib/anime-genre-art-map";
 import { AnimeHero, AnimeHeroSkeleton } from "@/components/anime-hero";
+import { MacPageHero } from "@/components/mac-page-hero";
+import { isMacDesktop } from "@/lib/platform";
 import { BackToTop } from "@/components/back-to-top";
 import { ContinueCard } from "@/components/continue-card";
 import { dismissCw, isCwDismissed, useCwDismissVersion } from "@/lib/cw-dismiss";
@@ -895,6 +897,8 @@ export function AnimeView({ active = true }: { active?: boolean }) {
     return () => window.removeEventListener("harbor:anime-focus-row", handler as EventListener);
   }, []);
 
+  const mac = isMacDesktop();
+
   return (
     <main
       ref={scrollCb}
@@ -909,6 +913,8 @@ export function AnimeView({ active = true }: { active?: boolean }) {
               onSeen={announcementSeen}
               onDismiss={announcementDismiss}
             />
+          ) : mac ? (
+            <MacPageHero metas={heroSlides} pull="-mt-28" playOpensTitle />
           ) : heroMetas.length > 0 ? (
             <div data-scroll-anchor="hero" className="relative harbor-anime-hero hero-reveal">
               <AnimeHero
@@ -944,7 +950,24 @@ export function AnimeView({ active = true }: { active?: boolean }) {
               <AnimeHeroSkeleton />
             </div>
           )}
+          {mac && !announcement && topPicks.length > 0 && (
+            <Row title={t("Top Picks for You")} scrollKey="anime:topPicks">
+              {topPicks.map((m) => (
+                <PickCard key={m.id} meta={m} />
+              ))}
+            </Row>
+          )}
           <div className="-mb-6 -mt-6 flex items-center justify-end gap-2">
+            {mac && (
+              <button
+                type="button"
+                onClick={() => setShowPicker(true)}
+                className="flex h-8 items-center gap-1.5 rounded-md border border-edge-soft/40 bg-canvas/80 px-2.5 text-[12px] font-medium text-ink-muted backdrop-blur-md transition-colors hover:bg-canvas hover:text-ink"
+              >
+                <SlidersHorizontal size={12} strokeWidth={2.2} />
+                {t("Tune anime")}
+              </button>
+            )}
             {editMode && animeHasCustomization(settings.animeRows) && (
               <button
                 onClick={() => update({ animeRows: { order: [], hidden: [], renamed: {} } })}

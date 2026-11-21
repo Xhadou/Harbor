@@ -25,6 +25,7 @@ const SOURCE_ICON: Record<string, string> = {
 };
 
 const ROUNDED_ICON = new Set(["TMDB", "Simkl"]);
+import { MacHeroFoot } from "@/components/hero/mac-hero-foot";
 import { MetaAwardsCorner } from "@/components/meta-awards-corner";
 import { RtBadge } from "@/components/rt-badge";
 import { meta as fetchMeta, narrowMediaType, type Meta } from "@/lib/cinemeta";
@@ -57,6 +58,9 @@ import { usePageVisible } from "@/lib/visibility";
 import { useTrailerVideo } from "@/lib/use-trailer-video";
 import { toggleWatchlist, useInWatchlist } from "@/lib/watchlist";
 import { useHeroContext } from "@/lib/context-menu";
+import { heroFacts } from "@/lib/hero-facts";
+import { isMacDesktop } from "@/lib/platform";
+import { smartPlayEpisode } from "@/lib/smart-play";
 
 const HERO_VIDEO_CLASS =
   "harbor-hero-video absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 object-cover";
@@ -73,6 +77,7 @@ export const Hero = memo(function Hero({
   bottomAlign = false,
   playSquare = false,
   moreInfo = false,
+  playOpensTitle = false,
 }: {
   meta: Meta;
   rank?: { label: string; position: number; sources?: Array<{ label: string; rank: number }> };
@@ -85,9 +90,13 @@ export const Hero = memo(function Hero({
   bottomAlign?: boolean;
   playSquare?: boolean;
   moreInfo?: boolean;
+  /** For a page whose titles cannot be started from here (Anime picks its
+   * episode on the title page): the hero then offers the title page only. */
+  playOpensTitle?: boolean;
 }) {
   const { settings } = useSettings();
-  const { openMeta, meta: activeDetail, player, picker, view } = useView();
+  const { openMeta, openPicker, meta: activeDetail, player, picker, view } = useView();
+  const mac = isMacDesktop();
   const { pickerOpen: profilePickerOpen } = useProfiles();
   const t = useT();
   // Hero-feed items carry IMDb ids, so translateDescriptions has to resolve them to TMDB ids.
@@ -414,77 +423,97 @@ export const Hero = memo(function Hero({
               setLogoResolved(true);
             }}
           />
-          {description && (
-            <p className="mt-6 line-clamp-3 max-w-xl text-[16px] leading-relaxed text-ink-muted">
-              {description}
-            </p>
-          )}
-          <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-[14px]">
-            {meta.releaseInfo && <Stat label={t("Year")} value={meta.releaseInfo} />}
-            {settings.showImdbBadge && imdbRating && (
-              <span className="flex items-center gap-2">
-                <ImdbIcon className="h-[18px] w-auto rounded-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.35)]" />
-                <span className="font-semibold text-ink">{imdbRating}</span>
-              </span>
+          <div className="mac-hero-text">
+            {description && (
+              <p className="harbor-hero-desc mt-6 line-clamp-3 max-w-xl text-[16px] leading-relaxed text-ink-muted">
+                {description}
+              </p>
             )}
-            {settings.showRtBadge && omdb?.rtCritics != null && (
-              <span className="flex items-center gap-2">
-                <RtBadge score={omdb.rtCritics} className="h-[18px] w-auto" />
-                <span className="font-semibold text-ink">{omdb.rtCritics}%</span>
-              </span>
-            )}
-            {meta.runtime && <Stat label={t("Runtime")} value={meta.runtime} />}
-          </div>
-          <div
-            className="mt-9 flex gap-3"
-            onMouseEnter={() => setOverControls(true)}
-            onMouseLeave={() => setOverControls(false)}
-          >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openMeta({ ...meta, logo: logo ?? meta.logo });
-              }}
-              className={`flex h-12 items-center gap-2.5 ${actionRadius} bg-ink px-7 text-[15px] font-semibold text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]`}
-            >
-              <Play size={18} fill="currentColor" />
-              {t("Play")}
-            </button>
-            {moreInfo ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openMeta({ ...meta, logo: logo ?? meta.logo });
-                }}
-                className={`flex h-12 items-center gap-2.5 ${actionRadius} bg-canvas/80 px-6 text-[15px] font-medium text-ink transition-colors duration-200 hover:bg-canvas/95`}
-              >
-                <Info size={18} strokeWidth={2} />
-                {t("More info")}
-                <ChevronRight size={16} strokeWidth={2} className="dir-icon opacity-65" />
-              </button>
+            {mac ? (
+              <MacHeroFoot
+                facts={heroFacts(meta)}
+                imdbRating={settings.showImdbBadge ? imdbRating : null}
+                rtCritics={settings.showRtBadge ? omdb?.rtCritics : null}
+                onPlay={
+                  playOpensTitle
+                    ? undefined
+                    : () =>
+                        openPicker(meta, smartPlayEpisode(meta), { autoPlay: settings.instantPlay })
+                }
+                onInfo={() => openMeta({ ...meta, logo: logo ?? meta.logo })}
+                onOverControls={setOverControls}
+              />
             ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleWatchlist({
-                    id: meta.id,
-                    type: meta.type,
-                    name: meta.name,
-                    poster: meta.poster,
-                    imdbId: resolvedImdb,
-                    addonOrigin: meta.addonOrigin,
-                    videos: meta.videos,
-                  });
-                }}
-                className={`flex h-12 items-center gap-2.5 ${actionRadius} bg-canvas/80 px-6 text-[15px] font-medium text-ink transition-colors duration-200 hover:bg-canvas/95`}
-              >
-                {inWatchlist ? (
-                  <Check size={18} strokeWidth={2.4} />
-                ) : (
-                  <Plus size={18} strokeWidth={2} />
-                )}
-                {inWatchlist ? t("In Watchlist") : t("Add to Watchlist")}
-              </button>
+              <>
+                <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-2 text-[14px]">
+                  {meta.releaseInfo && <Stat label={t("Year")} value={meta.releaseInfo} />}
+                  {settings.showImdbBadge && imdbRating && (
+                    <span className="flex items-center gap-2">
+                      <ImdbIcon className="h-[18px] w-auto rounded-[4px] shadow-[0_1px_3px_rgba(0,0,0,0.35)]" />
+                      <span className="font-semibold text-ink">{imdbRating}</span>
+                    </span>
+                  )}
+                  {settings.showRtBadge && omdb?.rtCritics != null && (
+                    <span className="flex items-center gap-2">
+                      <RtBadge score={omdb.rtCritics} className="h-[18px] w-auto" />
+                      <span className="font-semibold text-ink">{omdb.rtCritics}%</span>
+                    </span>
+                  )}
+                  {meta.runtime && <Stat label={t("Runtime")} value={meta.runtime} />}
+                </div>
+                <div
+                  className="mt-9 flex gap-3"
+                  onMouseEnter={() => setOverControls(true)}
+                  onMouseLeave={() => setOverControls(false)}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openMeta({ ...meta, logo: logo ?? meta.logo });
+                    }}
+                    className={`flex h-12 items-center gap-2.5 ${actionRadius} bg-ink px-7 text-[15px] font-semibold text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]`}
+                  >
+                    <Play size={18} fill="currentColor" />
+                    {t("Play")}
+                  </button>
+                  {moreInfo ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openMeta({ ...meta, logo: logo ?? meta.logo });
+                      }}
+                      className={`flex h-12 items-center gap-2.5 ${actionRadius} bg-canvas/80 px-6 text-[15px] font-medium text-ink transition-colors duration-200 hover:bg-canvas/95`}
+                    >
+                      <Info size={18} strokeWidth={2} />
+                      {t("More info")}
+                      <ChevronRight size={16} strokeWidth={2} className="dir-icon opacity-65" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleWatchlist({
+                          id: meta.id,
+                          type: meta.type,
+                          name: meta.name,
+                          poster: meta.poster,
+                          imdbId: resolvedImdb,
+                          addonOrigin: meta.addonOrigin,
+                          videos: meta.videos,
+                        });
+                      }}
+                      className={`flex h-12 items-center gap-2.5 ${actionRadius} bg-canvas/80 px-6 text-[15px] font-medium text-ink transition-colors duration-200 hover:bg-canvas/95`}
+                    >
+                      {inWatchlist ? (
+                        <Check size={18} strokeWidth={2.4} />
+                      ) : (
+                        <Plus size={18} strokeWidth={2} />
+                      )}
+                      {inWatchlist ? t("In Watchlist") : t("Add to Watchlist")}
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -509,7 +538,7 @@ function HeroTitlePlate({
   onError: () => void;
 }) {
   return (
-    <div className="relative flex min-h-[112px] items-end">
+    <div className="harbor-hero-plate relative flex min-h-[112px] items-end">
       {logo ? (
         <img
           ref={(el) => {
@@ -526,7 +555,7 @@ function HeroTitlePlate({
             else onLoad();
           }}
           onError={onError}
-          className="max-h-[120px] w-auto max-w-[460px] object-contain object-left rtl:object-right drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)]"
+          className="harbor-hero-logo max-h-[120px] w-auto max-w-[460px] object-contain object-left rtl:object-right drop-shadow-[0_6px_22px_rgba(0,0,0,0.45)]"
           style={{
             opacity: loaded ? 1 : 0,
             transition: "opacity 360ms cubic-bezier(0.32, 0.72, 0.24, 1)",
@@ -534,7 +563,7 @@ function HeroTitlePlate({
         />
       ) : resolved ? (
         <h2
-          className="font-display text-[68px] font-medium leading-[0.98] tracking-tight text-ink"
+          className="harbor-hero-name font-display text-[68px] font-medium leading-[0.98] tracking-tight text-ink"
           style={{ animation: "harbor-fade-in 420ms cubic-bezier(0.32, 0.72, 0.24, 1) both" }}
         >
           {name}

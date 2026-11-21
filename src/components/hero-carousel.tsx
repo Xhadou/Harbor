@@ -33,6 +33,7 @@ export function HeroCarousel({
   bottomAlign = false,
   playSquare = false,
   moreInfo = false,
+  playOpensTitle = false,
   onActive,
 }: {
   slides: Slide[];
@@ -43,6 +44,7 @@ export function HeroCarousel({
   bottomAlign?: boolean;
   playSquare?: boolean;
   moreInfo?: boolean;
+  playOpensTitle?: boolean;
   /** The slide on show, for a caller that has something of its own to place over it. */
   onActive?: (index: number) => void;
 }) {
@@ -297,6 +299,7 @@ export function HeroCarousel({
                     bottomAlign={bottomAlign}
                     playSquare={playSquare}
                     moreInfo={moreInfo}
+                    playOpensTitle={playOpensTitle}
                   />
                 ) : (
                   <div
