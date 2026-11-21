@@ -8579,13 +8579,21 @@ html[data-os="macos"]
     transform: translateY(8px);
   }
 }
-html[data-os="macos"] .harbor-layer-active > * {
+html[data-os="macos"]:not(.mac-page-vt) .harbor-layer-active > * {
   animation: mac-view-in 260ms var(--ease-out) backwards;
 }
 @media (prefers-reduced-motion: reduce) {
   html[data-os="macos"] .harbor-layer-active > * {
     animation: none;
   }
+}
+/* Where the web view can cross-fade two pages (see src/lib/page-transition.ts)
+   that replaces the fade-up: the page being left stays as a picture until the
+   new one is laid out, so the fade is seen whole. */
+html.mac-page-vt::view-transition-old(root),
+html.mac-page-vt::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out);
 }
 
 /* The hero's slide markers on macOS: a bar that fills while its slide is on

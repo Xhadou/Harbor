@@ -32,6 +32,7 @@ import { useSmoothWheel } from "./smooth-scroll";
 import { useTogether } from "./together/provider";
 import { beginMarathonAdvance } from "./fullscreen-state";
 import { consumeBack } from "./back-intercept";
+import { commitWithPageTransition, pageTransitionsSupported } from "./page-transition";
 import { useSectionBackActive } from "./section-back";
 import type { SubtitleLoadMetadata } from "./subtitles/types";
 import type { SourceFolder } from "./custom-sources";
@@ -568,6 +569,13 @@ function syncFrameKey(f: Frame): string {
   return frameKey(f);
 }
 
+/** The page a stack shows, for telling one page from the next; null where no picture of it can be taken. */
+function transitionPageKey(stack: Frame[]): string | null {
+  const top = stack[stack.length - 1];
+  if (!top || top.kind === "player" || top.kind === "picker") return null;
+  return syncFrameKey(top);
+}
+
 function lastOfKind<K extends Frame["kind"]>(
   frames: Frame[],
   kind: K,
@@ -760,6 +768,20 @@ export function ViewProvider({ children }: { children: ReactNode }) {
   const canGoBack = previewPageStack(stack).length > 1 || sectionBackActive;
   const canGoForward = forwardStack.length > 0;
 
+  // Every change of the stack goes through here, so every page change, Back
+  // included, cross-fades on macOS (see page-transition.ts).
+  // `from` is the stack being left, for callers that have already moved the ref on.
+  const commitStack = useCallback((commit: () => void, from: Frame[] = stackRef.current) => {
+    const before = transitionPageKey(from);
+    commitWithPageTransition(commit, before !== null, () => {
+      const after = transitionPageKey(stackRef.current);
+      return after !== null && after !== before;
+    });
+  }, []);
+  useEffect(() => {
+    if (pageTransitionsSupported()) document.documentElement.classList.add("mac-page-vt");
+  }, []);
+
   const pop = useCallback(() => {
     if (consumeBack()) return;
     const cur = stackRef.current;
@@ -770,9 +792,11 @@ export function ViewProvider({ children }: { children: ReactNode }) {
     const nextForwardStack = pushFrame(forwardStackRef.current, pages[pages.length - 1]);
     stackRef.current = nextStack;
     forwardStackRef.current = nextForwardStack;
-    setStack(nextStack);
-    setForwardStack(nextForwardStack);
-  }, []);
+    commitStack(() => {
+      setStack(nextStack);
+      setForwardStack(nextForwardStack);
+    }, cur);
+  }, [commitStack]);
 
   const goForward = useCallback(() => {
     const curForward = forwardStackRef.current;
@@ -780,14 +804,15 @@ export function ViewProvider({ children }: { children: ReactNode }) {
     if (!nextFrame) return;
     arrivedByBack = false;
     const nextForwardStack = curForward.slice(0, -1);
-    const nextStack = navigateUnderPreview(stackRef.current, (frames) =>
-      pushFrame(frames, nextFrame),
-    );
+    const cur = stackRef.current;
+    const nextStack = navigateUnderPreview(cur, (frames) => pushFrame(frames, nextFrame));
     stackRef.current = nextStack;
     forwardStackRef.current = nextForwardStack;
-    setStack(nextStack);
-    setForwardStack(nextForwardStack);
-  }, []);
+    commitStack(() => {
+      setStack(nextStack);
+      setForwardStack(nextForwardStack);
+    }, cur);
+  }, [commitStack]);
 
   const clearForwardStack = useCallback(() => {
     if (forwardStackRef.current.length === 0) return;
@@ -798,14 +823,16 @@ export function ViewProvider({ children }: { children: ReactNode }) {
   const setNavStack = useCallback(
     (updater: (s: Frame[]) => Frame[], preserveDock = true) => {
       clearForwardStack();
-      setStack((current) => {
-        const next = preserveDock ? navigateUnderPreview(current, updater) : updater(current);
-        // A stack that got shorter went back; anything else opened something.
-        arrivedByBack = next.length < current.length;
-        return next;
-      });
+      commitStack(() =>
+        setStack((current) => {
+          const next = preserveDock ? navigateUnderPreview(current, updater) : updater(current);
+          // A stack that got shorter went back; anything else opened something.
+          arrivedByBack = next.length < current.length;
+          return next;
+        }),
+      );
     },
-    [clearForwardStack],
+    [clearForwardStack, commitStack],
   );
 
   const exitPlayback = useCallback(() => {

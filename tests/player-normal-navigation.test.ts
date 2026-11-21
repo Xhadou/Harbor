@@ -51,6 +51,10 @@ function harness() {
     "./fullscreen-state": { beginMarathonAdvance: () => calls.push("advance") },
     "./back-intercept": back,
     "./section-back": { useSectionBackActive: () => false },
+    "./page-transition": {
+      commitWithPageTransition: (commit: () => void) => commit(),
+      pageTransitionsSupported: () => false,
+    },
     "@/lib/big-picture": { useBigPicture: () => ({ active: false }) },
     "@/lib/profiles": { useProfiles: () => ({ activeProfile: { id: "fixture-profile" } }) },
     "./picker-return": pickerReturn,

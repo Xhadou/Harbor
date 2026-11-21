@@ -51,6 +51,8 @@ function fixture(initial: any[]) {
     previewPageStack,
     useCallback: (fn: any) => fn,
     consumeBack: () => false,
+    // No page is drawn here, so a change applies at once instead of waiting for a cross-fade.
+    commitStack: (commit: () => void) => commit(),
     setStack: (value: any) => {
       stackRef.current = typeof value === "function" ? value(stackRef.current) : value;
     },
