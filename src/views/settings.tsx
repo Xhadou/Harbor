@@ -18,6 +18,7 @@ import { SettingsSidebar } from "./settings/settings-sidebar";
 import {
   MacSettingsNav,
   settingsPageLabel,
+  useMacSidebarSearch,
   MacSettingsTabs,
   useMacTabEnter,
 } from "./settings/mac-settings-chrome";
@@ -380,6 +381,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
   const [pendingPage, setPendingPage] = useState<{ section: SectionId; tab?: string } | null>(null);
   const [query, setQuery] = useState("");
   const compact = useMediaQuery("(max-width: 899px)");
+  const sidebarSearch = useMacSidebarSearch();
   const [browseOpen, setBrowseOpen] = useState(false);
   const browseRef = useRef<HTMLButtonElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -613,14 +615,17 @@ export function Settings({ visible = true }: { visible?: boolean }) {
               style={{ blockSize: "var(--hset-chrome-h, 92px)" }}
             />
             <div className="hset-grid" data-browse-open={compact && browseOpen ? "" : undefined}>
-              <SettingsTools
-                query={query}
-                setQuery={(value) => {
-                  setQuery(value);
-                  if (compact && value.trim()) setBrowseOpen(true);
-                }}
-                onSubmit={handleNav}
-              />
+              {/* With the Mac sidebar shown, its search field searches Settings. */}
+              {!sidebarSearch && (
+                <SettingsTools
+                  query={query}
+                  setQuery={(value) => {
+                    setQuery(value);
+                    if (compact && value.trim()) setBrowseOpen(true);
+                  }}
+                  onSubmit={handleNav}
+                />
+              )}
               <div className="hset-heading">
                 <div className="hset-content">
                   <h1 ref={titleRef} tabIndex={-1} className="hset-title">
@@ -644,7 +649,8 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 active={active}
                 activeTab={subReg?.value ?? null}
                 meta={SECTION_META}
-                query={query}
+                // The Mac sidebar lists the results itself; a second list here would repeat them.
+                query={sidebarSearch ? "" : query}
                 onSelect={selectFromRail}
                 onJump={handleNav}
               />
@@ -652,7 +658,10 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 visible={visible}
                 active={active}
                 meta={SECTION_META}
+                query={query}
+                setQuery={setQuery}
                 onSelect={selectFromRail}
+                onJump={handleNav}
               />
               <main
                 ref={scrollRef}

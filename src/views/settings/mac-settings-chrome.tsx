@@ -1,13 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
+  buildSettingsResults,
   buildSettingsSidebar,
   publishSettingsNav,
+  publishSettingsSearch,
   SETTINGS_SHOW_ALL_ROW,
+  settingsResultOf,
   withShowAllRow,
   type SettingsSidebar,
 } from "@/chrome/mac/settings-sidebar";
 import { useT } from "@/lib/i18n";
 import { isMacDesktop } from "@/lib/platform";
+import { useSettings } from "@/lib/settings";
 import {
   BAND_LABELS,
   isMacMainSection,
@@ -15,8 +19,18 @@ import {
   MAC_SECTION_LABELS,
   macSettingsBands,
 } from "./groups";
-import type { SectionId } from "./shared";
+import { useNavSearch } from "./nav";
+import { settingsAnchor, type SectionId } from "./shared";
 import type { SubTabReg } from "./sub-tabs";
+
+/** How many matching settings the sidebar lists under the matching pages. */
+const MAX_OPTION_RESULTS = 12;
+
+/** Whether the native sidebar, and so its search field, is on screen. */
+export function useMacSidebarSearch(): boolean {
+  const { settings } = useSettings();
+  return isMacDesktop() && !settings.sidebarCollapsed;
+}
 
 const SHOW_ALL_KEY = "harbor.mac.settings.showAll";
 
@@ -50,43 +64,111 @@ export function settingsPageLabel(id: SectionId, own: string): string {
  * The list starts with the main pages and a "Show all settings" row. A page
  * outside them that is opened another way (a link, the search field) brings
  * the full list with it, so the open page is always in the list.
+ *
+ * The sidebar's search field searches Settings while this is on screen: the
+ * list then shows the matching pages and settings, and Return opens the first.
  */
 export function MacSettingsNav({
   visible,
   active,
   meta,
+  query,
+  setQuery,
   onSelect,
+  onJump,
 }: {
   visible: boolean;
   active: SectionId;
   meta: Record<SectionId, { label: string; sub: string }>;
+  query: string;
+  setQuery: (text: string) => void;
   onSelect: (section: SectionId) => void;
+  onJump: (section: SectionId, anchor?: string, tab?: string) => void;
 }) {
   const t = useT();
   const mac = isMacDesktop();
+  const sidebarSearch = useMacSidebarSearch();
   const [showAll, setShowAll] = useState(readShowAll);
   const all = showAll || !isMacMainSection(active);
+
+  const searching = mac && visible && sidebarSearch && query.trim() !== "";
+  const { matches, optionMatches } = useNavSearch(searching ? query.trim().toLowerCase() : "");
+  const results = [
+    ...(matches ?? []).map((item) => ({
+      page: item.id as string,
+      title: t(settingsPageLabel(item.id, item.label)),
+      open: () => onJump(item.id),
+    })),
+    ...(optionMatches ?? []).slice(0, MAX_OPTION_RESULTS).map((option) => ({
+      page: option.section as string,
+      title: t(option.label),
+      open: () =>
+        onJump(
+          option.section,
+          option.anchorTitle ? settingsAnchor(option.anchorTitle) : undefined,
+          option.tab,
+        ),
+    })),
+  ];
+  const pageCount = matches?.length ?? 0;
+
   const select = useRef<(page: string) => void>(() => {});
   select.current = (page) => {
+    const result = settingsResultOf(page);
+    if (result !== null) {
+      results[result]?.open();
+      setQuery("");
+      return;
+    }
     if (page !== SETTINGS_SHOW_ALL_ROW) return onSelect(page as SectionId);
     writeShowAll(!all);
     setShowAll(!all);
     // Hiding the other pages while one of them is open would bring them straight back.
     if (all && !isMacMainSection(active)) onSelect("basics");
   };
-  const key =
-    mac && visible
-      ? JSON.stringify(
-          withShowAllRow(
-            buildSettingsSidebar(macSettingsBands(all), active, {
-              band: (section) =>
-                section === MAC_MAIN_BAND ? null : t(BAND_LABELS[section] ?? section),
-              page: (id) => t(settingsPageLabel(id as SectionId, meta[id as SectionId].label)),
-            }),
-            all ? t("Show fewer settings") : t("Show all settings"),
-          ),
-        )
-      : "";
+
+  const searchKey = useRef<(key: string) => void>(() => {});
+  searchKey.current = (pressed) => {
+    if (pressed === "Escape") setQuery("");
+    else if (pressed === "Enter" && results.length > 0) select.current("result:0");
+  };
+  const setQueryRef = useRef(setQuery);
+  setQueryRef.current = setQuery;
+  const offered = mac && visible && sidebarSearch;
+  useEffect(() => {
+    if (!offered) return;
+    publishSettingsSearch({
+      query,
+      setQuery: (text) => setQueryRef.current(text),
+      key: (pressed) => searchKey.current(pressed),
+    });
+  }, [offered, query]);
+  useEffect(() => {
+    if (!offered) return;
+    return () => {
+      publishSettingsSearch(null);
+      // The field goes back to the catalogue search; a half-typed Settings query should not linger.
+      setQueryRef.current("");
+    };
+  }, [offered]);
+
+  const key = !(mac && visible)
+    ? ""
+    : JSON.stringify(
+        searching
+          ? buildSettingsResults(results.slice(0, pageCount), results.slice(pageCount), {
+              pages: t("Pages"),
+              options: t("Settings"),
+            })
+          : withShowAllRow(
+              buildSettingsSidebar(macSettingsBands(all), active, {
+                band: (section) =>
+                  section === MAC_MAIN_BAND ? null : t(BAND_LABELS[section] ?? section),
+                page: (id) => t(settingsPageLabel(id as SectionId, meta[id as SectionId].label)),
+              }),
+              all ? t("Show fewer settings") : t("Show all settings"),
+            ),
+      );
   useEffect(() => {
     if (!mac) return;
     publishSettingsNav(

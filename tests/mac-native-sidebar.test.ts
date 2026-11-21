@@ -17,7 +17,9 @@ import { NativeTextEcho } from "../src/chrome/mac/native-text-echo";
 import {
   buildSettingsSidebar,
   SETTINGS_SYMBOLS,
+  buildSettingsResults,
   settingsPageOf,
+  settingsResultOf,
   SETTINGS_SHOW_ALL_ROW,
   withShowAllRow,
 } from "../src/chrome/mac/settings-sidebar";
@@ -322,4 +324,38 @@ test("the show-all row sits under the pages and is never the open page", () => {
   assert.equal(row?.active, false);
   assert.notEqual(row?.section, MAC_MAIN_BAND);
   assert.equal(settingsPageOf(row?.id ?? ""), SETTINGS_SHOW_ALL_ROW);
+});
+
+test("a Settings search lists matching pages, then matching settings, each row numbered", () => {
+  const sidebar = buildSettingsResults(
+    [{ page: "account", title: "Account" }],
+    [
+      { page: "account", title: "Profile songs" },
+      { page: "player", title: "Sound profile" },
+    ],
+    { pages: "Pages", options: "Settings" },
+  );
+  assert.deepEqual(sidebar.sections, [
+    { id: "results-pages", title: "Pages" },
+    { id: "results-options", title: "Settings" },
+  ]);
+  assert.deepEqual(
+    sidebar.items.map((item) => [item.id, item.title, item.section, item.active]),
+    [
+      ["settings-page:result:0", "Account", "results-pages", false],
+      ["settings-page:result:1", "Profile songs", "results-options", false],
+      ["settings-page:result:2", "Sound profile", "results-options", false],
+    ],
+  );
+  // A result carries the symbol of the page it opens.
+  assert.equal(sidebar.items[1].symbol, sidebar.items[0].symbol);
+  assert.notEqual(sidebar.items[2].symbol, sidebar.items[0].symbol);
+});
+
+test("a result row is told apart from a page row and the show-all row", () => {
+  assert.equal(settingsResultOf(settingsPageOf("settings-page:result:2") ?? ""), 2);
+  assert.equal(settingsResultOf("player"), null);
+  assert.equal(settingsResultOf(SETTINGS_SHOW_ALL_ROW), null);
+  assert.equal(settingsResultOf("result:x"), null);
+  assert.equal(settingsResultOf("result:-1"), null);
 });

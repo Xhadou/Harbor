@@ -99,6 +99,42 @@ export function withShowAllRow(sidebar: SettingsSidebar, title: string): Setting
   };
 }
 
+/** Rows that stand for a search result, not a page: `result:<n>` after the prefix. */
+export const SETTINGS_RESULT_ROW = "result:";
+
+/** The native list while Settings is being searched: matching pages, then matching settings. */
+export function buildSettingsResults(
+  pages: readonly { page: string; title: string }[],
+  options: readonly { page: string; title: string }[],
+  headings: { pages: string; options: string },
+): SettingsSidebar {
+  const row = (entry: { page: string; title: string }, index: number, section: string) => ({
+    id: SETTINGS_ROW_PREFIX + SETTINGS_RESULT_ROW + index,
+    title: entry.title,
+    symbol: SETTINGS_SYMBOLS[entry.page] ?? "circle",
+    section,
+    active: false,
+    gated: false as const,
+  });
+  return {
+    sections: [
+      { id: "results-pages", title: headings.pages },
+      { id: "results-options", title: headings.options },
+    ],
+    items: [
+      ...pages.map((entry, i) => row(entry, i, "results-pages")),
+      ...options.map((entry, i) => row(entry, pages.length + i, "results-options")),
+    ],
+  };
+}
+
+/** The result a row stands for, or null when the row is a page or the show-all row. */
+export function settingsResultOf(page: string): number | null {
+  if (!page.startsWith(SETTINGS_RESULT_ROW)) return null;
+  const index = Number(page.slice(SETTINGS_RESULT_ROW.length));
+  return Number.isInteger(index) && index >= 0 ? index : null;
+}
+
 /** The page a native sidebar row stands for, or null when the row is not a Settings row. */
 export function settingsPageOf(rowId: string): string | null {
   return rowId.startsWith(SETTINGS_ROW_PREFIX) ? rowId.slice(SETTINGS_ROW_PREFIX.length) : null;
@@ -124,5 +160,41 @@ export const settingsNavStore = [
     };
   },
   () => current,
+  () => null,
+] as const;
+
+/**
+ * While Settings is on screen the sidebar's search field searches Settings,
+ * not the catalogue. Settings publishes its query here; the toolbar bridge
+ * sends the field's text and keys to it.
+ */
+export type PublishedSettingsSearch = {
+  query: string;
+  setQuery: (text: string) => void;
+  key: (key: "ArrowUp" | "ArrowDown" | "Enter" | "Escape") => void;
+};
+
+let search: PublishedSettingsSearch | null = null;
+const searchListeners = new Set<() => void>();
+
+export function publishSettingsSearch(next: PublishedSettingsSearch | null): void {
+  search = next;
+  searchListeners.forEach((listener) => listener());
+}
+
+/** The search Settings has published, for code outside React. */
+export function settingsSearchTarget(): PublishedSettingsSearch | null {
+  return search;
+}
+
+/** For `useSyncExternalStore`. */
+export const settingsSearchStore = [
+  (listener: () => void) => {
+    searchListeners.add(listener);
+    return () => {
+      searchListeners.delete(listener);
+    };
+  },
+  () => search,
   () => null,
 ] as const;

@@ -5,7 +5,8 @@ import { useTogether } from "@/lib/together/provider";
 import { useView } from "@/lib/view";
 import { CYCLE_SECTION_EVENT } from "@/chrome/tab-hotkeys";
 import { menuCommand } from "./menu-command";
-import { onNativeEvent } from "./native-events";
+import { onNativeEvent, pushNativeState } from "./native-events";
+import { settingsSearchTarget } from "./settings-sidebar";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
 import { searchAllowed } from "./native-search-state";
 
@@ -62,6 +63,9 @@ export function NativeMenuBridge({ playerActive }: { playerActive: boolean }) {
         else if (command.kind === "reload") reloadAppWindow();
         // "auto" is taken up by the Watch together button on screen, which then shows its panel.
         else if (command.kind === "watch-together") now.openModal("auto");
+        // In Settings the sidebar's field searches Settings.
+        else if (settingsSearchTarget())
+          pushNativeState("mac_native_search_set", { focused: true });
         // With the sidebar shown this focuses its field (see
         // NativeToolbarBridge); hidden, Harbor's own search input opens.
         else if (searchAllowed()) now.setOpen(true);

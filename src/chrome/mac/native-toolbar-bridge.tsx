@@ -10,6 +10,7 @@ import { NATIVE_SEARCH_KEY_EVENT, onNativeEvent, pushNativeState } from "./nativ
 import { applyNativeLayout, setNativeLayoutScale } from "./native-layout";
 import { setNativeSearchParts, useNativeSearchActive } from "./native-search-state";
 import { NativeTextEcho } from "./native-text-echo";
+import { settingsSearchStore } from "./settings-sidebar";
 import { searchHiddenFor, toolbarPayload } from "./toolbar-payload";
 
 /**
@@ -34,19 +35,26 @@ export function NativeToolbarBridge({
   const hotkeys = settings.hotkeys;
   const covered = useSyncExternalStore(...nativeChromeCoverStore);
 
-  const { visible, searchVisible } = toolbarPayload({
+  // Non-null while Settings is on screen with the sidebar shown: the field then searches Settings.
+  const settingsSearch = useSyncExternalStore(...settingsSearchStore);
+  const searchesSettings = settingsSearch !== null;
+
+  const { visible, searchVisible: globalSearch } = toolbarPayload({
     playerActive,
     immersive: immersive || chromeHidden || covered,
     canGoBack,
     searchHidden: searchHiddenFor({ view, topKind, connecting: false, kid: !!kid }),
   });
+  // The field is on screen for either search; `globalSearch` alone says the
+  // catalogue search is on offer.
+  const searchVisible = globalSearch || (visible && searchesSettings);
 
   const toolbarState = useRef({ visible, canGoBack, searchVisible });
   useEffect(() => {
     toolbarState.current = { visible, canGoBack, searchVisible };
     pushNativeState("mac_native_toolbar_set", toolbarState.current);
-    setNativeSearchParts({ allowed: searchVisible });
-  }, [visible, canGoBack, searchVisible]);
+    setNativeSearchParts({ allowed: globalSearch });
+  }, [visible, canGoBack, searchVisible, globalSearch]);
   useEffect(() => () => setNativeSearchParts({ allowed: false }), []);
   const nativeSearch = useNativeSearchActive();
   useEffect(() => {
@@ -56,10 +64,10 @@ export function NativeToolbarBridge({
   // What the native field has typed, so its own text is not sent back to it.
   const echo = useRef(new NativeTextEcho());
   const nativeFocused = useRef(false);
-  const actions = useRef({ goBack, setOpen, setQuery });
+  const actions = useRef({ goBack, setOpen, setQuery, settingsSearch });
   useEffect(() => {
-    actions.current = { goBack, setOpen, setQuery };
-  }, [goBack, setOpen, setQuery]);
+    actions.current = { goBack, setOpen, setQuery, settingsSearch };
+  }, [goBack, setOpen, setQuery, settingsSearch]);
 
   useEffect(() => {
     const stops = [
@@ -79,7 +87,7 @@ export function NativeToolbarBridge({
       }),
       onNativeEvent("search-begin", () => {
         nativeFocused.current = true;
-        actions.current.setOpen(true);
+        if (!actions.current.settingsSearch) actions.current.setOpen(true);
       }),
       // Leaving the field does not close search: clicking a result also takes
       // focus away. Search closes through Escape or the overlay itself.
@@ -88,10 +96,14 @@ export function NativeToolbarBridge({
       }),
       onNativeEvent("search-text", ({ text }) => {
         echo.current.reported(text);
-        actions.current.setQuery(text);
+        const settingsTarget = actions.current.settingsSearch;
+        if (settingsTarget) settingsTarget.setQuery(text);
+        else actions.current.setQuery(text);
       }),
       onNativeEvent("search-key", (detail) => {
-        window.dispatchEvent(new CustomEvent(NATIVE_SEARCH_KEY_EVENT, { detail }));
+        const settingsTarget = actions.current.settingsSearch;
+        if (settingsTarget) settingsTarget.key(detail.key);
+        else window.dispatchEvent(new CustomEvent(NATIVE_SEARCH_KEY_EVENT, { detail }));
       }),
     ];
     return () => {
@@ -99,10 +111,18 @@ export function NativeToolbarBridge({
     };
   }, []);
 
+  // The field shows the text of whichever search it is serving.
+  const fieldText = settingsSearch ? settingsSearch.query : query;
+  const servedSettings = useRef(searchesSettings);
   useEffect(() => {
-    if (!echo.current.shouldSend(query)) return;
-    pushNativeState("mac_native_search_set", { text: query });
-  }, [query]);
+    if (servedSettings.current !== searchesSettings) {
+      // The field changed hands: what it holds belongs to the other search.
+      servedSettings.current = searchesSettings;
+      echo.current = new NativeTextEcho();
+    }
+    if (!echo.current.shouldSend(fieldText)) return;
+    pushNativeState("mac_native_search_set", { text: fieldText });
+  }, [fieldText, searchesSettings]);
 
   useEffect(() => {
     if (!open) {
@@ -120,11 +140,12 @@ export function NativeToolbarBridge({
       if (!shouldHandleGlobalKeyboardEvent(e)) return;
       if (findHotkeyMatch(e, hotkeys ?? {}, "Global") !== "globalSearchFocus") return;
       e.preventDefault();
-      setOpen(true);
+      if (searchesSettings) pushNativeState("mac_native_search_set", { focused: true });
+      else setOpen(true);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [hotkeys, setOpen, searchVisible]);
+  }, [hotkeys, setOpen, searchVisible, searchesSettings]);
 
   return null;
 }
