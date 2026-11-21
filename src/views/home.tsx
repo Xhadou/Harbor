@@ -128,6 +128,7 @@ import {
   buildAnimeHomeRows,
   buildCinemetaRows,
   buildTmdbRows,
+  isHiddenHomeCatalog,
   isStreamingServiceRow,
   MAX_PER_ROW,
   mergeRows,
@@ -354,10 +355,12 @@ export function Home({
         onFailed: (n) => {
           if (n > 0) degraded = true;
         },
-      }).catch(() => {
-        degraded = true;
-        return [] as AddonRow[];
-      });
+      })
+        .then((rows) => rows.filter((a) => !isHiddenHomeCatalog(a)))
+        .catch(() => {
+          degraded = true;
+          return [] as AddonRow[];
+        });
       if (cancelled) return;
       const classicSource = settings.classicCatalogSource;
       const classicFiltered =

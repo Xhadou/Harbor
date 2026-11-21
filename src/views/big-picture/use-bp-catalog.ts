@@ -4,6 +4,7 @@ import type { HomeRow } from "@/views/home/home-types";
 import {
   buildCinemetaRows,
   buildTmdbRows,
+  isHiddenHomeCatalog,
   isStreamingServiceRow,
   mergeRows,
 } from "@/views/home/home-rows";
@@ -86,7 +87,9 @@ export function useBpCatalog(): BpCatalog {
         void bpHomeCacheSave(key, merged);
 
         const dedup = classic ? false : !settings.homeShowAllAddonRows;
-        const addons = await loadAddonRows(authKey, { dedup }).catch(() => [] as AddonRow[]);
+        const addons = await loadAddonRows(authKey, { dedup })
+          .then((rows) => rows.filter((a) => !isHiddenHomeCatalog(a)))
+          .catch(() => [] as AddonRow[]);
         if (!alive || addons.length === 0) return;
         const usable = classic
           ? addons

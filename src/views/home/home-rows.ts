@@ -301,6 +301,14 @@ export function isStreamingServiceRow(name: string): boolean {
   return STREAMING_SERVICE_PATTERNS.some((rx) => rx.test(n));
 }
 
+// Given a TorBox key, Torrentio adds the user's own TorBox torrents as a catalog. It is a
+// list of downloads, not something to browse, so Home leaves it out.
+const HIDDEN_HOME_CATALOGS = new Set(["torrentio-torbox-torrents"]);
+
+export function isHiddenHomeCatalog(row: AddonRow): boolean {
+  return !!row.more && HIDDEN_HOME_CATALOGS.has(row.more.id);
+}
+
 export function mergeRows(
   built: HomeRow[],
   addons: AddonRow[],
