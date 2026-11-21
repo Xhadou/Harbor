@@ -31,9 +31,9 @@ import { addonKeyFromSource } from "@/lib/metadata-sources";
 import {
   addonsBeforeTmdb,
   addonTopMatch,
-  animeTopMatch,
+  chooseTopMatch,
+  isAnimeTwin,
   prioritizedTopMatch,
-  sameSearchTitle,
 } from "@/lib/search-top-match";
 import { searchManga } from "@/lib/manga/api";
 import type { MangaSummary } from "@/lib/manga/model";
@@ -146,13 +146,6 @@ function upsertAddonQuery(list: AddonQuery[], q: AddonQuery): AddonQuery[] {
   const next = list.slice();
   next[at] = q;
   return next;
-}
-
-function normShow(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
 }
 
 function loadRecent(): string[] {
@@ -396,9 +389,8 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           addons: [],
           intent: null,
         };
-        const animeTitleSet = new Set(acc.anime.map((a) => normShow(a.name)));
-        const notAnimeDupe = (m: { name?: string }) =>
-          animeTitleSet.size === 0 || !animeTitleSet.has(normShow(m.name ?? ""));
+        const notAnimeDupe = (m: { name?: string; releaseInfo?: string }) =>
+          !isAnimeTwin(m, acc.anime);
         const dropAnime = <T extends { id: string }>(list: T[]): T[] =>
           settings.hideContent.anime ? list.filter((m) => !metaLooksAnime(m)) : list;
         const mergedMovies = dropAnime(
@@ -453,14 +445,13 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           earlyAddonTop,
           tmdbEnabled: settings.searchTmdbTopMatch,
         });
-        // TMDB models a later anime cour as a season of the franchise, so its
-        // top-level match is the older series. Prefer an exact anime title when
-        // the configured top match is a different title.
-        const exactAnimeTop = animeTopMatch(acc.anime, trimmed);
-        const topMatch =
-          exactAnimeTop && !sameSearchTitle(configuredTop?.meta.name, trimmed)
-            ? exactAnimeTop
-            : configuredTop;
+        const topMatch = chooseTopMatch({
+          configured: configuredTop,
+          anime: acc.anime,
+          query: trimmed,
+          movies: mergedMovies,
+          series: mergedSeries,
+        });
         setResults({
           ...base,
           topMatch:

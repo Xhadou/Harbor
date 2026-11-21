@@ -67,6 +67,79 @@ export function animeTopMatch(anime: AnimeHit[], query: string): SearchResults["
   };
 }
 
+function firstYear(value: string | null | undefined): number | null {
+  const match = (value ?? "").match(/\d{4}/);
+  return match ? Number(match[0]) : null;
+}
+
+/**
+ * Whether a film or series from the general catalogue is the same work as a
+ * listed anime, so that only the anime entry is shown. A shared title is not
+ * enough: "Dune" (2021) is not the animated music video "DUNE". A music video
+ * is never a film's twin (the general catalogue does not list them, and they
+ * often carry no year to compare). Otherwise years one apart still agree (a
+ * season dated by its first or last broadcast), and a missing year agrees with
+ * anything.
+ */
+export function isAnimeTwin(
+  meta: { name?: string; releaseInfo?: string | null },
+  anime: readonly Pick<AnimeHit, "name" | "year" | "format">[],
+): boolean {
+  const key = titleKey(meta.name ?? "");
+  if (!key) return false;
+  const year = firstYear(meta.releaseInfo);
+  return anime.some((hit) => {
+    if (titleKey(hit.name) !== key || /^music$/i.test(hit.format?.trim() ?? "")) return false;
+    const animeYear = firstYear(hit.year);
+    return year === null || animeYear === null || Math.abs(year - animeYear) <= 1;
+  });
+}
+
+// A music video, special or short is rarely what a bare title asks for.
+function isMinorAnimeFormat(format: string | null | undefined): boolean {
+  if (!format) return false;
+  return !/^(tv|movie)$/i.test(format.trim());
+}
+
+function topMatchFromMeta(meta: Meta): NonNullable<SearchResults["topMatch"]> {
+  const rating = Number(meta.imdbRating);
+  return {
+    kind: meta.type === "series" ? "series" : "movie",
+    meta,
+    popularity: 0,
+    backdrop: meta.background ?? meta.poster ?? undefined,
+    overview: meta.description,
+    voteAverage: Number.isFinite(rating) && rating > 0 ? rating : undefined,
+  };
+}
+
+/**
+ * The top match once every source has answered. TMDB models a later anime cour
+ * as a season of the franchise, so its match is the older series; an anime
+ * with the query's own title is preferred over a configured match with another
+ * title. The exception is a minor anime entry (music video, special, short)
+ * that shares its title with a film or series in the results: the film leads.
+ * `movies` and `series` are the lists as shown, with anime twins already out.
+ */
+export function chooseTopMatch(input: {
+  configured: SearchResults["topMatch"];
+  anime: AnimeHit[];
+  query: string;
+  movies: readonly Meta[];
+  series: readonly Meta[];
+}): SearchResults["topMatch"] {
+  const { configured, anime, query } = input;
+  const animeTop = animeTopMatch(anime, query);
+  if (!animeTop || sameSearchTitle(configured?.meta.name, query)) return configured;
+  if (isMinorAnimeFormat(animeTop.meta.animeFormat)) {
+    const namesake = [...input.movies, ...input.series].find((meta) =>
+      sameSearchTitle(meta.name, query),
+    );
+    if (namesake) return configured ?? topMatchFromMeta(namesake);
+  }
+  return animeTop;
+}
+
 export function addonsBeforeTmdb(addons: Addon[], chain: string[]): Addon[] {
   const tmdbAt = chain.indexOf("tmdb");
   if (tmdbAt <= 0) return [];
