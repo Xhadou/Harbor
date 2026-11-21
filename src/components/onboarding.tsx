@@ -5,6 +5,7 @@ import { DoneStep } from "@/components/onboarding/done-step";
 import { Dots } from "@/components/onboarding/dots";
 import { LanguageStep } from "@/components/onboarding/language-step";
 import { LayoutStep } from "@/components/onboarding/layout-step";
+import { MacSetup } from "@/components/onboarding/mac-setup";
 import { SplashStep } from "@/components/onboarding/splash-step";
 import { StreamingStep } from "@/components/onboarding/streaming-step";
 import { StremioStep } from "@/components/onboarding/stremio-step";
@@ -17,30 +18,10 @@ import type { Meta } from "@/lib/cinemeta";
 import { setVote } from "@/lib/feed/preferences";
 import { useT } from "@/lib/i18n";
 import { useOnboarding } from "@/lib/onboarding";
+import { isMacDesktop } from "@/lib/platform";
+import { setupSteps } from "@/lib/setup-steps";
 
-type StepId =
-  | "splash"
-  | "language"
-  | "welcome"
-  | "layout"
-  | "tmdb"
-  | "stremio"
-  | "streaming"
-  | "subtitles"
-  | "taste"
-  | "done";
-const STEPS: StepId[] = [
-  "splash",
-  "language",
-  "welcome",
-  "layout",
-  "tmdb",
-  "stremio",
-  "streaming",
-  "subtitles",
-  "taste",
-  "done",
-];
+const STEPS = setupSteps(false);
 
 export function OnboardingModal() {
   const { onboarded, finishOnboarding } = useOnboarding();
@@ -63,6 +44,7 @@ export function OnboardingModal() {
   // second owner of the body scroll lock.
   useCoverNativeChrome("onboarding", !(onboarded || bigPicture));
   if (onboarded || bigPicture) return null;
+  if (isMacDesktop()) return <MacSetup onFinish={finishOnboarding} />;
 
   const step = STEPS[stepIdx];
   const isSplash = step === "splash";

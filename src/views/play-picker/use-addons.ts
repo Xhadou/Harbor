@@ -48,6 +48,7 @@ export function useAddons(
   const [userHasStreamAddons, setUserHasStreamAddons] = useState(false);
   const [pluginTick, setPluginTick] = useState(0);
   const [nuvioTick, setNuvioTick] = useState(0);
+  const [addonsTick, setAddonsTick] = useState(0);
   useEffect(() => {
     const onNuvioChange = () => setNuvioTick((n) => n + 1);
     window.addEventListener("harbor:nuvio-profile-changed", onNuvioChange);
@@ -60,6 +61,13 @@ export function useAddons(
       window.removeEventListener("harbor:nuvio-addons-changed", onNuvioChange);
       window.removeEventListener("harbor:account-provider-changed", onNuvioChange);
     };
+  }, []);
+  // An addon added while the picker is open (the "add a streaming source"
+  // dialog does that) must reach it without a reload.
+  useEffect(() => {
+    const onAddonsChange = () => setAddonsTick((n) => n + 1);
+    window.addEventListener("harbor:addons-changed", onAddonsChange);
+    return () => window.removeEventListener("harbor:addons-changed", onAddonsChange);
   }, []);
   useEffect(() => {
     let last = pluginListKey();
@@ -173,6 +181,7 @@ export function useAddons(
     settings.pluginsGroupByRepo,
     pluginTick,
     nuvioTick,
+    addonsTick,
     settings.nuvioAddonMode,
     settings.accountProvider,
   ]);

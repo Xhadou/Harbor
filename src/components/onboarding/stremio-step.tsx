@@ -22,7 +22,9 @@ function openRegister(e: React.MouseEvent) {
 export function StremioStep() {
   const { user, signIn } = useAuth();
   const t = useT();
-  const [mode, setMode] = useState<"intro" | "form">("intro");
+  // macOS opens on the form: the step is the sign-in, with nothing to press first.
+  const mac = isMacDesktop();
+  const [mode, setMode] = useState<"intro" | "form">(mac ? "form" : "intro");
   const [direction, setDirection] = useState<"forward" | "back" | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,18 +66,18 @@ export function StremioStep() {
   if (user) {
     return (
       <div className="flex flex-col gap-6">
-        <span className="text-[12.5px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
+        <span className="mac-hidden text-[12.5px] font-medium uppercase tracking-[0.16em] text-ink-subtle">
           {t("Step 2 · Stremio")}
         </span>
         <div className="flex flex-col gap-3">
-          <h1 className="font-display text-[36px] font-medium leading-[1.08] tracking-tight text-ink">
+          <h1 className="mac-type-title font-display text-[36px] font-medium leading-[1.08] tracking-tight text-ink">
             {t("You're in")}
           </h1>
-          <p className="text-[15px] leading-relaxed text-ink-muted">
+          <p className="mac-type-lead text-[15px] leading-relaxed text-ink-muted">
             {t("Library and addons will sync in once you're past setup.")}
           </p>
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-edge-soft bg-canvas px-5 py-4">
+        <div className="mac-setup-account flex items-center gap-3 rounded-2xl border border-edge-soft bg-canvas px-5 py-4">
           <StremioAvatar
             src={user.avatar}
             initial={(user.fullname || user.email || "?").trim()[0]?.toUpperCase() ?? "?"}
@@ -98,26 +100,38 @@ export function StremioStep() {
         <button
           type="button"
           onClick={goToIntro}
-          className="mac-btn mac-btn-quiet mac-btn-edge-start flex w-fit items-center gap-1.5 text-[12.5px] font-medium text-ink-subtle transition-colors hover:text-ink-muted"
+          className="mac-hidden mac-btn mac-btn-quiet mac-btn-edge-start flex w-fit items-center gap-1.5 text-[12.5px] font-medium text-ink-subtle transition-colors hover:text-ink-muted"
         >
           <ChevronLeft size={14} strokeWidth={2.2} className="dir-icon" />
           {t("Back")}
         </button>
-        <div className="flex justify-center">
-          <img
-            src={stremioLogo}
-            alt="Stremio"
-            className="h-12"
-            style={{ filter: "grayscale(1) invert(1)" }}
-          />
-        </div>
+        {mac ? (
+          <div className="flex flex-col gap-1.5">
+            <h1 className="mac-type-title text-ink">{t("Sign in to Stremio")}</h1>
+            <p className="mac-type-lead text-ink-muted">
+              {t(
+                "Brings your library, Continue Watching and addons with you. You can skip this and sign in later from Settings.",
+              )}
+            </p>
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <img
+              src={stremioLogo}
+              alt="Stremio"
+              className="h-12"
+              style={{ filter: "grayscale(1) invert(1)" }}
+            />
+          </div>
+        )}
         <div className="flex flex-col gap-3">
           <FormField
             label={t("Email")}
             type="email"
             value={email}
             onChange={setEmail}
-            autoFocus
+            // macOS shows the form without being asked to, so it must not start editing.
+            autoFocus={!mac}
             disabled={busy}
           />
           <FormField
@@ -150,6 +164,8 @@ export function StremioStep() {
               <Loader2 size={16} className="animate-spin" />
               {t("Signing in…")}
             </>
+          ) : mac ? (
+            t("Sign in")
           ) : (
             t("Sign in to Stremio")
           )}

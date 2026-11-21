@@ -9159,3 +9159,99 @@ html[data-os="macos"] .mac-source-row {
   gap: 14px;
   padding: 10px 14px;
 }
+
+/* Setup. Every step sits in one card of one size, so nothing moves as the
+   steps change; a step that needs more room scrolls inside it. */
+html[data-os="macos"] .mac-setup-card {
+  inline-size: min(92vw, 560px);
+  block-size: min(100vh - 2rem, 480px);
+}
+html[data-os="macos"] .mac-setup-body {
+  padding: 28px 32px 24px;
+}
+/* A step's title and the sentence under it sit the same distance apart on every step. */
+html[data-os="macos"] .mac-setup-head {
+  gap: 6px;
+}
+html[data-os="macos"] .mac-setup-foot {
+  padding: 14px 20px 14px 32px;
+  border-block-start: 0.5px solid var(--mac-hairline);
+}
+
+/* The language list: sixteen short rows that fit the card without scrolling. */
+html[data-os="macos"] .mac-setup-langs {
+  gap: 2px 8px;
+  max-block-size: none;
+  padding: 0;
+  overflow: visible;
+}
+html[data-os="macos"] .mac-setup-lang {
+  gap: 8px;
+  block-size: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--mac-radius-control);
+  background: transparent;
+}
+html[data-os="macos"] .mac-setup-lang:hover {
+  background: var(--mac-fill-well);
+}
+html[data-os="macos"] .mac-setup-lang[aria-checked="true"] {
+  background: var(--mac-fill);
+}
+html[data-os="macos"] .mac-setup-lang > span:first-child {
+  inline-size: 14px;
+  block-size: 14px;
+  border-width: 1.5px;
+}
+html[data-os="macos"] .mac-setup-lang[aria-checked="true"] > span:first-child {
+  border-color: var(--color-accent);
+}
+html[data-os="macos"] .mac-setup-lang > span:first-child > span {
+  inline-size: 6px;
+  block-size: 6px;
+  background: var(--color-accent);
+}
+html[data-os="macos"] .mac-setup-lang-text {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+}
+html[data-os="macos"] .mac-setup-lang-text > span {
+  font-size: var(--mac-text-body);
+  line-height: var(--mac-lh-body);
+  white-space: nowrap;
+}
+html[data-os="macos"] .mac-setup-lang-text > span:first-child {
+  font-weight: 500;
+}
+html[data-os="macos"] .mac-setup-lang-text > span:nth-child(2) {
+  overflow: hidden;
+  color: var(--color-ink-subtle);
+  text-overflow: ellipsis;
+}
+
+/* The signed-in account, and the sources found: quiet rows on a well. */
+html[data-os="macos"] .mac-setup-account {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--mac-radius-card);
+  background: var(--mac-fill-well);
+}
+html[data-os="macos"] .mac-setup-list {
+  overflow: hidden;
+  border-radius: var(--mac-radius-card);
+  background: var(--mac-fill-well);
+}
+html[data-os="macos"] .mac-setup-list > li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 40px;
+  padding: 0 12px;
+  font-size: var(--mac-text-body);
+  line-height: var(--mac-lh-body);
+}
+html[data-os="macos"] .mac-setup-list > li + li {
+  border-block-start: 0.5px solid var(--mac-hairline);
+}

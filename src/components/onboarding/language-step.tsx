@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { isRtl, LANGUAGES, setUiLanguage, useT, type UiLanguage } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { useSettings } from "@/lib/settings";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 
@@ -13,7 +14,9 @@ export function LanguageStep() {
   const [picked, setPicked] = useState(false);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const settled = reduce || picked;
+  // macOS shows one heading, not a greeting above it, so nothing drifts there.
+  const mac = isMacDesktop();
+  const settled = reduce || picked || mac;
   const activeIdx = Math.max(
     LANGUAGES.findIndex((l) => l.code === settings.uiLanguage),
     0,
@@ -52,22 +55,24 @@ export function LanguageStep() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2.5">
-        <Greeting index={settled ? activeIdx : drift} fade={!reduce} />
-        <h1 className="font-display text-[26px] font-medium leading-tight tracking-tight text-ink">
+      <div className="mac-setup-head flex flex-col gap-2.5">
+        {!mac && <Greeting index={settled ? activeIdx : drift} fade={!reduce} />}
+        <h1 className="mac-type-title font-display text-[26px] font-medium leading-tight tracking-tight text-ink">
           {t("Pick your language")}
         </h1>
-        <p className="text-[14px] leading-relaxed text-ink-muted">
-          {t(
-            "Harbor's own menus and labels. Subtitle languages come later, and you can change both in Settings.",
-          )}
+        <p className="mac-type-lead text-[14px] leading-relaxed text-ink-muted">
+          {mac
+            ? t("For Harbor's menus and labels. You can change it in Settings.")
+            : t(
+                "Harbor's own menus and labels. Subtitle languages come later, and you can change both in Settings.",
+              )}
         </p>
       </div>
 
       <div
         role="radiogroup"
         aria-label={t("Display language")}
-        className="grid max-h-[min(48vh,430px)] grid-cols-2 gap-2.5 overflow-y-auto pe-1"
+        className="mac-setup-langs grid max-h-[min(48vh,430px)] grid-cols-2 gap-2.5 overflow-y-auto pe-1"
       >
         {LANGUAGES.map((lang, i) => {
           const selected = settings.uiLanguage === lang.code;
@@ -83,7 +88,7 @@ export function LanguageStep() {
               tabIndex={i === activeIdx ? 0 : -1}
               onClick={() => pick(lang.code)}
               onKeyDown={(e) => onKeyDown(e, i)}
-              className={`flex items-center gap-3.5 rounded-2xl border px-5 py-4 text-start transition-colors ${
+              className={`mac-setup-lang flex items-center gap-3.5 rounded-2xl border px-5 py-4 text-start transition-colors ${
                 selected
                   ? "border-ink bg-elevated"
                   : "border-edge-soft bg-canvas/40 hover:border-edge hover:bg-canvas/60"
@@ -96,7 +101,7 @@ export function LanguageStep() {
               >
                 {selected && <span className="h-2.5 w-2.5 rounded-full bg-ink" />}
               </span>
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="mac-setup-lang-text flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
                   lang={lang.code}
                   dir={lang.rtl ? "rtl" : "ltr"}
@@ -104,7 +109,10 @@ export function LanguageStep() {
                 >
                   {lang.nativeLabel}
                 </span>
-                <span className="text-[12.5px] leading-snug text-ink-muted">{t(lang.label)}</span>
+                {/* macOS: a language named the same in both tongues is named once. */}
+                {!(mac && t(lang.label) === lang.nativeLabel) && (
+                  <span className="text-[12.5px] leading-snug text-ink-muted">{t(lang.label)}</span>
+                )}
               </span>
             </button>
           );

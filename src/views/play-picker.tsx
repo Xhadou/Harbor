@@ -53,6 +53,7 @@ import { exitWindowFullscreen } from "@/lib/fullscreen-state";
 import { useWindowFullscreen } from "@/lib/use-window-fullscreen";
 import { AutoExhaustedModal } from "./play-picker/auto-exhausted-modal";
 import { AutoPlayTransition } from "./play-picker/auto-play-transition";
+import { AddSourceDialog } from "./play-picker/add-source-dialog";
 import { BackdropLayer } from "./play-picker/backdrop-layer";
 import { CinematicLoader } from "./play-picker/cinematic-loader";
 import { DebridDownModal } from "./play-picker/debrid-down-modal";
@@ -82,6 +83,7 @@ import { StremioLayout } from "./play-picker/stremio-layout";
 import { SourceDrawer } from "./play-picker/source-drawer";
 import { TierStrip } from "./play-picker/tier-strip";
 import { usePickHandler, type ResolvingSelection } from "./play-picker/use-pick-handler";
+import { isMacDesktop } from "@/lib/platform";
 import { useActiveKid } from "@/lib/profiles";
 import { expandOriginalAudioLang } from "@/lib/player/audio-language";
 import { useAutoCandidates } from "./play-picker/use-auto-candidates";
@@ -1055,7 +1057,11 @@ export function PlayPicker({
   }
 
   if (noSourcesConfigured) {
-    return <NoSourcesConfiguredModal meta={meta} />;
+    return isMacDesktop() ? (
+      <AddSourceDialog meta={meta} backdropSrc={backdropSrc} onCancel={backToDetail} />
+    ) : (
+      <NoSourcesConfiguredModal meta={meta} />
+    );
   }
 
   if (p2pConfirm) {

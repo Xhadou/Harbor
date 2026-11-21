@@ -3081,6 +3081,33 @@ const uiFallback: Record<string, string> = {
   More: "More",
   "Unknown quality": "Unknown quality",
   Filters: "Filters",
+  "Signed in as {name}.": "Signed in as {name}.",
+  "Not signed in. You can sign in from Settings.": "Not signed in. You can sign in from Settings.",
+  "No streaming source yet. Harbor will ask for one the first time you press Play.":
+    "No streaming source yet. Harbor will ask for one the first time you press Play.",
+  "One streaming source is ready.": "One streaming source is ready.",
+  "{n} streaming sources are ready.": "{n} streaming sources are ready.",
+  "Subtitle languages, streaming services and the TMDB key are in Settings.":
+    "Subtitle languages, streaming services and the TMDB key are in Settings.",
+  "For Harbor's menus and labels. You can change it in Settings.":
+    "For Harbor's menus and labels. You can change it in Settings.",
+  "Brings your library, Continue Watching and addons with you. You can skip this and sign in later from Settings.":
+    "Brings your library, Continue Watching and addons with you. You can skip this and sign in later from Settings.",
+  "{name} was added, but it does not find streams. Add one that does.":
+    "{name} was added, but it does not find streams. Add one that does.",
+  "Add a streaming source": "Add a streaming source",
+  "Harbor lists films and shows, but it does not hold the video. A streaming source is an addon that finds it.":
+    "Harbor lists films and shows, but it does not hold the video. A streaming source is an addon that finds it.",
+  "These are ready:": "These are ready:",
+  "You need one to play {title}.": "You need one to play {title}.",
+  "You need one to play anything.": "You need one to play anything.",
+  "Looking for your addons…": "Looking for your addons…",
+  "Addon link": "Addon link",
+  "Adding…": "Adding…",
+  "Your Stremio account has no streaming source yet. Paste the link from an addon's page; a stremio:// link works too.":
+    "Your Stremio account has no streaming source yet. Paste the link from an addon's page; a stremio:// link works too.",
+  "Paste the link from an addon's page; a stremio:// link works too.":
+    "Paste the link from an addon's page; a stremio:// link works too.",
 };
 
 export default uiFallback;
