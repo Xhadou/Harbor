@@ -78,6 +78,7 @@ export const Hero = memo(function Hero({
   playSquare = false,
   moreInfo = false,
   playOpensTitle = false,
+  onTrailerPlaying,
 }: {
   meta: Meta;
   rank?: { label: string; position: number; sources?: Array<{ label: string; rank: number }> };
@@ -93,6 +94,8 @@ export const Hero = memo(function Hero({
   /** For a page whose titles cannot be started from here (Anime picks its
    * episode on the title page): the hero then offers the title page only. */
   playOpensTitle?: boolean;
+  /** Told when this slide's trailer comes on screen and when it leaves. */
+  onTrailerPlaying?: (playing: boolean) => void;
 }) {
   const { settings } = useSettings();
   const { openMeta, openPicker, meta: activeDetail, player, picker, view } = useView();
@@ -117,7 +120,9 @@ export const Hero = memo(function Hero({
   } | null>(null);
   const trailerInfo = trailerResult?.quality === trailerQuality ? trailerResult.info : null;
   const [overControls, setOverControls] = useState(false);
-  const audioHero = settings.heroTrailerAudio && playTrailer;
+  // macOS always offers the trailer's sound (muted until asked for), so a
+  // trailer there plays once through instead of looping silently.
+  const audioHero = (mac || settings.heroTrailerAudio) && playTrailer;
   const muted = useSyncExternalStore(subscribeHeroMuted, getHeroMuted);
   const [ended, setEnded] = useState(() => getHeroEnded(meta.id));
   const [logoState, setLogo] = useState<string | undefined>(meta.logo);
@@ -271,6 +276,15 @@ export const Hero = memo(function Hero({
     syncHeroMutedFromSetting(settings.heroTrailerAudio);
   }, [settings.heroTrailerAudio]);
 
+  const trailerShowing = wantsPlayback && videoReady;
+  const reportTrailer = useRef(onTrailerPlaying);
+  reportTrailer.current = onTrailerPlaying;
+  useEffect(() => {
+    if (!trailerShowing) return;
+    reportTrailer.current?.(true);
+    return () => reportTrailer.current?.(false);
+  }, [trailerShowing]);
+
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
@@ -349,9 +363,19 @@ export const Hero = memo(function Hero({
           }}
           aria-label={ended ? t("Replay") : muted ? t("Unmute") : t("Mute")}
           title={ended ? t("Replay") : muted ? t("Unmute") : t("Mute")}
-          className={`absolute end-6 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur-md transition-all duration-200 hover:bg-black/75 active:scale-90 ${full ? "top-28 lg:top-32" : "top-6"}`}
+          className={
+            mac
+              ? "absolute bottom-5 end-6 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white/80 ring-1 ring-white/10 backdrop-blur-md transition-colors duration-150 hover:bg-black/50 hover:text-white"
+              : `absolute end-6 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white ring-1 ring-white/15 backdrop-blur-md transition-all duration-200 hover:bg-black/75 active:scale-90 ${full ? "top-28 lg:top-32" : "top-6"}`
+          }
         >
-          {ended ? <RotateCcw size={18} /> : muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          {ended ? (
+            <RotateCcw size={mac ? 15 : 18} />
+          ) : muted ? (
+            <VolumeX size={mac ? 15 : 18} />
+          ) : (
+            <Volume2 size={mac ? 15 : 18} />
+          )}
         </button>
       )}
       <div

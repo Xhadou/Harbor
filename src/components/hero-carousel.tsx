@@ -3,6 +3,9 @@ import { observe, usePageVisible } from "@/lib/visibility";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { isRtl, useT, useUiLanguage } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
+import { useSlideTimer } from "@/lib/use-slide-timer";
+import { HeroDots } from "./hero/hero-dots";
 import { Hero } from "./hero";
 import { HERO_FULL_HEIGHT } from "./hero-size";
 import { NavChevron } from "@/components/nav-arrow";
@@ -84,23 +87,30 @@ export function HeroCarousel({
   const widthRef = useRef(0);
   const downRef = useRef(false);
 
+  const mac = isMacDesktop();
+  const period = billboard ? BILLBOARD_ROTATE_MS : ROTATE_MS;
+  // Whether the slide on show is playing its trailer. macOS holds the slide
+  // until the trailer has finished, then carries on with the time that was left.
+  const [trailerOn, setTrailerOn] = useState(false);
+  useEffect(() => setTrailerOn(false), [active]);
+  // Elsewhere slides stop changing altogether while trailers play with sound.
+  const rotates = slides.length > 1 && (mac || !settings.heroTrailerAudio);
+  const rotating =
+    rotates && !paused && !dragging && inViewport && pageVisible && !(mac && trailerOn);
+
   useEffect(() => {
-    if (paused || dragging || !inViewport || !pageVisible || slides.length < 2) return;
-    if (settings.heroTrailerAudio) return;
-    const id = setInterval(
-      () => setActive((a) => (a + 1) % slides.length),
-      billboard ? BILLBOARD_ROTATE_MS : ROTATE_MS,
-    );
+    if (mac || !rotating) return;
+    const id = setInterval(() => setActive((a) => (a + 1) % slides.length), period);
     return () => clearInterval(id);
-  }, [
-    paused,
-    dragging,
-    inViewport,
-    pageVisible,
-    slides.length,
-    settings.heroTrailerAudio,
-    billboard,
-  ]);
+  }, [mac, rotating, slides.length, period]);
+  // macOS shows the time running on the slide's marker, so a pause there
+  // resumes instead of starting over and picking a slide starts a full turn.
+  useSlideTimer({
+    running: mac && rotating,
+    slide: active,
+    period,
+    onDone: () => setActive((a) => (a + 1) % slides.length),
+  });
 
   useEffect(() => {
     if (active >= slides.length) setActive(0);
@@ -300,6 +310,7 @@ export function HeroCarousel({
                     playSquare={playSquare}
                     moreInfo={moreInfo}
                     playOpensTitle={playOpensTitle}
+                    onTrailerPlaying={isActive ? setTrailerOn : undefined}
                   />
                 ) : (
                   <div
@@ -343,7 +354,18 @@ export function HeroCarousel({
           </>
         )}
       </div>
-      {slides.length > 1 && (
+      {slides.length > 1 && mac && (
+        <HeroDots
+          count={slides.length}
+          active={safeActive}
+          period={rotates && !reduce ? period : null}
+          running={rotating}
+          onPick={setActive}
+          label={(i) => t("Slide {n}", { n: i + 1 })}
+          className={full ? "absolute bottom-1 inset-x-0" : ""}
+        />
+      )}
+      {slides.length > 1 && !mac && (
         <div
           className={`flex justify-center gap-2.5 ${full ? "absolute bottom-4 inset-x-0" : "pt-1"}`}
         >

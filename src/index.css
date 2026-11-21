@@ -8588,6 +8588,54 @@ html[data-os="macos"] .harbor-layer-active > * {
   }
 }
 
+/* The hero's slide markers on macOS: a bar that fills while its slide is on
+   show. The button is the click target; the bar inside it is what is seen. */
+.mac-hero-dots {
+  display: flex;
+  justify-content: center;
+}
+.mac-hero-dot {
+  display: flex;
+  align-items: center;
+  block-size: 32px;
+  padding-inline: 5px;
+  cursor: pointer;
+}
+.mac-hero-dot-bar {
+  position: relative;
+  display: block;
+  inline-size: 24px;
+  block-size: 6px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-ink-muted) 70%, transparent);
+  transition:
+    inline-size 300ms var(--ease-out),
+    background-color 150ms linear;
+}
+.mac-hero-dot:hover .mac-hero-dot-bar {
+  background: var(--color-ink-muted);
+}
+.mac-hero-dot[aria-current] .mac-hero-dot-bar {
+  inline-size: 48px;
+  background: color-mix(in srgb, var(--color-ink) 38%, transparent);
+}
+.mac-hero-dot-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-ink);
+  transform-origin: left center;
+  animation: mac-hero-dot-fill linear both;
+}
+[dir="rtl"] .mac-hero-dot-fill {
+  transform-origin: right center;
+}
+@keyframes mac-hero-dot-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
 /* ── Page template on macOS ────────────────────────────────────────────────
    Every page without an artwork hero opens the same way: one bold title level
    with the Settings title, a single muted line under it, actions on the title
