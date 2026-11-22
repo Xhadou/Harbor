@@ -1,6 +1,7 @@
 import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { lruSet } from "@/lib/cache";
 import { meta as fetchMeta, narrowMediaType, type Meta } from "@/lib/cinemeta";
+import { isMacDesktop } from "@/lib/platform";
 import { tmdbTrailerList } from "@/lib/providers/tmdb";
 import { registerStreamProxy } from "@/lib/stream-proxy";
 
@@ -60,6 +61,38 @@ export function shouldPrefetch(): boolean {
   return true;
 }
 
+function isHlsPlaylist(url: string): boolean {
+  try {
+    return new URL(url).pathname.toLowerCase().endsWith(".m3u8");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * What a Mac's web view is given for an HLS trailer, or null when the stream is not HLS. The
+ * web view plays HLS itself and cannot play the proxy's MP4: that one is piped out of a live
+ * transcode, and the web view asks for byte ranges it cannot give, then reports the source as
+ * unsupported. A rendition that carries its own sound is played from its playlist as it is;
+ * one whose sound is a separate stream gets a playlist naming the two, so the picture is the
+ * rendition that was asked for from the first frame. It is handed over as a `data:` address,
+ * the one kind the web view accepts for a playlist that is not on a server.
+ */
+function nativeHlsSource(videoUrl: string, audioUrl?: string | null): string | null {
+  if (!isHlsPlaylist(videoUrl)) return null;
+  if (!audioUrl) return videoUrl;
+  if (!isHlsPlaylist(audioUrl) || /["\s]/.test(videoUrl + audioUrl)) return null;
+  const playlist = [
+    "#EXTM3U",
+    "#EXT-X-VERSION:4",
+    `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",NAME="audio",DEFAULT=YES,AUTOSELECT=YES,URI="${audioUrl}"`,
+    '#EXT-X-STREAM-INF:BANDWIDTH=1000000,AUDIO="audio"',
+    videoUrl,
+    "",
+  ].join("\n");
+  return `data:application/vnd.apple.mpegurl;base64,${btoa(playlist)}`;
+}
+
 /** Resolve a trailer. `download` forces the seekable file; `downloadFallback`
  *  lets a failed stream resolution fall back to that file. */
 export function fetchTrailer(
@@ -92,6 +125,17 @@ export function fetchTrailer(
           cached.expires = Number.isFinite(expiry)
             ? Math.max(now + 30_000, Math.min(ttl, expiry * 1000 - 30_000))
             : ttl;
+        }
+        const playlist = isMacDesktop() ? nativeHlsSource(stream.url, stream.audio_url) : null;
+        if (playlist) {
+          return {
+            file_path: "",
+            stream_url: playlist,
+            quality,
+            duration_seconds: 0,
+            title: "",
+            size_bytes: 0,
+          };
         }
         const options: { transcode?: boolean; fragmentedMp4: boolean; audioUrl?: string } = {
           transcode: stream.transcode,

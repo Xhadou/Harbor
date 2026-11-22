@@ -40,6 +40,7 @@ function trailers(invoke, connection) {
       if (name === "@/lib/stream-proxy") {
         return { registerStreamProxy: async (url) => ({ url, sessionId: "test-session" }) };
       }
+      if (name === "@/lib/platform") return { isMacDesktop: () => false };
       return {};
     },
     { __TAURI_INTERNALS__: {} },
