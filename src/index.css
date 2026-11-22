@@ -9752,11 +9752,13 @@ html[data-os="macos"] [data-expanding-card][data-row-card-expanded="true"] .expa
     opacity 360ms ease-out,
     transform var(--row-expand-ms, 480ms) cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* An opened poster is the same preview (PosterPreview): its wide picture keeps
-   to its own 16:9 at the card's near edge, the trailer plays over it, and the
-   card opens further for the text beside it. Its parts are spans, the card
-   being a button, so the ones that are boxes are told so. While the card is
-   narrower than the picture, opening or closing, the picture fills it. */
+/* An opened poster (PosterPreview) is its wide picture and nothing beside it:
+   the trailer plays over the picture, and the title, a line of facts and the
+   actions lie along the picture's foot over a soft shade, as on the hero. Its
+   parts are spans, the card being a button, so the ones that are boxes are
+   told so. The foot is laid out at the card's open width from the start, so
+   its words do not reflow while the card widens. While the card is narrower
+   than the picture, opening or closing, the picture fills it. */
 html[data-os="macos"] [data-card-previews] .expanding-card-artwork {
   inline-size: min(100%, calc(var(--row-poster-height) * 16 / 9));
 }
@@ -9767,11 +9769,96 @@ html[data-os="macos"] .mac-pv-poster {
 }
 html[data-os="macos"]
   .mac-pv-poster
-  :is(.mac-pv-wash, .mac-pv-media, .mac-pv-video, .mac-pv-facts) {
+  :is(.mac-pv-media, .mac-pv-video, .mac-pv-shade, .mac-pv-facts) {
   display: block;
 }
-html[data-os="macos"] .mac-pv-poster .mac-pv-side {
-  inline-size: clamp(200px, calc(var(--mac-pv-base) * 0.55), 256px);
+html[data-os="macos"] .mac-pv-shade {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 3;
+  block-size: 58%;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.36) 46%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+html[data-os="macos"] .mac-pv[data-open] .mac-pv-shade {
+  opacity: 1;
+  transition: opacity 340ms ease-out 200ms;
+}
+html[data-os="macos"] .mac-pv-bar {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  z-index: 4;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  inline-size: var(--mac-pv-base);
+  padding-block-end: 12px;
+  padding-inline: 14px 12px;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  translate: 0 6px;
+  transition:
+    opacity 200ms ease-out,
+    translate 260ms ease-out;
+}
+html[data-os="macos"] .mac-pv[data-open] .mac-pv-bar {
+  opacity: 1;
+  translate: none;
+  transition:
+    opacity 340ms ease-out 240ms,
+    translate 560ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
+}
+html[data-os="macos"] .mac-pv-bar [role="button"] {
+  pointer-events: auto;
+}
+html[data-os="macos"] .mac-pv-who {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-inline-size: 0;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.55);
+}
+html[data-os="macos"] .mac-pv-bar .mac-pv-title {
+  -webkit-line-clamp: 1;
+}
+html[data-os="macos"] .mac-pv-bar .mac-pv-facts {
+  color: rgb(255 255 255 / 0.8);
+}
+html[data-os="macos"] .mac-pv-bar .mac-pv-actions {
+  flex: none;
+  margin-block-start: 0;
+}
+/* The foot holds the name and the actions, so the trailer's sound goes to the
+   picture's upper corner. */
+html[data-os="macos"] .mac-pv-poster .mac-pv-sound {
+  inset-block: 6px auto;
+  inset-inline: auto 6px;
+}
+/* The name under a poster steps back while the card is open and names the
+   title itself, and returns over the second half of the card's way back. */
+html[data-os="macos"] [data-card-previews] .mac-card-under {
+  transition: opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
+}
+html[data-os="macos"] [data-card-previews] [data-row-card-expanded="true"] > .mac-card-under {
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+/* In a row that has been scrolled sideways the Mac's web view misjudges what
+   overlaps a playing video, and paints what should lie over the trailer
+   underneath it. So while a preview is live, everything drawn over the
+   trailer is given a layer of its own, and its place no longer depends on
+   that judgement. */
+html[data-os="macos"] .mac-pv[data-live]::after,
+html[data-os="macos"] .mac-pv[data-live] .mac-pv-media::after,
+html[data-os="macos"]
+  .mac-pv[data-live]
+  :is(.mac-pv-wash, .mac-pv-side, .mac-pv-sound, .mac-pv-label, .mac-pv-shade, .mac-pv-bar) {
+  will-change: transform;
 }
 
 /* Player bar. Every button is one size, and play, the main action, is one

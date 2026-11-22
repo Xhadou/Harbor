@@ -127,18 +127,11 @@ const PosterCard = memo(function PosterCard({
     focusEnabled: settings.posterFocusedCard,
   });
   // macOS card previews: the poster opens onto its wide picture under a resting pointer, the
-  // trailer plays there, and the title, the story and the actions stand beside it. A title is
-  // the only thing with a trailer to play.
-  const previewSideRef = useRef<HTMLSpanElement>(null);
-  const wideWidth = expandingCard.previewWidth;
-  // The card opens as wide as the far edge of the preview's text, once its wide picture and
-  // the preview itself are on screen; 0 until then, and the card is asked again.
-  const previewWidth = useCallback(() => {
-    const side = previewSideRef.current;
-    return wideWidth() > 0 && side ? side.offsetLeft + side.offsetWidth : 0;
-  }, [wideWidth]);
+  // trailer plays there, and the title and the actions lie along the picture's foot. A title
+  // is the only thing with a trailer to play. The card opens as wide as that picture, once it
+  // is on screen; the width is 0 until then, and the card is asked again.
   const preview = useCardPreview(
-    previewWidth,
+    expandingCard.previewWidth,
     expandingCard.previews && !kids && (meta.type === "movie" || meta.type === "series"),
   );
   const prepareWide = expandingCard.prepare;
@@ -637,10 +630,8 @@ const PosterCard = memo(function PosterCard({
           <PosterPreview
             meta={meta}
             title={preferredTitle || translatedTitle || meta.name}
-            art={expandingCard.artwork}
             wanted={preview.wanted}
             open={preview.open}
-            sideRef={previewSideRef}
             // An anime's episode is picked on its own page, as on the hero.
             onPlay={isAnimeCardId ? undefined : () => openPicker(meta, smartPlayEpisode(meta))}
             onMore={() => openMeta(meta, isAnimeCardId ? { exact: true } : undefined)}
@@ -778,7 +769,7 @@ const PosterCard = memo(function PosterCard({
         </div>
       </div>
       {!settings.hidePosterTitles && (
-        <div className="min-h-9">
+        <div className="mac-card-under min-h-9">
           <p
             style={{ fontSize: `${(kids ? 15 : 13) * settings.cardTitleScale}px` }}
             className={

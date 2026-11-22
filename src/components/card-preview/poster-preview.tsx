@@ -1,5 +1,5 @@
 import { Volume2, VolumeX } from "lucide-react";
-import type { CSSProperties, MouseEvent, Ref } from "react";
+import type { MouseEvent } from "react";
 import { Play } from "@/components/icons/play-filled";
 import type { Meta } from "@/lib/cinemeta";
 import { heroFacts } from "@/lib/hero-facts";
@@ -8,31 +8,24 @@ import { getQualityHint } from "@/lib/trailer";
 import { usePreviewTrailer } from "./use-preview-trailer";
 
 /**
- * What an opened poster shows: the same preview a wide card opens into (see
- * `CardPreviewPanel`). The trailer plays over the poster's wide picture, and
- * the title, a line of facts, the story and the actions stand beside it. It
- * lives inside the card's own button, so it is made of spans and its controls
- * are not buttons of their own: they take the pointer, and the card itself
- * stays the one thing the keyboard lands on.
+ * What an opened poster shows: its wide picture with the trailer playing over
+ * it, and along the picture's foot the title, a line of facts and the actions,
+ * as on the hero. It lives inside the card's own button, so it is made of spans
+ * and its controls are not buttons of their own: they take the pointer, and the
+ * card itself stays the one thing the keyboard lands on.
  */
 export function PosterPreview({
   meta,
   title,
-  art,
   wanted,
   open,
-  sideRef,
   onPlay,
   onMore,
 }: {
   meta: Meta;
   title: string;
-  /** The poster's wide picture, blurred behind the text. */
-  art?: string;
   wanted: boolean;
   open: boolean;
-  /** The text column: the card opens as wide as its far edge. */
-  sideRef: Ref<HTMLSpanElement>;
   /** Left out for a title whose episode is picked on its own page. */
   onPlay?: () => void;
   onMore: () => void;
@@ -46,24 +39,20 @@ export function PosterPreview({
   };
   return (
     <span
+      data-live="true"
       data-open={open ? "true" : undefined}
       data-playing={trailer.showing ? "true" : undefined}
       className="mac-card mac-pv mac-pv-over mac-pv-poster"
     >
-      {art && (
-        <span
-          aria-hidden
-          className="mac-pv-wash"
-          style={{ "--mac-pv-art": `url("${art}")` } as CSSProperties}
-        />
-      )}
       <span className="mac-pv-media">
         <span ref={trailer.slot} aria-hidden className="mac-pv-video" />
       </span>
-      <span ref={sideRef} className="mac-pv-side" inert={!open}>
-        <span className="mac-pv-title">{title}</span>
-        {facts && <span className="mac-pv-facts">{facts}</span>}
-        {meta.description && <span className="mac-pv-about">{meta.description}</span>}
+      <span aria-hidden className="mac-pv-shade" />
+      <span className="mac-pv-bar" inert={!open}>
+        <span className="mac-pv-who">
+          <span className="mac-pv-title">{title}</span>
+          {facts && <span className="mac-pv-facts">{facts}</span>}
+        </span>
         <span className="mac-pv-actions">
           {onPlay && (
             <span

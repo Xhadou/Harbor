@@ -77,6 +77,7 @@ export function MacCollectionCard({
   return (
     <div
       ref={cardRef}
+      data-live={preview.present ? "true" : undefined}
       data-open={preview.open ? "true" : undefined}
       data-playing={trailer.showing ? "true" : undefined}
       onContextMenu={onContextMenu}

@@ -55,6 +55,7 @@ export function CardPreviewPanel({
   return (
     <div
       ref={setPanel}
+      data-live={preview.present ? "true" : undefined}
       data-open={preview.open ? "true" : undefined}
       data-playing={trailer.showing ? "true" : undefined}
       className="mac-card mac-pv mac-pv-over"
