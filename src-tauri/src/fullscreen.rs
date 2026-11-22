@@ -1,11 +1,46 @@
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, Manager, State};
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 struct SavedGeometry {
     x: i32,
     y: i32,
     w: u32,
     h: u32,
+}
+
+// macOS remembers a window's frame when it goes full screen and animates back
+// to it on the way out. A snapshot of our own is worse than redundant there:
+// re-applying it lands in the middle of that animation, and one taken while
+// the window is still shrinking records the screen's size as the size to
+// return to. Other platforms have no such memory, so they keep the snapshot.
+const OS_RESTORES_FRAME: bool = cfg!(target_os = "macos");
+
+#[derive(Debug, PartialEq)]
+enum Restore {
+    Nothing,
+    Maximize,
+    Bounds(SavedGeometry),
+    DefaultSize,
+}
+
+fn restore_after_exit(
+    saved: Option<&SavedWindowState>,
+    was_fullscreen: bool,
+    os_restores_frame: bool,
+) -> Restore {
+    if os_restores_frame {
+        return Restore::Nothing;
+    }
+    match saved {
+        None => Restore::Nothing,
+        Some(saved) if saved.maximized => Restore::Maximize,
+        Some(saved) => match saved.geometry {
+            Some(geometry) => Restore::Bounds(geometry),
+            None if was_fullscreen => Restore::DefaultSize,
+            None => Restore::Nothing,
+        },
+    }
 }
 
 struct SavedWindowState {
@@ -66,28 +101,30 @@ fn enter_fullscreen(
     if !already_fs {
         #[cfg(windows)]
         crate::window_placement::pause_for_transition(main.app_handle(), true);
-        // The OS owns a maximized window's restored bounds. Save its mode before
-        // unmaximizing instead of capturing the maximized dimensions.
-        let maximized = main.is_maximized().unwrap_or(false);
-        if maximized {
-            let _ = main.unmaximize();
+        if !OS_RESTORES_FRAME {
+            // The OS owns a maximized window's restored bounds. Save its mode before
+            // unmaximizing instead of capturing the maximized dimensions.
+            let maximized = main.is_maximized().unwrap_or(false);
+            if maximized {
+                let _ = main.unmaximize();
+            }
+            let geometry = if maximized {
+                None
+            } else if let (Ok(pos), Ok(sz)) = (main.outer_position(), main.inner_size()) {
+                Some(SavedGeometry {
+                    x: pos.x,
+                    y: pos.y,
+                    w: sz.width,
+                    h: sz.height,
+                })
+            } else {
+                None
+            };
+            let mut saved = saved.lock().unwrap();
+            // Preserve the original snapshot if the OS temporarily drops fullscreen
+            // and the player reasserts it before the user has actually exited.
+            saved.get_or_insert(SavedWindowState { maximized, geometry });
         }
-        let geometry = if maximized {
-            None
-        } else if let (Ok(pos), Ok(sz)) = (main.outer_position(), main.inner_size()) {
-            Some(SavedGeometry {
-                x: pos.x,
-                y: pos.y,
-                w: sz.width,
-                h: sz.height,
-            })
-        } else {
-            None
-        };
-        let mut saved = saved.lock().unwrap();
-        // Preserve the original snapshot if the OS temporarily drops fullscreen
-        // and the player reasserts it before the user has actually exited.
-        saved.get_or_insert(SavedWindowState { maximized, geometry });
         main.set_fullscreen(true)
             .map_err(|e| format!("set_fullscreen(true): {}", e))?;
         let _ = main.set_focus();
@@ -125,10 +162,12 @@ fn exit_fullscreen(
     // like exitAnyFullscreen call setFullscreen(false) directly before this
     // command runs, and the saved geometry must still be applied.
     let saved = saved.lock().unwrap().take();
-    if let Some(saved) = saved {
-        if saved.maximized {
+    match restore_after_exit(saved.as_ref(), is_fs, OS_RESTORES_FRAME) {
+        Restore::Nothing => {}
+        Restore::Maximize => {
             let _ = main.maximize();
-        } else if let Some(geo) = saved.geometry {
+        }
+        Restore::Bounds(geo) => {
             let _ = main.set_size(tauri::PhysicalSize {
                 width: geo.w,
                 height: geo.h,
@@ -138,12 +177,66 @@ fn exit_fullscreen(
             } else {
                 let _ = main.center();
             }
-        } else if is_fs {
+        }
+        Restore::DefaultSize => {
             let _ = main.set_size(tauri::LogicalSize { width: 1280.0, height: 800.0 });
             let _ = main.center();
         }
+    }
+    if saved.is_some() {
         let _ = main.set_focus();
     }
     let _ = main.app_handle().emit_to("main", "fs://exited", ());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const WINDOWED: SavedGeometry = SavedGeometry {
+        x: 95,
+        y: 95,
+        w: 2560,
+        h: 1600,
+    };
+
+    fn saved(maximized: bool, geometry: Option<SavedGeometry>) -> SavedWindowState {
+        SavedWindowState { maximized, geometry }
+    }
+
+    #[test]
+    fn a_window_the_os_restores_is_never_resized_or_moved_on_exit() {
+        let bounds = saved(false, Some(WINDOWED));
+        assert_eq!(restore_after_exit(Some(&bounds), true, true), Restore::Nothing);
+        let maximized = saved(true, None);
+        assert_eq!(restore_after_exit(Some(&maximized), true, true), Restore::Nothing);
+        let unknown = saved(false, None);
+        assert_eq!(restore_after_exit(Some(&unknown), true, true), Restore::Nothing);
+    }
+
+    #[test]
+    fn elsewhere_the_snapshot_decides_what_exit_restores() {
+        let bounds = saved(false, Some(WINDOWED));
+        assert_eq!(
+            restore_after_exit(Some(&bounds), true, false),
+            Restore::Bounds(WINDOWED)
+        );
+        // The frontend may already have left full screen; the bounds still apply.
+        assert_eq!(
+            restore_after_exit(Some(&bounds), false, false),
+            Restore::Bounds(WINDOWED)
+        );
+        let maximized = saved(true, None);
+        assert_eq!(restore_after_exit(Some(&maximized), true, false), Restore::Maximize);
+        let unknown = saved(false, None);
+        assert_eq!(restore_after_exit(Some(&unknown), true, false), Restore::DefaultSize);
+        assert_eq!(restore_after_exit(Some(&unknown), false, false), Restore::Nothing);
+        assert_eq!(restore_after_exit(None, true, false), Restore::Nothing);
+    }
+
+    #[test]
+    fn macos_is_the_platform_that_restores_its_own_frame() {
+        assert_eq!(OS_RESTORES_FRAME, cfg!(target_os = "macos"));
+    }
 }

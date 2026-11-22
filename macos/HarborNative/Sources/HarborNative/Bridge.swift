@@ -15,6 +15,10 @@ final class HarborNativeController {
     private let callback: HarborNativeCallback
 
     private var fullScreenObservers: [NSObjectProtocol] = []
+    /// The state the window last said it is in or going to; nil until it has
+    /// said anything. Its style mask is no substitute while a transition runs:
+    /// it still reads full screen all the way through leaving.
+    private var fullScreenReported: Bool?
     private(set) var chrome: ChromeButtons!
     private(set) var sidebar: SidebarHost!
     private var lastLayout: LayoutPayload?
@@ -62,6 +66,7 @@ final class HarborNativeController {
     }
 
     private func emitFullScreen(_ on: Bool) {
+        fullScreenReported = on
         emit("fullscreen", FullScreenPayload(on: on))
     }
 
@@ -119,7 +124,7 @@ final class HarborNativeController {
         sidebar.search.isHidden = !payload.searchVisible
         // The web app sends this on mount, when it may have missed earlier events.
         emitLayout(force: true)
-        emitFullScreen(window.styleMask.contains(.fullScreen))
+        emitFullScreen(fullScreenReported ?? window.styleMask.contains(.fullScreen))
     }
 
     func setSearch(_ payload: SearchPayload) {
