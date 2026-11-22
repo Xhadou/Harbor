@@ -22,7 +22,12 @@ import { useViewActions } from "@/lib/view";
 import { resetPosterDock as resetPosterDockItems, updatePosterDock } from "@/lib/poster-dock";
 import { scrollDeltaToRevealCard } from "@/lib/poster-backdrop-expansion";
 import { RowCardExpansionProvider } from "@/components/row-card-expansion";
-import { PREVIEW_TRAILER_OUT_MS, easeProgress, previewMotion } from "@/lib/card-preview/policy";
+import {
+  PREVIEW_TRAILER_OUT_MS,
+  easeProgress,
+  previewMotion,
+  type PreviewMotion,
+} from "@/lib/card-preview/policy";
 import { cardPreviewsOn } from "@/lib/card-preview/store";
 
 const GAP = 20;
@@ -394,6 +399,7 @@ export function Row({
   // Where the row stood before a card opened in it, and where this code last put it. Opening a
   // card near the row's end scrolls the row to keep the card whole; closing brings it back.
   const scrollHomeRef = useRef<{ home: number; placed: number } | null>(null);
+  const lastExpandedIndexRef = useRef(0);
 
   const expandRowCard = useCallback(
     (index: number, width: number) => {
@@ -446,6 +452,23 @@ export function Row({
       GAP,
     );
   };
+  // How far a card is through its change of width, to be asked each frame. It is read from the
+  // card itself, so the row's scroll keeps exact step with the transition whichever frame the
+  // browser started it in. A card whose width has nowhere to go is followed by the clock.
+  const widthProgress = (
+    track: HTMLDivElement,
+    index: number,
+    startedAt: number,
+    motion: PreviewMotion,
+  ): (() => number) => {
+    const cell = track.querySelector<HTMLElement>(`[data-row-card-index="${index}"]`);
+    const fromWidth = cell?.getBoundingClientRect().width ?? 0;
+    const span = (cell ? Number.parseFloat(cell.style.flexBasis) : Number.NaN) - fromWidth;
+    if (!cell || !Number.isFinite(span) || Math.abs(span) < 1) {
+      return () => easeProgress(motion.ease, (performance.now() - startedAt) / motion.ms);
+    }
+    return () => Math.min(1, Math.max(0, (cell.getBoundingClientRect().width - fromWidth) / span));
+  };
   // The person scrolled the row while a card was open: the row stays where they put it.
   const rowWasMoved = (track: HTMLDivElement) => {
     const kept = scrollHomeRef.current;
@@ -468,20 +491,23 @@ export function Row({
       } else if (rowWasMoved(track)) {
         scrollHomeRef.current = null;
       }
-      // A card preview's row glides to where the open card will be whole, on the card's own
-      // curve. A card already partly off screen then slides in, where chasing its edge frame
-      // by frame moved the row the whole distance in the first frame.
+      lastExpandedIndexRef.current = expandedCard.index;
+      // A card preview's row glides to where the open card will be whole, as far along as the
+      // card is in opening. A card already partly off screen then slides in, where chasing its
+      // edge frame by frame moved the row the whole distance in the first frame.
       const glide = cardMotion ? settledRevealDelta(track, expandedCard.index) : null;
+      const opened = cardMotion
+        ? widthProgress(track, expandedCard.index, startedAt, cardMotion)
+        : null;
       const from = track.scrollLeft;
       let placed = from;
       const keepExpandedCardVisible = () => {
         expansionFrameRef.current = null;
         if (rowWasMoved(track)) scrollHomeRef.current = null;
-        if (cardMotion && glide !== null) {
+        if (opened && glide !== null) {
           const held = drag.current.active || Math.abs(track.scrollLeft - placed) > 2;
           if (!held && Math.abs(glide) > 0.5) {
-            const t = (performance.now() - startedAt) / cardMotion.ms;
-            track.scrollLeft = from + glide * easeProgress(cardMotion.ease, t);
+            track.scrollLeft = from + glide * opened();
             placed = track.scrollLeft;
             if (scrollHomeRef.current) scrollHomeRef.current.placed = placed;
           }
@@ -494,19 +520,20 @@ export function Row({
       };
       expansionFrameRef.current = requestAnimationFrame(keepExpandedCardVisible);
     } else if (cardMotion && !rowWasMoved(track)) {
-      // The row goes home in step with the card's own return: same length, same curve.
+      // The row goes home as far along as the card is in its own return.
       const from = track.scrollLeft;
       const home = scrollHomeRef.current?.home ?? from;
+      const closed = widthProgress(track, lastExpandedIndexRef.current, startedAt, cardMotion);
       const returnHome = () => {
         expansionFrameRef.current = null;
         if (rowWasMoved(track)) {
           scrollHomeRef.current = null;
           return;
         }
-        const t = (performance.now() - startedAt) / cardMotion.ms;
-        track.scrollLeft = from + (home - from) * easeProgress(cardMotion.ease, t);
+        const over = performance.now() - startedAt >= cardMotion.ms + 40;
+        track.scrollLeft = from + (home - from) * (over ? 1 : closed());
         if (scrollHomeRef.current) scrollHomeRef.current.placed = track.scrollLeft;
-        if (t < 1) expansionFrameRef.current = requestAnimationFrame(returnHome);
+        if (!over) expansionFrameRef.current = requestAnimationFrame(returnHome);
         else scrollHomeRef.current = null;
       };
       if (Math.abs(home - from) > 0.5) {
