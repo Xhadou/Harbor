@@ -572,6 +572,26 @@ export function Row({
   const prevMemoryRef = useRef(memoryKey);
   const restoredRef = useRef(false);
   const userInteractedRef = useRef(false);
+  // A row nobody has moved does not snap. The Mac's web view settles its snapping on whatever a
+  // row holds first; a row that starts with a handful of placeholder cards is too short to scroll,
+  // and when the real cards arrive and it becomes scrollable, the web view jumps it to a stale
+  // snap position two or three cards in (seen in the app: 0 to 497 px with no input and no script
+  // write). Snapping is given back the first time the row is deliberately moved.
+  const snapHeldRef = useRef(false);
+  useLayoutEffect(() => {
+    if (!trackEl || userInteractedRef.current) return;
+    trackEl.style.scrollSnapType = "none";
+    snapHeldRef.current = true;
+  }, [trackEl]);
+  const releaseSnapHold = () => {
+    if (!snapHeldRef.current) return;
+    snapHeldRef.current = false;
+    const track = trackRef.current;
+    // A glide, a drag or an open card has snapping off for its own reasons and restores it itself.
+    if (track && rafId.current == null && !drag.current.active && !hadExpandedCardRef.current) {
+      track.style.scrollSnapType = "";
+    }
+  };
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       measureRef.current();
@@ -647,6 +667,7 @@ export function Row({
     track.addEventListener("scroll", onScroll, { passive: true });
     const markInteracted = () => {
       userInteractedRef.current = true;
+      releaseSnapHold();
     };
     let wheelSettle: number | null = null;
     const onWheel = (e: WheelEvent) => {
