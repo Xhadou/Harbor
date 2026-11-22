@@ -19,6 +19,7 @@ pub fn configure_command(cmd: &mut Command) {
 
 /// Same lifetime guarantee for blocking `std::process` children, such as the
 /// long-lived Music sidecar owned by a synchronous host thread.
+#[cfg(feature = "music")]
 pub fn configure_std_command(cmd: &mut std::process::Command) {
     #[cfg(target_os = "linux")]
     unsafe {
@@ -41,6 +42,7 @@ pub fn adopt(child: &Child) {
     let _ = child;
 }
 
+#[cfg(feature = "music")]
 pub fn adopt_std(child: &std::process::Child) {
     #[cfg(windows)]
     {

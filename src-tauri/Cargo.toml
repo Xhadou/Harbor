@@ -23,6 +23,10 @@ games = [
   "dep:harbor-udfread",
   "dep:leveldb-sys",
   "dep:trash",
+  "dep:md5",
+  "dep:png",
+  "dep:quick-xml",
+  "dep:yaml-rust2",
 ]
 plugins = []
 # Native Music implementation; shared video helpers remain in core.
@@ -32,6 +36,7 @@ music = [
   "dep:librespot-oauth",
   "dep:async-trait",
   "dep:parking_lot",
+  "dep:md5",
 ]
 # Legacy Lofty tag reader remains for existing installs until the separate Music
 # runtime is required and shipped by Shipyard.
@@ -90,8 +95,8 @@ hadris-iso = { optional = true, version = "=2.5.0", default-features = false, fe
 harbor-udfread = { optional = true, path = "vendor/harbor-udfread" }
 regex = "1"
 encoding_rs = "0.8"
-quick-xml = { version = "=0.38.4", features = ["serialize"] }
-yaml-rust2 = { version = "0.13", default-features = false }
+quick-xml = { version = "=0.38.4", features = ["serialize"], optional = true }
+yaml-rust2 = { version = "0.13", default-features = false, optional = true }
 uuid = { version = "1", features = ["v4"] }
 futures-util = "0.3"
 gilrs = { version = "0.11", default-features = false, features = ["xinput"] }
@@ -100,7 +105,7 @@ socket2 = "0.5"
 base64 = "0.22"
 sha2 = "0.10"
 sha1 = "0.10"
-png = "0.17"
+png = { version = "0.17", optional = true }
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp"] }
 hound = "3.5"
 kothok-edge-tts = "0.2.10"
@@ -149,7 +154,7 @@ notify-rust = "4"
 reqwest = { version = "0.12", default-features = false, features = ["native-tls"] }
 rusqlite = { version = "0.32.0", features = ["bundled"] }
 async-trait = { version = "0.1", optional = true }
-md5 = "0.7"
+md5 = { version = "0.7", optional = true }
 sha2 = "0.10"
 futures = "0.3"
 lofty = { version = "0.22", optional = true }
@@ -215,6 +220,13 @@ libpulse-binding = "2.30"
 [dev-dependencies]
 sevenz-rust2 = { version = "=0.20.2", default-features = false, features = ["compress"] }
 crc32fast = "1"
+
+# Whole-program optimisation for the build that ships: the linker sees every crate at
+# once, so it inlines across them and drops what nothing reaches. Symbol names stay,
+# because crash_report.rs writes a backtrace and an address alone says nothing.
+[profile.release]
+lto = "fat"
+codegen-units = 1
 
 [profile.dev]
 debug = "line-tables-only"
