@@ -126,6 +126,8 @@ where
         .app_cache_dir()
         .ok()
         .map(|path| path.join("music/yt-dlp"));
+    #[cfg(target_os = "macos")]
+    let home = directory.clone();
     let (remote, update) = match directory {
         Some(directory) => {
             let cached = read_verified(&directory).await;
@@ -147,6 +149,13 @@ where
             }
         }
         None => (None, None),
+    };
+    // What the update is compared with below is the single file, whichever form runs.
+    let single = remote.clone();
+    #[cfg(target_os = "macos")]
+    let remote = match (home.as_deref(), remote) {
+        (Some(home), Some(single)) => Some(quicker_executable(home, single).await),
+        (_, remote) => remote,
     };
     if let Some(executable) = remote.as_ref() {
         // Reserve time for the bundled helper when the current release cannot run.
@@ -185,7 +194,7 @@ where
             .saturating_sub(started.elapsed())
             .saturating_sub(Duration::from_secs(5));
         if let Ok(Ok(Some(path))) = tokio::time::timeout(wait, update).await {
-            if remote.as_ref() != Some(&path) {
+            if single.as_ref() != Some(&path) {
                 let remaining = timeout.saturating_sub(started.elapsed());
                 if let Ok(output) = execute(&path, &args, remaining).await {
                     return validate_output(output, &validate).await;
@@ -257,7 +266,89 @@ pub async fn warm(app: &tauri::AppHandle) {
     else {
         return;
     };
-    let _ = cached_executable(&directory).await;
+    let single = cached_executable(&directory).await;
+    #[cfg(target_os = "macos")]
+    if let Some(version) = single
+        .as_deref()
+        .and_then(crate::ytdlp_unpacked::version_of)
+    {
+        let _ = unpacked_executable(&directory, version).await;
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = single;
+}
+
+#[cfg(target_os = "macos")]
+static UNPACK_GATE: LazyLock<Mutex<Option<Instant>>> = LazyLock::new(|| Mutex::new(None));
+/// The archive is larger than the single file and is fetched in the background.
+#[cfg(target_os = "macos")]
+const UNPACK_TIMEOUT: Duration = Duration::from_secs(240);
+
+/// The unpacked yt-dlp of `version`, made now if it is not here: the release's archive is
+/// fetched from its official address and must match the release's own checksum list.
+#[cfg(target_os = "macos")]
+async fn unpacked_executable(directory: &Path, version: &str) -> Option<PathBuf> {
+    use crate::ytdlp_unpacked as unpacked;
+    let mut attempted = UNPACK_GATE.lock().await;
+    if let Some(path) = unpacked::verified_executable(directory, version).await {
+        return Some(path);
+    }
+    if attempted.is_some_and(|stamp| stamp.elapsed() < RETRY_INTERVAL)
+        || !safe_version(version)
+        || known_bad_release(version)
+    {
+        return None;
+    }
+    *attempted = Some(Instant::now());
+    let made = async {
+        let client = release_client()?;
+        let base = format!("https://github.com/yt-dlp/yt-dlp/releases/download/{version}");
+        let checksums = fetch_limited(
+            &client,
+            &format!("{base}/SHA2-256SUMS"),
+            MAX_CHECKSUMS,
+            METADATA_TIMEOUT,
+        )
+        .await?;
+        let expected = checksum_for(
+            std::str::from_utf8(&checksums).map_err(|_| ())?,
+            unpacked::ARCHIVE,
+        )
+        .ok_or(())?;
+        let archive = fetch_limited(
+            &client,
+            &format!("{base}/{}", unpacked::ARCHIVE),
+            unpacked::MAX_ARCHIVE,
+            UNPACK_TIMEOUT,
+        )
+        .await?;
+        unpacked::install(directory, version, archive, &expected).await
+    };
+    let path = tokio::time::timeout(UNPACK_TIMEOUT, made)
+        .await
+        .ok()?
+        .ok()?;
+    // The system looks a new program over the first time it runs, about six seconds for this
+    // one. Let that happen here and not on the first trailer.
+    let _ = execute(&path, &["--version".to_string()], Duration::from_secs(60)).await;
+    Some(path)
+}
+
+/// The quicker of the two forms of the same release: the unpacked folder when it is here and
+/// verified, else the single file, with the folder made in the background for next time.
+#[cfg(target_os = "macos")]
+async fn quicker_executable(directory: &Path, single: PathBuf) -> PathBuf {
+    let Some(version) = crate::ytdlp_unpacked::version_of(&single).map(str::to_string) else {
+        return single;
+    };
+    if let Some(path) = crate::ytdlp_unpacked::verified_executable(directory, &version).await {
+        return path;
+    }
+    let directory = directory.to_path_buf();
+    tokio::spawn(async move {
+        let _ = unpacked_executable(&directory, &version).await;
+    });
+    single
 }
 
 async fn cached_executable(directory: &Path) -> Option<PathBuf> {
@@ -303,9 +394,9 @@ async fn read_limited(path: &Path, limit: usize) -> Option<Vec<u8>> {
     (bytes.len() <= limit).then_some(bytes)
 }
 
-async fn refresh(directory: &Path, cached: Option<&CachedRelease>) -> Result<PathBuf, ()> {
-    let asset_name = platform_asset().ok_or(())?;
-    let client = reqwest::Client::builder()
+/// Follows redirects only among GitHub's own release hosts.
+fn release_client() -> Result<reqwest::Client, ()> {
+    reqwest::Client::builder()
         .user_agent("Harbor-Music")
         .connect_timeout(Duration::from_secs(3))
         .timeout(UPDATE_TIMEOUT)
@@ -328,7 +419,12 @@ async fn refresh(directory: &Path, cached: Option<&CachedRelease>) -> Result<Pat
             }
         }))
         .build()
-        .map_err(|_| ())?;
+        .map_err(|_| ())
+}
+
+async fn refresh(directory: &Path, cached: Option<&CachedRelease>) -> Result<PathBuf, ()> {
+    let asset_name = platform_asset().ok_or(())?;
+    let client = release_client()?;
     let release = fetch_release(&client, RELEASE_API).await?;
     let release = if known_bad_release(&release.tag_name) {
         fetch_release(&client, &format!("{RELEASE_TAG_API}{FALLBACK_RELEASE}")).await?
@@ -573,6 +669,41 @@ mod tests {
                 .contains("account access")
         );
         assert!(!extraction_error(b"https://private.example/?token=secret").contains("secret"));
+    }
+
+    /// Downloads the real archive (54 MB), so it only runs when asked for:
+    /// `cargo test --lib unpacked_release -- --ignored`.
+    #[cfg(target_os = "macos")]
+    #[tokio::test]
+    #[ignore]
+    async fn the_unpacked_release_is_made_from_the_official_archive_and_runs() {
+        let home = std::env::temp_dir().join(format!("harbor-ytdlp-e2e-{}", uuid::Uuid::new_v4()));
+        let started = Instant::now();
+        let path = unpacked_executable(&home, FALLBACK_RELEASE)
+            .await
+            .expect("the folder is made");
+        eprintln!("made in {:.1}s", started.elapsed().as_secs_f32());
+        assert_eq!(
+            crate::ytdlp_unpacked::verified_executable(&home, FALLBACK_RELEASE).await,
+            Some(path.clone())
+        );
+        let started = Instant::now();
+        let output = execute(&path, &["--version".to_string()], Duration::from_secs(30))
+            .await
+            .expect("it runs");
+        eprintln!("--version in {:.2}s", started.elapsed().as_secs_f32());
+        assert_eq!(
+            String::from_utf8_lossy(&output.stdout).trim(),
+            FALLBACK_RELEASE
+        );
+        // A second ask finds it and fetches nothing.
+        let started = Instant::now();
+        assert_eq!(
+            unpacked_executable(&home, FALLBACK_RELEASE).await,
+            Some(path)
+        );
+        eprintln!("found again in {:.2}s", started.elapsed().as_secs_f32());
+        let _ = std::fs::remove_dir_all(home);
     }
 
     #[test]

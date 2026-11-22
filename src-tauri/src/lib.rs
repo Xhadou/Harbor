@@ -81,6 +81,8 @@ mod display_fit;
 #[cfg(windows)]
 mod window_placement;
 #[cfg(desktop)]
+#[cfg(target_os = "macos")]
+mod ytdlp_unpacked;
 mod ytdlp_update;
 #[cfg(all(desktop, feature = "music"))]
 mod dj_deck;
