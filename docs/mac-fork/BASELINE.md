@@ -771,3 +771,95 @@ Music, Games, Manga and eBook, and "personal now, GitHub later".
   `pnpm tauri dev` died during this work and was not restarted.
 - Captures of a window on another desktop come back with an empty page (only
   the native sidebar is drawn). Check `kCGWindowIsOnscreen` before trusting one.
+
+## Faster and lighter (2026-11-22 to 23)
+
+The owner: "make this app faster and lighter maximum in whatever way possible
+without any sort of compromise". Asked which sections may go, they chose all
+four offered (Games, Music, Manga and ebooks, extra themes) and to show Home
+as soon as it is drawn instead of after the fixed logo hold.
+
+### Numbers
+
+Release builds made with `scripts/mac-build.sh`, same Mac, same account data,
+warm launches, window 1280×800, three launches of each taken in turn. "Before"
+is the build of `cfe396a6`, "after" the build of `72f65473`.
+
+| What                                          | Before        | After       |
+| --------------------------------------------- | ------------- | ----------- |
+| App bundle                                    | 399 MB        | 274 MB      |
+| Main binary                                   | 225 MB        | 100 MB      |
+| of which code / embedded frontend / link data | 45 / 152 / 26 | 20 / 73 / 7 |
+| Built frontend (`dist`)                       | 282 MB        | 150 MB      |
+| Script evaluated before anything can draw     | 11.1 MB       | 4.5 MB      |
+| Launch to window on screen                    | 0.62–0.64 s   | 0.58–0.63 s |
+| Launch to Home drawn                          | 2.47–2.59 s   | 0.81–0.85 s |
+| Memory 14 s after launch, app process         | 258–262 MB    | 109–110 MB  |
+| Memory 14 s after launch, web content process | 480–487 MB    | 390–417 MB  |
+| Memory 14 s after launch, all four processes  | 829–844 MB    | 594–624 MB  |
+
+Launch times are from `open` to the first captured frame of the window whose
+rows area is painted (`launch2.sh` and `painted.py`, below). Memory is
+`footprint -p` for the app and the three WebKit processes that appeared with
+it. Idle CPU on Home did not change (about 2.5% app, 4% web content, 4.5% GPU,
+with the hero playing).
+
+In WebKit against the built files, with the network answered empty (a guest,
+so the page is the setup screen): first render 254 ms → 184 ms, page revealed
+2005 ms → 244 ms.
+
+### What was done
+
+- **The Mac edition** (`b9f0bd73`, corrected in `72f65473`).
+  A build made on a Mac leaves out Games, Music, Manga, Ebooks and the extra
+  themes: `HARBOR_EDITION` in `vite.config.ts`, the constants in
+  `src/lib/features/edition.ts`, and `--no-default-features --features plugins`
+  for Cargo from `scripts/tauri.mjs`. `HARBOR_EDITION=full` builds everything.
+- **Launch script** (`b16e6340`): the awards table, hls.js and mpegts.js, the
+  whole lucide icon set, lottie-web, the small windows' apps and the controller
+  drawing no longer load before the first screen.
+- **Remote font stylesheets** (`69f3b2f6`) are added after the page has loaded.
+- **Launch reveal** (`414ffda6`, `fec2ebc2`): on macOS the splash lifts when the
+  first screen's pictures are in, and the page asks for the window as its
+  script starts.
+- **yt-dlp verification** (`3f3c7319`): the cause of the app process's size.
+  Every trailer lookup read the 36 MB single file into memory and hashed it,
+  then hashed the 124 MB unpacked folder: about 0.5 s per lookup, several at
+  once at launch. A `sample` of the first five seconds showed 1.1 s of SHA-256;
+  `vmmap --summary` showed 163 MB dirty in "Malloc Large (empty)". An unchanged
+  copy is now verified once per launch.
+- **Release profile** (`3bc3a468`): fat LTO, one codegen unit. The build takes
+  about 7 minutes from a warm cache.
+
+### Found, not changed
+
+- 47 MB of what remains in the frontend is the player's X-Ray face models
+  (MediaPipe, ONNX runtime, the recogniser). 60 MB of the bundle is the Java
+  runtime stream plugins run on. Both belong to features that were kept.
+- About 100 kB of Music and Manga code is still reached from kept features
+  (Listen Together, Song ID, the soundtrack row, context menus), and Settings ›
+  Account still shows "Profile songs".
+- The stylesheet is 1.3 MB, half of it Tailwind utilities. Telling Tailwind to
+  skip the left-out sections saved 2.5% and was dropped.
+- `public/anime-hero-art.json` (3.3 MB) is still fetched and parsed 1.5 s after
+  launch, on every launch.
+
+### How it was measured
+
+Scripts are in this session's scratchpad
+(`/private/tmp/claude-501/-Users-pratyush-Developer-stremio-better/c4fda875-f044-4718-abc3-9e1b5db96a09/scratchpad/`),
+which may be cleared:
+
+- `vite.analyze.config.ts` (copy it to the repo root to use it) with
+  `build-an.sh <out dir> <chunks.json>`: builds into the scratchpad and dumps
+  every chunk's modules and the import graph. `an.mjs` (what the launch script
+  is made of), `an2.mjs <regex>`, `why.mjs <regex>` (shortest import chain from
+  `src/main.tsx`), `who.mjs <regex>` (kept modules that use a left-out one),
+  `roots.mjs` (kept modules that still load a left-out lazy chunk).
+- `boot.mjs <dist> [runs]`: start timings in WebKit. `walk.mjs <dist>`: every
+  sidebar page, Settings and a title page as a guest, with page errors and
+  missing files. **Run the walk on any change to what the build leaves out**:
+  the first version of the pruning step deleted the stylesheets of every lazily
+  loaded page, Home looked right, and only the walk showed it.
+- `launch2.sh <name> <app> <process path fragment> [capture s] [settle s]`:
+  launches an app, captures frames, then prints memory and CPU and quits it.
