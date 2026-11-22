@@ -5,7 +5,8 @@ import { App } from "@/App";
 import { hydrateCustomThemes } from "@/lib/custom-themes";
 import { getUiLanguage } from "@/lib/i18n/store";
 import { ensureUiLocale } from "@/lib/i18n/load-locale";
-import { applyOsDataset } from "@/lib/platform";
+import { applyOsDataset, isMacDesktop } from "@/lib/platform";
+import { firstScreenPainted } from "@/lib/first-screen";
 import { loadLottie } from "@/lib/lottie-lazy";
 import { loadSecrets } from "@/lib/secret-store";
 import { getInstallFeatures, loadInstallFeatures } from "@/lib/features/install";
@@ -196,6 +197,12 @@ function StartupReady() {
  */
 const MIN_BOOT_MS = 1800;
 
+/**
+ * macOS does not hold the splash for a fixed time. It lifts when the first screen's pictures
+ * are in (lib/first-screen.ts), and waits for them no longer than this after the app is ready.
+ */
+const MAC_FIRST_SCREEN_CAP_MS = 1200;
+
 function MainRoot() {
   const [appReady, setAppReady] = useState(false);
   const markAppReady = useCallback(() => setAppReady(true), []);
@@ -223,15 +230,25 @@ function MainRoot() {
 
   useEffect(() => {
     if (!appReady) return;
-    const wait = Math.max(0, MIN_BOOT_MS - (performance.now() - mountedAt.current));
-    const timer = window.setTimeout(() => {
+    const reveal = () => {
       revealRoot();
       const boot = document.getElementById("harbor-boot");
       if (boot) {
         boot.classList.add("gone");
         setTimeout(() => boot.remove(), 280);
       }
-    }, wait);
+    };
+    if (isMacDesktop()) {
+      let cancelled = false;
+      void firstScreenPainted(MAC_FIRST_SCREEN_CAP_MS).then(() => {
+        if (!cancelled) reveal();
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    const wait = Math.max(0, MIN_BOOT_MS - (performance.now() - mountedAt.current));
+    const timer = window.setTimeout(reveal, wait);
     return () => window.clearTimeout(timer);
   }, [appReady]);
 
