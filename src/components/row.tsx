@@ -424,6 +424,28 @@ export function Row({
     if (Math.abs(delta) > 0.5) track.scrollLeft += delta;
     if (scrollHomeRef.current) scrollHomeRef.current.placed = track.scrollLeft;
   };
+  // How far the row has to scroll for a card to be whole once every card has finished changing
+  // width: known from the start, so the row can glide there instead of chasing the card's edge.
+  const settledRevealDelta = (track: HTMLDivElement, index: number): number | null => {
+    const cell = track.querySelector<HTMLElement>(`[data-row-card-index="${index}"]`);
+    if (!cell) return null;
+    const width = Number.parseFloat(cell.style.flexBasis);
+    if (!Number.isFinite(width)) return null;
+    // A card before this one may still be closing: it gives its extra width back.
+    let surplus = 0;
+    for (const other of track.querySelectorAll<HTMLElement>("[data-row-card-index]")) {
+      if (other === cell) break;
+      const base = Number(other.dataset.tvNavBaseWidth);
+      if (Number.isFinite(base)) surplus += other.getBoundingClientRect().width - base;
+    }
+    const box = cell.getBoundingClientRect();
+    const left = rtl ? box.right + surplus - width : box.left - surplus;
+    return scrollDeltaToRevealCard(
+      { left, right: left + width },
+      track.getBoundingClientRect(),
+      GAP,
+    );
+  };
   // The person scrolled the row while a card was open: the row stays where they put it.
   const rowWasMoved = (track: HTMLDivElement) => {
     const kept = scrollHomeRef.current;
@@ -446,10 +468,26 @@ export function Row({
       } else if (rowWasMoved(track)) {
         scrollHomeRef.current = null;
       }
+      // A card preview's row glides to where the open card will be whole, on the card's own
+      // curve. A card already partly off screen then slides in, where chasing its edge frame
+      // by frame moved the row the whole distance in the first frame.
+      const glide = cardMotion ? settledRevealDelta(track, expandedCard.index) : null;
+      const from = track.scrollLeft;
+      let placed = from;
       const keepExpandedCardVisible = () => {
         expansionFrameRef.current = null;
         if (rowWasMoved(track)) scrollHomeRef.current = null;
-        if (!drag.current.active) revealExpanded(track, expandedCard.index);
+        if (cardMotion && glide !== null) {
+          const held = drag.current.active || Math.abs(track.scrollLeft - placed) > 2;
+          if (!held && Math.abs(glide) > 0.5) {
+            const t = (performance.now() - startedAt) / cardMotion.ms;
+            track.scrollLeft = from + glide * easeProgress(cardMotion.ease, t);
+            placed = track.scrollLeft;
+            if (scrollHomeRef.current) scrollHomeRef.current.placed = placed;
+          }
+        } else if (!drag.current.active) {
+          revealExpanded(track, expandedCard.index);
+        }
         if (performance.now() - startedAt < expandMs + 40) {
           expansionFrameRef.current = requestAnimationFrame(keepExpandedCardVisible);
         }
