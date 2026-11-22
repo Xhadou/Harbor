@@ -9753,12 +9753,14 @@ html[data-os="macos"] [data-expanding-card][data-row-card-expanded="true"] .expa
     transform var(--row-expand-ms, 480ms) cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* An opened poster (PosterPreview) is its wide picture and nothing beside it:
-   the trailer plays over the picture, and the title, a line of facts and the
-   actions lie along the picture's foot over a soft shade, as on the hero. Its
-   parts are spans, the card being a button, so the ones that are boxes are
-   told so. The foot is laid out at the card's open width from the start, so
-   its words do not reflow while the card widens. While the card is narrower
-   than the picture, opening or closing, the picture fills it. */
+   the trailer plays over the picture, which carries only the trailer's sound
+   control; the title, the facts and the actions stand under the card (see
+   `.mac-card-under` below). A card that draws no title under itself carries
+   them along the picture's foot over a soft shade instead (`.mac-pv-bar`),
+   laid out at the card's open width from the start so its words do not reflow
+   while the card widens. Its parts are spans, the card being a button, so the
+   ones that are boxes are told so. While the card is narrower than the
+   picture, opening or closing, the picture fills it. */
 html[data-os="macos"] [data-card-previews] .expanding-card-artwork {
   inline-size: min(100%, calc(var(--row-poster-height) * 16 / 9));
 }
@@ -9833,20 +9835,79 @@ html[data-os="macos"] .mac-pv-bar .mac-pv-actions {
   flex: none;
   margin-block-start: 0;
 }
-/* The foot holds the name and the actions, so the trailer's sound goes to the
-   picture's upper corner. */
+/* The trailer's sound goes to the picture's upper corner, clear of a foot. */
 html[data-os="macos"] .mac-pv-poster .mac-pv-sound {
   inset-block: 6px auto;
   inset-inline: auto 6px;
 }
-/* The name under a poster steps back while the card is open and names the
-   title itself, and returns over the second half of the card's way back. */
+/* Under an opened poster, where its title already stands: the title keeps
+   its place and gains room as the card widens, a line of facts takes the
+   score's place, and the actions stand at the far end (PosterPreviewUnder).
+   The actions are placed where the open card will end and are uncovered as it
+   widens, so nothing under the card moves except its edge; the title and the
+   facts stop short of them (`--mac-under-acts` is their width, set while the
+   preview is present). */
 html[data-os="macos"] [data-card-previews] .mac-card-under {
+  position: relative;
+  overflow: clip;
+}
+html[data-os="macos"] [data-card-previews] .mac-card-under > :is(p, .mac-under-second) {
+  max-inline-size: max(
+    calc(100% - var(--mac-under-acts, -12px) - 12px),
+    calc(var(--row-poster-height) * 2 / 3)
+  );
+}
+html[data-os="macos"] .mac-under-second {
+  display: grid;
+}
+html[data-os="macos"] .mac-under-second > * {
+  grid-area: 1 / 1;
+  min-inline-size: 0;
+}
+/* The score gives way to the facts and returns over the second half of the
+   card's way back. */
+html[data-os="macos"] [data-card-previews] .mac-under-second > :not(.mac-under-facts) {
   transition: opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
 }
-html[data-os="macos"] [data-card-previews] [data-row-card-expanded="true"] > .mac-card-under {
+html[data-os="macos"]
+  [data-card-previews]
+  [data-row-card-expanded="true"]
+  .mac-under-second
+  > :not(.mac-under-facts) {
   opacity: 0;
   transition: opacity 160ms ease-out;
+}
+html[data-os="macos"] .mac-under-facts {
+  display: block;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+html[data-os="macos"] .mac-under-facts[data-open] {
+  opacity: 1;
+  transition: opacity 340ms ease-out 240ms;
+}
+html[data-os="macos"] .mac-under-acts {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  inline-size: calc(var(--row-poster-height) * 16 / 9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+html[data-os="macos"] .mac-under-acts[data-open] {
+  opacity: 1;
+  transition: opacity 340ms ease-out 240ms;
+}
+html[data-os="macos"] .mac-under-btns {
+  display: inline-flex;
+  gap: 8px;
+}
+html[data-os="macos"] .mac-under-acts[data-open] [role="button"] {
+  pointer-events: auto;
 }
 /* In a row that has been scrolled sideways the Mac's web view misjudges what
    overlaps a playing video, and paints what should lie over the trailer

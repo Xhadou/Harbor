@@ -2,6 +2,7 @@ import { ScoreStack } from "./card-score-stack";
 import { oneCardBadge } from "@/lib/card-one-badge";
 import { isMacDesktop } from "@/lib/platform";
 import { cardBadgeCaption } from "@/lib/card-badge-caption";
+import { heroFacts } from "@/lib/hero-facts";
 import { Bookmark, Check } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TopTenRibbon } from "@/components/top-ten-ribbon";
@@ -40,7 +41,7 @@ import {
 } from "./pick-card/card-hover";
 import { CustomHoverOverlay, customHoverPosterProps } from "./pick-card/custom-hover";
 import { ExpandingCardArtwork, useExpandingCard } from "./pick-card/use-expanding-card";
-import { PosterPreview } from "./card-preview/poster-preview";
+import { PosterPreview, PosterPreviewUnder } from "./card-preview/poster-preview";
 import { smartPlayEpisode } from "@/lib/smart-play";
 import { useCardPreview } from "./card-preview/use-card-preview";
 import { getCustomHover } from "@/lib/custom-hover";
@@ -134,6 +135,11 @@ const PosterCard = memo(function PosterCard({
     expandingCard.previewWidth,
     expandingCard.previews && !kids && (meta.type === "movie" || meta.type === "series"),
   );
+  // An anime's episode is picked on its own page, as on the hero.
+  const previewPlay = isCardAnimeId(meta.id)
+    ? undefined
+    : () => openPicker(meta, smartPlayEpisode(meta));
+  const previewMore = () => openMeta(meta, isCardAnimeId(meta.id) ? { exact: true } : undefined);
   const prepareWide = expandingCard.prepare;
   useEffect(() => {
     if (preview.wanted) prepareWide();
@@ -632,9 +638,9 @@ const PosterCard = memo(function PosterCard({
             title={preferredTitle || translatedTitle || meta.name}
             wanted={preview.wanted}
             open={preview.open}
-            // An anime's episode is picked on its own page, as on the hero.
-            onPlay={isAnimeCardId ? undefined : () => openPicker(meta, smartPlayEpisode(meta))}
-            onMore={() => openMeta(meta, isAnimeCardId ? { exact: true } : undefined)}
+            foot={settings.hidePosterTitles}
+            onPlay={previewPlay}
+            onMore={previewMore}
           />
         )}
         {settings.cardHoverShine && (
@@ -780,16 +786,31 @@ const PosterCard = memo(function PosterCard({
           >
             {preferredTitle || translatedTitle || meta.name}
           </p>
-          {reason && !kids ? (
-            <p
-              className="line-clamp-1 text-[11px] leading-tight text-ink-subtle"
-              title={reasonDetail}
-            >
-              {reason}
-            </p>
-          ) : (
-            scoreUnderTitle &&
-            cardBadges[0] && <p className="mac-card-caption">{cardBadgeCaption(cardBadges[0])}</p>
+          <div className="mac-under-second">
+            {reason && !kids ? (
+              <p
+                className="line-clamp-1 text-[11px] leading-tight text-ink-subtle"
+                title={reasonDetail}
+              >
+                {reason}
+              </p>
+            ) : (
+              scoreUnderTitle &&
+              cardBadges[0] && <p className="mac-card-caption">{cardBadgeCaption(cardBadges[0])}</p>
+            )}
+            {preview.present && (
+              <span
+                className="mac-card-caption mac-under-facts"
+                data-open={preview.open ? "true" : undefined}
+              >
+                {[cardBadges[0] ? cardBadgeCaption(cardBadges[0]) : null, ...heroFacts(meta)]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            )}
+          </div>
+          {preview.present && (
+            <PosterPreviewUnder open={preview.open} onPlay={previewPlay} onMore={previewMore} />
           )}
         </div>
       )}
