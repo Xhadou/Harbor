@@ -1,6 +1,6 @@
 import { Layers } from "lucide-react";
 import { UiIcon } from "@/components/ui-icon";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useT } from "@/lib/i18n";
 import {
   collectionNameMatches,
@@ -10,6 +10,8 @@ import {
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 import { useContextMenu } from "@/lib/context-menu";
+import { isMacDesktop } from "@/lib/platform";
+import { MacCollectionCard } from "./mac-collection-card";
 
 export function CollectionCard({
   id,
@@ -26,7 +28,7 @@ export function CollectionCard({
   const { openCollection } = useView();
   const { open } = useContextMenu();
   const t = useT();
-  const ref = useRef<HTMLButtonElement>(null);
+  const ref = useRef<HTMLButtonElement & HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [backdrop, setBackdrop] = useState<string | null>(knownBackdrop ?? null);
   const [count, setCount] = useState<number | null>(knownCount ?? null);
@@ -74,37 +76,54 @@ export function CollectionCard({
   const from = `oklch(0.42 0.13 ${hue})`;
   const to = `oklch(0.15 0.06 ${hue})`;
 
+  const openMenu = (event: MouseEvent) =>
+    open(event, {
+      kind: "actions",
+      id: `tmdb-collection:${resolvedId}`,
+      label: name,
+      image: backdrop
+        ? {
+            src: backdrop.replace("/t/p/original/", "/t/p/w780/"),
+            originalSrc: backdrop,
+            publicUrl: backdrop,
+            label: name,
+          }
+        : undefined,
+      actions: () => [
+        {
+          id: `tmdb-collection:open:${resolvedId}`,
+          icon: <UiIcon name="open-collection" className="size-4" />,
+          label: t("Open collection"),
+          disabled: resolvedId <= 0,
+          run: () => openCollection(resolvedId),
+        },
+      ],
+    });
+  const openCard = () => {
+    if (resolvedId > 0) openCollection(resolvedId);
+  };
+
+  if (isMacDesktop()) {
+    return (
+      <MacCollectionCard
+        cardRef={ref}
+        name={name}
+        count={count}
+        backdrop={backdrop}
+        background={`linear-gradient(140deg, ${from}, ${to})`}
+        collectionId={resolvedId}
+        onOpen={openCard}
+        onContextMenu={openMenu}
+      />
+    );
+  }
+
   return (
     <button
       ref={ref}
       type="button"
-      onContextMenu={(event) =>
-        open(event, {
-          kind: "actions",
-          id: `tmdb-collection:${resolvedId}`,
-          label: name,
-          image: backdrop
-            ? {
-                src: backdrop.replace("/t/p/original/", "/t/p/w780/"),
-                originalSrc: backdrop,
-                publicUrl: backdrop,
-                label: name,
-              }
-            : undefined,
-          actions: () => [
-            {
-              id: `tmdb-collection:open:${resolvedId}`,
-              icon: <UiIcon name="open-collection" className="size-4" />,
-              label: t("Open collection"),
-              disabled: resolvedId <= 0,
-              run: () => openCollection(resolvedId),
-            },
-          ],
-        })
-      }
-      onClick={() => {
-        if (resolvedId > 0) openCollection(resolvedId);
-      }}
+      onContextMenu={openMenu}
+      onClick={openCard}
       className="mac-card group/card relative aspect-[16/9] w-full cursor-pointer overflow-hidden rounded-2xl border border-edge-soft text-start shadow-[0_4px_18px_-10px_rgba(0,0,0,0.5)] ring-1 ring-inset ring-white/0 transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-edge hover:ring-white/15"
       style={{ background: `linear-gradient(140deg, ${from}, ${to})` }}
     >

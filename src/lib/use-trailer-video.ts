@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { claimTrailerVideo, releaseTrailerVideo, trailerVideoHeldBy } from "@/lib/trailer-video";
+import {
+  claimTrailerVideo,
+  releaseTrailerVideo,
+  trailerVideoHeldBy,
+  type TrailerChannel,
+} from "@/lib/trailer-video";
 
 const SRC_DELAY_MS = 120;
 
@@ -15,6 +20,8 @@ export function useTrailerVideo(opts: {
   startAt?: number;
   onEnded?: () => void;
   onAutoplayMuted?: () => void;
+  /** Which shared video to play on. A card's preview has its own, beside the page's trailer. */
+  channel?: TrailerChannel;
 }): {
   slot: RefObject<HTMLDivElement | null>;
   video: RefObject<HTMLVideoElement | null>;
@@ -31,6 +38,7 @@ export function useTrailerVideo(opts: {
     startAt = 0,
     onEnded,
     onAutoplayMuted,
+    channel = "page",
   } = opts;
   const slot = useRef<HTMLDivElement | null>(null);
   const video = useRef<HTMLVideoElement | null>(null);
@@ -46,7 +54,7 @@ export function useTrailerVideo(opts: {
     const mount = slot.current;
     if (!src || !active || !mount) return;
     const mine = token.current;
-    const node = claimTrailerVideo(mine, mount);
+    const node = claimTrailerVideo(mine, mount, channel);
     video.current = node;
     node.className = className;
     node.loop = loop;
@@ -89,7 +97,7 @@ export function useTrailerVideo(opts: {
       setReadySource(null);
       releaseTrailerVideo(mine);
     };
-  }, [src, active, className, loop, startAt]);
+  }, [src, active, className, loop, startAt, channel]);
 
   useEffect(() => {
     const node = video.current;

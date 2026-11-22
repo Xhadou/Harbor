@@ -22,6 +22,7 @@ import { useViewActions } from "@/lib/view";
 import { resetPosterDock as resetPosterDockItems, updatePosterDock } from "@/lib/poster-dock";
 import { scrollDeltaToRevealCard } from "@/lib/poster-backdrop-expansion";
 import { RowCardExpansionProvider } from "@/components/row-card-expansion";
+import { cardPreviewsOn } from "@/lib/card-preview/store";
 
 const GAP = 20;
 
@@ -73,6 +74,7 @@ function LazyChild({
     baseWidth: number;
     expandedWidth?: number;
     expanded: boolean;
+    previews: boolean;
     onExpand: (index: number, width: number) => void;
     onCollapse: (index: number) => void;
   };
@@ -160,6 +162,7 @@ function LazyChild({
           <RowCardExpansionProvider
             index={expansion.index}
             enabled
+            previews={expansion.previews}
             expanded={expansion.expanded}
             onExpand={expansion.onExpand}
             onCollapse={expansion.onCollapse}
@@ -243,6 +246,7 @@ export function Row({
   headerRight,
   titleClassName = "text-ink",
   titleScale = 1,
+  previews = false,
 }: {
   title?: React.ReactNode;
   titleExtra?: React.ReactNode;
@@ -263,6 +267,8 @@ export function Row({
   headerRight?: React.ReactNode;
   titleClassName?: string;
   titleScale?: number;
+  /** The row's cards open sideways into a preview when the pointer rests on one (macOS). */
+  previews?: boolean;
 }) {
   const { settings } = useSettings();
   const t = useT();
@@ -274,7 +280,9 @@ export function Row({
     shape === "portrait" && settings.rowCardStyle === "tv" && holdsPosterCards(children);
   const effShape: RowShape = tvCards ? "landscape" : shape;
   const effMin = Math.max(72, Math.round((tvCards ? TV_CARD_MIN : min) * settings.posterScale));
-  const expandingCards = effShape === "portrait" && settings.posterBackdropExpansion;
+  const previewCards = previews && cardPreviewsOn(settings);
+  const expandingCards =
+    previewCards || (effShape === "portrait" && settings.posterBackdropExpansion);
   const dockEnabled = effShape === "portrait" && settings.posterDockMagnification;
   const posterHeightRatio = effShape === "landscape" ? 9 / 16 : effShape === "square" ? 1 : 1.5;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -929,6 +937,7 @@ export function Row({
                           baseWidth,
                           expandedWidth,
                           expanded,
+                          previews: previewCards,
                           onExpand: expandRowCard,
                           onCollapse: collapseRowCard,
                         }

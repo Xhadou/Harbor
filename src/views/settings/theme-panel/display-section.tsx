@@ -29,6 +29,7 @@ import { SettingGroup, SettingRow, Nested } from "../kit";
 import { PosterCardSection } from "./display/poster-card-section";
 import { SFX } from "@/lib/sfx";
 import { isSpooktoberSeason } from "@/lib/spooktober-season";
+import { MacCardPreviewsSection } from "../mac-card-previews-section";
 import { MacPageLayoutSection } from "../mac-page-layout-section";
 
 export function AmbienceSection() {
@@ -130,6 +131,7 @@ export function DisplaySection() {
   return (
     <>
       <MacPageLayoutSection />
+      <MacCardPreviewsSection />
       {isSpooktoberSeason() && (
         <Section title="Spooktober" subtitle={t("Temporary seasonal settings for Spooktober.")}>
           <SettingGroup>

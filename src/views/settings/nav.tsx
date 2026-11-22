@@ -11037,6 +11037,19 @@ const SETTINGS_OPTIONS: SettingsOption[] = [
     ],
   },
   {
+    label: "Play previews on cards",
+    section: "theme",
+    anchorTitle: "Card previews",
+    keywords: [
+      "card previews",
+      "trailer on hover",
+      "hover trailer",
+      "autoplay trailer",
+      "preview on hover",
+      "card expands",
+    ],
+  },
+  {
     label: "Animated sidebar icons",
     section: "theme",
     anchorTitle: "Sidebar",

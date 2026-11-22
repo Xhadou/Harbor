@@ -9434,6 +9434,233 @@ html[data-os="macos"] .mac-cw-dismiss:hover {
   color: #fff;
 }
 
+/* Card preview. A wide card at rest is its artwork with a name on it. When the
+   pointer rests on it the row widens the card (row.tsx): the artwork keeps its
+   place and its far edge dissolves into a blurred copy of itself, where the
+   name, the facts and Play stand. The trailer comes up over the artwork. */
+html[data-os="macos"] .mac-pv {
+  --mac-pv-base: 100%;
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  isolation: isolate;
+}
+html[data-os="macos"] .harbor-expanding-card-scope .mac-pv {
+  --mac-pv-base: calc(var(--row-poster-height) * 16 / 9);
+  aspect-ratio: auto;
+  block-size: var(--row-poster-height);
+}
+html[data-os="macos"] .mac-pv::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms var(--ease-out);
+}
+html[data-os="macos"] .mac-pv:hover::after {
+  opacity: 1;
+}
+html[data-os="macos"] .mac-pv[data-open]::after {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  opacity: 1;
+}
+html[data-os="macos"] .mac-pv:has(.mac-pv-hit:focus-visible)::after {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
+  opacity: 1;
+}
+html[data-os="macos"] .mac-pv-media {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: var(--mac-pv-base);
+  overflow: hidden;
+}
+html[data-os="macos"] .mac-pv-media::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 1;
+  block-size: 62%;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.74), rgb(0 0 0 / 0.28) 55%, transparent);
+  pointer-events: none;
+}
+html[data-os="macos"] .mac-pv-video {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 500ms var(--ease-out);
+}
+html[data-os="macos"] .mac-pv[data-playing] .mac-pv-video {
+  opacity: 1;
+}
+html[data-os="macos"] .mac-pv-label {
+  position: absolute;
+  inset-inline: 12px;
+  inset-block-end: 10px;
+  z-index: 2;
+  color: #fff;
+}
+html[data-os="macos"] :is(.mac-pv-label, .mac-pv-side) h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+html[data-os="macos"] :is(.mac-pv-label p, .mac-pv-facts, .mac-pv-next) {
+  overflow: hidden;
+  color: rgb(255 255 255 / 0.72);
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The name on the artwork gives way to the trailer, and comes back once the
+   card has closed again. */
+html[data-os="macos"] :is(.mac-pv-label, .mac-pv-media::after) {
+  transition: opacity 160ms var(--ease-out) 260ms;
+}
+html[data-os="macos"] .mac-pv[data-open] :is(.mac-pv-label, .mac-pv-media::after) {
+  opacity: 0;
+  transition-delay: 0s;
+}
+/* The blurred copy lies over the artwork and is let through only past its far
+   edge, so the picture has no hard end. A blur thins out toward its own edge,
+   and a thin wash lets the artwork show through right up to where it stops:
+   so the copy reaches well past the card and lies on a solid base. Nothing of
+   it is painted at rest. */
+html[data-os="macos"] .mac-pv-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  background: #0c0c0e;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent calc(var(--mac-pv-base) * 0.58),
+    #000 calc(var(--mac-pv-base) * 0.96)
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent calc(var(--mac-pv-base) * 0.58),
+    #000 calc(var(--mac-pv-base) * 0.96)
+  );
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 200ms var(--ease-out) 200ms,
+    visibility 0s linear 480ms;
+}
+html[data-os="macos"] .mac-pv-wash::before {
+  content: "";
+  position: absolute;
+  inset: -84px;
+  background-image: var(--mac-pv-art);
+  background-position: center;
+  background-size: cover;
+  filter: blur(28px) saturate(1.5) brightness(0.46);
+}
+html[dir="rtl"][data-os="macos"] .mac-pv-wash {
+  -webkit-mask-image: linear-gradient(
+    to left,
+    transparent calc(var(--mac-pv-base) * 0.58),
+    #000 calc(var(--mac-pv-base) * 0.96)
+  );
+  mask-image: linear-gradient(
+    to left,
+    transparent calc(var(--mac-pv-base) * 0.58),
+    #000 calc(var(--mac-pv-base) * 0.96)
+  );
+}
+html[data-os="macos"] .mac-pv[data-open] .mac-pv-wash {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 260ms var(--ease-out),
+    visibility 0s;
+}
+html[data-os="macos"] .mac-pv-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  outline: none;
+  cursor: default;
+}
+html[data-os="macos"] .mac-pv-side {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--mac-pv-base) - 20px);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  inline-size: clamp(216px, calc(var(--mac-pv-base) * 0.8), 288px);
+  padding-block: 10px;
+  padding-inline-end: 16px;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  translate: -8px 0;
+  transition:
+    opacity 100ms var(--ease-out),
+    translate 0s linear 100ms;
+}
+html[dir="rtl"][data-os="macos"] .mac-pv-side {
+  translate: 8px 0;
+}
+html[data-os="macos"] .mac-pv[data-open] .mac-pv-side {
+  opacity: 1;
+  translate: none;
+  transition:
+    opacity 260ms var(--ease-out) 140ms,
+    translate 420ms cubic-bezier(0.16, 1, 0.3, 1) 100ms;
+}
+html[data-os="macos"] .mac-pv-side button {
+  pointer-events: auto;
+}
+html[data-os="macos"] .mac-pv-next {
+  margin-block-start: 6px;
+  color: rgb(255 255 255 / 0.92);
+}
+html[data-os="macos"] .mac-pv-next span {
+  color: rgb(255 255 255 / 0.56);
+}
+html[data-os="macos"] .mac-pv-actions {
+  display: flex;
+  gap: 8px;
+  margin-block-start: 10px;
+}
+/* The trailer's sound: a bare glyph in the corner the name left free. */
+html[data-os="macos"] .mac-pv-sound {
+  position: absolute;
+  inset-block-end: 4px;
+  inset-inline-start: 6px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  color: rgb(255 255 255 / 0.7);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.7));
+  transition: color 120ms var(--ease-out);
+}
+html[data-os="macos"] .mac-pv-sound:hover {
+  color: #fff;
+}
+
 /* Player bar. Every button is one size, and play, the main action, is one
    step larger. The readout at the end of the timeline reads like the one at
    its start. */

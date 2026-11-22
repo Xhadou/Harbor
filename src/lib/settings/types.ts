@@ -467,6 +467,8 @@ export type Settings = {
   posterBaseUrl: string;
   hidePosterTitles: boolean;
   hoverPreviewEnabled: boolean;
+  /** macOS: a card opens sideways and plays its trailer when the pointer rests on it. */
+  cardPreviews: boolean;
   hoverPreviewPlacement: "over" | "side";
   cardHoverStyle:
     | "none"

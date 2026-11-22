@@ -3117,6 +3117,13 @@ const uiFallback: Record<string, string> = {
   General: "General",
   Playback: "Playback",
   Sources: "Sources",
+  "Card previews": "Card previews",
+  "Play previews on cards": "Play previews on cards",
+  "Rest the pointer on a card and it opens sideways to play the trailer, with Play beside it. Off: cards stay as they are.":
+    "Rest the pointer on a card and it opens sideways to play the trailer, with Play beside it. Off: cards stay as they are.",
+  "Start with": "Start with",
+  "Watch again": "Watch again",
+  "All films": "All films",
   Appearance: "Appearance",
   Shortcuts: "Shortcuts",
 };

@@ -388,6 +388,7 @@ export const DEFAULT: Settings = {
   posterBaseUrl: "",
   hidePosterTitles: false,
   hoverPreviewEnabled: false,
+  cardPreviews: true,
   hoverPreviewPlacement: "over",
   cardHoverStyle: "default",
   rowCardStyle: "poster",

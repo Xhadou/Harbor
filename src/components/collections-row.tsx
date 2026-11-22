@@ -17,6 +17,7 @@ export function CollectionsRow({ title }: { title?: string }) {
       shape="landscape"
       scrollKey="home:collections"
       onViewAll={openCollections}
+      previews
     >
       {COLLECTIONS_CATALOG.slice(0, 30).map((c) => (
         <CollectionCard key={`${c.id}-${c.name}`} id={c.id} name={c.name} />

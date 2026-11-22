@@ -1,0 +1,146 @@
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type PointerEvent,
+} from "react";
+import { useRowCardExpansion } from "@/components/row-card-expansion";
+import { PREVIEW_LEAVE_MS, PREVIEW_LOOKUP_MS, previewOpenDelay } from "@/lib/card-preview/policy";
+import { markPreviewOpen, sinceLastPreviewMs } from "@/lib/card-preview/store";
+
+function reducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+function pointerModality(): boolean {
+  return (
+    typeof document !== "undefined" &&
+    document.documentElement.getAttribute("data-input-modality") === "pointer"
+  );
+}
+
+/**
+ * Opens a card into its preview once the pointer (or keyboard focus) has
+ * rested on it, and closes it shortly after it leaves. The row does the
+ * widening; `measure` says how wide the open card is.
+ */
+export function useCardPreview(measure: () => number) {
+  const row = useRowCardExpansion();
+  const enabled = row?.previews === true;
+  const open = enabled && row?.expanded === true;
+  // True a moment after the pointer arrives and for as long as the card is open:
+  // the time to look up what the preview will play.
+  const [wanted, setWanted] = useState(false);
+  const inside = useRef(false);
+  const timers = useRef<{ open: number | null; lookup: number | null; leave: number | null }>({
+    open: null,
+    lookup: null,
+    leave: null,
+  });
+  const rowRef = useRef(row);
+  rowRef.current = row;
+  const measureRef = useRef(measure);
+  measureRef.current = measure;
+
+  const clear = useCallback((which: "open" | "lookup" | "leave") => {
+    const id = timers.current[which];
+    if (id === null) return;
+    window.clearTimeout(id);
+    timers.current[which] = null;
+  }, []);
+
+  const arrive = useCallback(() => {
+    if (!enabled || reducedMotion()) return;
+    inside.current = true;
+    clear("leave");
+    if (rowRef.current?.expanded) return;
+    clear("lookup");
+    timers.current.lookup = window.setTimeout(() => {
+      timers.current.lookup = null;
+      if (inside.current) setWanted(true);
+    }, PREVIEW_LOOKUP_MS);
+    clear("open");
+    timers.current.open = window.setTimeout(() => {
+      timers.current.open = null;
+      if (!inside.current) return;
+      const width = measureRef.current();
+      if (width > 0) rowRef.current?.expand(width);
+    }, previewOpenDelay(sinceLastPreviewMs()));
+  }, [clear, enabled]);
+
+  const leave = useCallback(() => {
+    inside.current = false;
+    clear("open");
+    clear("lookup");
+    clear("leave");
+    timers.current.leave = window.setTimeout(() => {
+      timers.current.leave = null;
+      if (inside.current) return;
+      rowRef.current?.collapse();
+      setWanted(false);
+    }, PREVIEW_LEAVE_MS);
+  }, [clear]);
+
+  useEffect(() => {
+    if (!open) return;
+    return markPreviewOpen();
+  }, [open]);
+
+  // Another card in the row took the preview: this one no longer wants its trailer.
+  useEffect(() => {
+    if (!open && !inside.current) setWanted(false);
+  }, [open]);
+
+  useEffect(
+    () => () => {
+      inside.current = false;
+      clear("open");
+      clear("lookup");
+      clear("leave");
+      rowRef.current?.collapse();
+    },
+    [clear],
+  );
+
+  const onPointerEnter = useCallback(
+    (event: PointerEvent) => {
+      // A press that is already down is a drag along the row, not a rest on a card.
+      if (event.pointerType !== "mouse" || event.buttons !== 0) return;
+      arrive();
+    },
+    [arrive],
+  );
+  const onPointerLeave = useCallback(
+    (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      leave();
+    },
+    [leave],
+  );
+  const onFocus = useCallback(() => {
+    if (pointerModality()) return;
+    arrive();
+  }, [arrive]);
+  const onBlur = useCallback(
+    (event: FocusEvent) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && event.currentTarget.contains(next)) return;
+      if (pointerModality()) return;
+      leave();
+    },
+    [leave],
+  );
+
+  return {
+    enabled,
+    open,
+    wanted: wanted || open,
+    handlers: { onPointerEnter, onPointerLeave, onFocus, onBlur },
+  };
+}

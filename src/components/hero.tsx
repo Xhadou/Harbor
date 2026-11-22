@@ -56,6 +56,7 @@ import {
 import { getHeroEnded, setHeroEnded } from "@/lib/hero-ended";
 import { usePageVisible } from "@/lib/visibility";
 import { useTrailerVideo } from "@/lib/use-trailer-video";
+import { isCardPreviewPlaying, subscribeCardPreviewPlaying } from "@/lib/card-preview/store";
 import { toggleWatchlist, useInWatchlist } from "@/lib/watchlist";
 import { useHeroContext } from "@/lib/context-menu";
 import { heroFacts } from "@/lib/hero-facts";
@@ -138,8 +139,20 @@ export const Hero = memo(function Hero({
   const pageVisible = usePageVisible();
   const overlayed = !!(activeDetail || player || picker) || profilePickerOpen || view !== "home";
   const onScreen = pageVisible && !overlayed && visibleRatio > 0.12;
+  // A card's preview playing further down the page takes the eye: the hero's own trailer waits
+  // for it, the way it waits while the pointer is on its controls.
+  const cardPreviewPlaying = useSyncExternalStore(
+    subscribeCardPreviewPlaying,
+    isCardPreviewPlaying,
+  );
   const wantsPlayback =
-    !!playTrailer && !!trailerInfo && !overControls && onScreen && lingered && !ended;
+    !!playTrailer &&
+    !!trailerInfo &&
+    !overControls &&
+    !cardPreviewPlaying &&
+    onScreen &&
+    lingered &&
+    !ended;
   const {
     slot,
     video: videoRef,
