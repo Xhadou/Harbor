@@ -141,6 +141,49 @@ export function useCardPreview(measure: () => number) {
     enabled,
     open,
     wanted: wanted || open,
+    arrive,
+    leave,
     handlers: { onPointerEnter, onPointerLeave, onFocus, onBlur },
   };
+}
+
+/**
+ * The same behaviour for a card that is not written around the preview: it
+ * listens on `host`, the card's own element, so the card only has to carry the
+ * panel inside it.
+ */
+export function useCardPreviewOn(host: HTMLElement | null, measure: () => number) {
+  const preview = useCardPreview(measure);
+  const { enabled, arrive, leave } = preview;
+
+  useEffect(() => {
+    if (!enabled || !host) return;
+    const onEnter = (event: globalThis.PointerEvent) => {
+      if (event.pointerType !== "mouse" || event.buttons !== 0) return;
+      arrive();
+    };
+    const onLeave = (event: globalThis.PointerEvent) => {
+      if (event.pointerType === "mouse") leave();
+    };
+    const onFocusIn = () => {
+      if (!pointerModality()) arrive();
+    };
+    const onFocusOut = (event: globalThis.FocusEvent) => {
+      const next = event.relatedTarget;
+      if (next instanceof Node && host.contains(next)) return;
+      if (!pointerModality()) leave();
+    };
+    host.addEventListener("pointerenter", onEnter);
+    host.addEventListener("pointerleave", onLeave);
+    host.addEventListener("focusin", onFocusIn);
+    host.addEventListener("focusout", onFocusOut);
+    return () => {
+      host.removeEventListener("pointerenter", onEnter);
+      host.removeEventListener("pointerleave", onLeave);
+      host.removeEventListener("focusin", onFocusIn);
+      host.removeEventListener("focusout", onFocusOut);
+    };
+  }, [arrive, enabled, host, leave]);
+
+  return preview;
 }

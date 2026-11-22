@@ -9661,6 +9661,52 @@ html[data-os="macos"] .mac-pv-sound:hover {
   color: #fff;
 }
 
+/* The same preview laid over a card that keeps its own artwork (Continue
+   Watching, a new episode): the panel is see-through over the artwork, lets
+   every click through to the card, and only its buttons take the pointer. */
+html[data-os="macos"] .mac-pv-over {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 2;
+  background: none;
+  pointer-events: none;
+}
+html[data-os="macos"] .mac-pv-over:not([data-open])::after {
+  opacity: 0;
+}
+html[data-os="macos"] .mac-pv-over .mac-pv-media::after {
+  content: none;
+}
+html[data-os="macos"] .mac-pv-over .mac-pv-sound {
+  pointer-events: auto;
+}
+html[data-os="macos"] .mac-pv-about {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-block-start: 4px;
+  color: rgb(255 255 255 / 0.72);
+  font-size: 12px;
+  line-height: 16px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+/* A Continue Watching card in a row that opens cards: the artwork keeps the
+   width it has at rest while the card around it widens, and what is drawn on
+   the artwork for the card at rest steps back for the trailer. */
+html[data-os="macos"] .harbor-expanding-card-scope .mac-cw-root > :is(button, p) {
+  max-inline-size: calc(var(--row-poster-height) * 16 / 9);
+}
+html[data-os="macos"]
+  .mac-cw-root:has(> .mac-pv-over[data-open])
+  :is(.mac-cw-play, .mac-cw-progress) {
+  opacity: 0;
+  transition: opacity 160ms var(--ease-out);
+}
+html[data-os="macos"] .mac-cw-root:has(> .mac-pv-over[data-open]) .mac-cw-art::after {
+  opacity: 0;
+}
+
 /* Player bar. Every button is one size, and play, the main action, is one
    step larger. The readout at the end of the timeline reads like the one at
    its start. */

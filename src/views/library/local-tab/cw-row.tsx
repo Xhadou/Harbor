@@ -59,6 +59,7 @@ export function LocalCwRow() {
       min={260}
       shape="landscape"
       scrollKey="library:local:cw"
+      previews
       scrollAnchorKey={cards[0]?.item._id ?? ""}
     >
       {cards.map(({ item, entry }) => (

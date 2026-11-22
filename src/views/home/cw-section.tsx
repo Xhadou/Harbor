@@ -77,6 +77,7 @@ export function CWSection({ signedIn, isNuvio, items, watchedSet, onDismiss, loa
           min={260}
           shape="landscape"
           scrollKey="home:cw"
+          previews
           scrollAnchorKey={headKey}
           headerRight={signInButton}
           className={showQueueCard ? "home-cw-with-queue" : undefined}

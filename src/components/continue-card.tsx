@@ -4,6 +4,7 @@ import {
   resolvePlaybackRedirect,
 } from "@/lib/streams/playback-redirect";
 import { Check, X, ListVideo } from "lucide-react";
+import { CardPreviewPanel } from "@/components/card-preview/preview-panel";
 import { Play } from "@/components/icons/play-filled";
 import simklLogo from "@/assets/simkl.png";
 import traktLogo from "@/assets/trakt.svg";
@@ -852,7 +853,7 @@ export const ContinueCard = memo(function ContinueCard({
 
   return (
     <div
-      className="group relative w-full min-w-0 animate-in fade-in-50 zoom-in-[0.98] duration-300 ease-out"
+      className={`group relative w-full min-w-0 animate-in fade-in-50 zoom-in-[0.98] duration-300 ease-out ${mac ? "mac-cw-root" : ""}`}
       onContextMenu={onCardContext}
     >
       <button
@@ -1077,6 +1078,21 @@ export const ContinueCard = memo(function ContinueCard({
             {macCaption}
           </span>
         </p>
+      )}
+      {mac && (
+        <CardPreviewPanel
+          meta={meta}
+          art={src}
+          title={displayTitle}
+          facts={macCaption}
+          description={meta.description}
+          play={{
+            label: t("Play"),
+            onClick: () => void commands.play().catch(() => {}),
+            disabled: pending || playbackBlocked,
+          }}
+          more={{ label: t("More info"), onClick: onOpenDetails }}
+        />
       )}
       {onDismiss &&
         (mac ? (
