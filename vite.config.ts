@@ -1,4 +1,4 @@
-import { readFileSync, rmSync } from "node:fs";
+import { readdirSync, readFileSync, rmSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { defineConfig, type Plugin, type ViteDevServer, type HttpProxy } from "vite";
 import react from "@vitejs/plugin-react";
@@ -79,21 +79,54 @@ const STRINGS_LEFT_OUT_OF_MAC_EDITION =
   /\/src\/lib\/i18n\/locales\/[a-z]+\/(?:games?|music|ebook|manga|dj)(?:-[a-z0-9-]+)?\.ts$/;
 
 /**
- * Leaves out of the Mac edition the files its missing sections would have used. The build
- * writes an imported picture or model to disk when it reads the import, before it knows
- * whether the code around it survives, so dropping the code alone leaves the files behind.
- * A file with a hashed name that no script, stylesheet or page mentions cannot be asked for.
+ * Deletes every file in `dir` that nothing in the built output mentions. A file with a
+ * hashed name that no script, stylesheet or page names cannot be asked for. It runs on the
+ * finished output, not on the bundle in memory: the names of lazily loaded scripts and
+ * stylesheets are only written into the scripts that load them at the very end, and a pass
+ * made before that takes every such stylesheet for unused. Repeated until nothing more
+ * goes, since a worker script that is no longer started is itself such a file, and is the
+ * only thing naming the model it would have loaded.
+ */
+function removeUnmentionedFiles(outDir: string, dir: string): void {
+  const readable = /\.(?:m?js|css|html|json)$/;
+  const plainName = /^[\w.@~-]+$/;
+  const everyFile = (folder: string): string[] =>
+    readdirSync(folder, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory() ? everyFile(`${folder}/${entry.name}`) : [`${folder}/${entry.name}`],
+    );
+  for (;;) {
+    const texts = everyFile(outDir)
+      .filter((file) => readable.test(file))
+      .map((file) => readFileSync(file, "utf-8"));
+    const mentioned = new Set<string>();
+    for (const text of texts) {
+      for (const name of text.match(/[\w.@~-]+\.\w+/g) ?? []) mentioned.add(name);
+    }
+    const unused = readdirSync(dir).filter((name) =>
+      // A name with a character the pattern above cannot carry is looked for as it is.
+      plainName.test(name) ? !mentioned.has(name) : !texts.some((text) => text.includes(name)),
+    );
+    if (unused.length === 0) return;
+    for (const name of unused) rmSync(`${dir}/${name}`, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Leaves out of the Mac edition what its missing sections would have used: their string
+ * tables, the files under public/ only they load, and the pictures and models their code
+ * imported. The build writes an imported file to disk when it reads the import, before it
+ * knows whether the code around it survives, so dropping the code alone leaves the files.
  */
 function macEditionDiet(): Plugin {
   let outDir = "dist";
-  const text = (source: string | Uint8Array) =>
-    typeof source === "string" ? source : new TextDecoder().decode(source);
+  let assetsDir = "assets";
   return {
     name: "harbor-mac-edition-diet",
     apply: "build",
     enforce: "post",
     configResolved(config) {
       outDir = config.build.outDir;
+      assetsDir = config.build.assetsDir;
     },
     // A language's table is one object spread together from a file per subject. The files
     // for a section that is left out are read as empty, so their text (450 kB in English
@@ -101,34 +134,11 @@ function macEditionDiet(): Plugin {
     load(id) {
       return STRINGS_LEFT_OUT_OF_MAC_EDITION.test(id) ? "export default {};" : null;
     },
-    generateBundle(_options, bundle) {
-      const readable = /\.(?:m?js|css|html|json)$/;
-      // Repeated until nothing more goes: a worker script that is no longer started is
-      // itself such a file, and it is the only thing naming the model it would have loaded.
-      for (;;) {
-        const haystack = Object.values(bundle)
-          .map((item) =>
-            item.type === "chunk"
-              ? item.code
-              : readable.test(item.fileName)
-                ? text(item.source)
-                : "",
-          )
-          .join("\n");
-        const unused = Object.entries(bundle).filter(
-          ([name, item]) =>
-            item.type === "asset" &&
-            !name.endsWith(".html") &&
-            !haystack.includes(name.slice(name.lastIndexOf("/") + 1)),
-        );
-        if (unused.length === 0) break;
-        for (const [name] of unused) delete bundle[name];
-      }
-    },
     closeBundle() {
       for (const path of PUBLIC_LEFT_OUT_OF_MAC_EDITION) {
         rmSync(`${outDir}/${path}`, { recursive: true, force: true });
       }
+      removeUnmentionedFiles(outDir, `${outDir}/${assetsDir}`);
     },
   };
 }

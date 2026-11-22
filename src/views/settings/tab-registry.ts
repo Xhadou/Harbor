@@ -6,6 +6,7 @@ import letterboxdLogo from "@/assets/addon-logos/letterboxd.png";
 import publicmetadbLogo from "@/assets/publicmetadb.svg";
 import nuvioLogo from "@/assets/nuvio.png";
 import stremioLogo from "@/assets/stremio.png";
+import { HAS_MANGA, HAS_THEMES } from "@/lib/features/edition";
 import type { SectionId } from "./shared";
 
 export type TabEntry = { id: string; label: string; icon: string; img?: string };
@@ -39,7 +40,7 @@ export const SECTION_TABS: Partial<Record<SectionId, TabEntry[]>> = {
   ],
   shaders: [
     { id: "anime4k", label: "Anime Shaders", icon: "Sparkles" },
-    { id: "manga", label: "Manga Shaders", icon: "Wand2" },
+    ...(HAS_MANGA ? [{ id: "manga", label: "Manga Shaders", icon: "Wand2" }] : []),
     { id: "more", label: "More shaders", icon: "Layers" },
   ],
   anime: [
@@ -80,12 +81,18 @@ export const SECTION_TABS: Partial<Record<SectionId, TabEntry[]>> = {
     { id: "ai", label: "Search", icon: "DiscoverySearch" },
     { id: "library", label: "Library", icon: "SavedLibrary" },
   ],
+  // The same tabs as ThemePanel draws: an edition with one look has no theme, library or
+  // font tab (lib/features/edition.ts).
   theme: [
-    { id: "theme", label: "Theme", icon: "ThemeSwatches" },
-    { id: "library", label: "Your themes", icon: "Brush" },
-    { id: "mylibrary", label: "My library", icon: "ThemeLibrary" },
+    ...(HAS_THEMES
+      ? [
+          { id: "theme", label: "Theme", icon: "ThemeSwatches" },
+          { id: "library", label: "Your themes", icon: "Brush" },
+          { id: "mylibrary", label: "My library", icon: "ThemeLibrary" },
+        ]
+      : []),
     { id: "logo", label: "Logo & icon", icon: "LogoIdentity" },
-    { id: "type", label: "Typography", icon: "Type" },
+    ...(HAS_THEMES ? [{ id: "type", label: "Typography", icon: "Type" }] : []),
     { id: "interface", label: "Interface", icon: "AppInterface" },
     { id: "ambience", label: "Ambience", icon: "Sun" },
     { id: "window", label: "Window", icon: "AppWindow" },
