@@ -31,6 +31,10 @@ python3 scripts/macos-bundle-libmpv.py prepare \
   --config "$FRAMEWORKS/tauri-libmpv.json" \
   --target "$TARGET"
 
+# Stage the Java runtime now. The build stages it again and then finds it current; left to the
+# build, a restage would put read-only files back after the step below had made them writable.
+node scripts/capstan-stage.mjs
+
 # The fetched sidecars and the staged Java runtime contain read-only files. The
 # build copies them next to the binary and cannot overwrite its own earlier
 # copies, and the bundler stops at the first one when it clears extended
