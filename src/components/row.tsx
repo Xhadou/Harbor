@@ -52,6 +52,25 @@ function holdsPosterCards(children: React.ReactNode): boolean {
   return (first.props as { kids?: boolean; meta?: { type?: string } }).kids !== true;
 }
 
+// A pause this long between wheel events starts a new swipe.
+const SWIPE_GAP_MS = 120;
+// A swipe that has moved a row this far sideways is the row's for good.
+const SWIPE_SIDEWAYS_PX = 48;
+// How far a swipe that started sideways must go clearly downward, over at least two events
+// running, before it is taken to be the page's.
+const SWIPE_DOWNWARD_PX = 8;
+
+/** The nearest ancestor that scrolls up and down: the page a row sits in. */
+function pageScrollerOf(el: HTMLElement): HTMLElement | null {
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    const overflow = getComputedStyle(node).overflowY;
+    if ((overflow === "auto" || overflow === "scroll") && node.scrollHeight > node.clientHeight) {
+      return node;
+    }
+  }
+  return null;
+}
+
 export function usePosterRow(min = 144, kids = false): { min: number; shape: RowShape } {
   const { settings } = useSettings();
   return settings.rowCardStyle === "tv" && !kids
@@ -670,7 +689,61 @@ export function Row({
       releaseSnapHold();
     };
     let wheelSettle: number | null = null;
+    // The web view gives a whole swipe to the scroller its first event points at. A downward
+    // swipe whose first event leans sideways is given to this row, which cannot scroll down, and
+    // the page then stands still for that swipe. So the row watches a swipe that started
+    // sideways: if it turns downward before it has moved the row any real distance, the row
+    // hands the rest of it to the page.
+    let swipe = { last: 0, x: 0, down: 0, downBy: 0, startedSideways: false, settled: false };
+    let passTo: HTMLElement | null = null;
+    let passedTop = 0;
     const onWheel = (e: WheelEvent) => {
+      const now = performance.now();
+      if (now - swipe.last > SWIPE_GAP_MS) {
+        swipe = {
+          last: now,
+          x: 0,
+          down: 0,
+          downBy: 0,
+          startedSideways: Math.abs(e.deltaX) > Math.abs(e.deltaY),
+          settled: e.deltaMode !== 0,
+        };
+        passTo = null;
+      }
+      swipe.last = now;
+      swipe.x += Math.abs(e.deltaX);
+      // How many events in a row have gone clearly downward (or upward), and how far.
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) * 2) {
+        swipe.down += 1;
+        swipe.downBy += Math.abs(e.deltaY);
+      } else {
+        swipe.down = 0;
+        swipe.downBy = 0;
+      }
+      if (passTo) {
+        // Something else is moving the page as well: the swipe was the page's after all.
+        if (Math.abs(passTo.scrollTop - passedTop) > 1) {
+          passTo = null;
+          swipe.settled = true;
+          return;
+        }
+        passTo.scrollTop += e.deltaY;
+        passedTop = passTo.scrollTop;
+        return;
+      }
+      if (swipe.startedSideways && !swipe.settled) {
+        if (swipe.x >= SWIPE_SIDEWAYS_PX) {
+          swipe.settled = true;
+        } else if (swipe.down >= 2 && swipe.downBy >= SWIPE_DOWNWARD_PX) {
+          swipe.settled = true;
+          passTo = pageScrollerOf(track);
+          if (passTo) {
+            passTo.scrollTop += e.deltaY;
+            passedTop = passTo.scrollTop;
+            return;
+          }
+        }
+      }
       userInteractedRef.current = true;
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
       if (rafId.current != null && Math.abs(e.deltaX) < 4) return;
