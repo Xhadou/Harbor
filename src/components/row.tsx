@@ -1007,6 +1007,7 @@ export function Row({
             onClickCapture={onClickCapture}
             onDragStart={(e) => e.preventDefault()}
             data-far={near ? undefined : ""}
+            data-card-previews={previewCards ? "" : undefined}
             className={`harbor-row-track items-start gap-5 overflow-x-auto overflow-y-hidden ${trackPad} [scroll-snap-type:x_mandatory] [&>*]:[scroll-snap-align:start] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [overflow-anchor:none] [overscroll-behavior-x:contain] [&_img]:select-none [&_img]:[-webkit-user-drag:none] ${
               expandingCards
                 ? "harbor-expanding-card-scope harbor-expanding-row flex flex-nowrap"

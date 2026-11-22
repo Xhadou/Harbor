@@ -41,6 +41,7 @@ import {
 import { CustomHoverOverlay, customHoverPosterProps } from "./pick-card/custom-hover";
 import { ExpandingCardArtwork, useExpandingCard } from "./pick-card/use-expanding-card";
 import { PosterPreview } from "./card-preview/poster-preview";
+import { smartPlayEpisode } from "@/lib/smart-play";
 import { useCardPreview } from "./card-preview/use-card-preview";
 import { getCustomHover } from "@/lib/custom-hover";
 import {
@@ -125,10 +126,19 @@ const PosterCard = memo(function PosterCard({
     tmdbKey: settings.tmdbKey,
     focusEnabled: settings.posterFocusedCard,
   });
-  // macOS card previews: the poster opens onto its wide picture under a resting pointer, and
-  // the trailer plays there. A title is the only thing with a trailer to play.
+  // macOS card previews: the poster opens onto its wide picture under a resting pointer, the
+  // trailer plays there, and the title, the story and the actions stand beside it. A title is
+  // the only thing with a trailer to play.
+  const previewSideRef = useRef<HTMLSpanElement>(null);
+  const wideWidth = expandingCard.previewWidth;
+  // The card opens as wide as the far edge of the preview's text, once its wide picture and
+  // the preview itself are on screen; 0 until then, and the card is asked again.
+  const previewWidth = useCallback(() => {
+    const side = previewSideRef.current;
+    return wideWidth() > 0 && side ? side.offsetLeft + side.offsetWidth : 0;
+  }, [wideWidth]);
   const preview = useCardPreview(
-    expandingCard.previewWidth,
+    previewWidth,
     expandingCard.previews && !kids && (meta.type === "movie" || meta.type === "series"),
   );
   const prepareWide = expandingCard.prepare;
@@ -624,7 +634,17 @@ const PosterCard = memo(function PosterCard({
           {posterOverlays}
         </Poster>
         {preview.present && (
-          <PosterPreview meta={meta} wanted={preview.wanted} open={preview.open} />
+          <PosterPreview
+            meta={meta}
+            title={preferredTitle || translatedTitle || meta.name}
+            art={expandingCard.artwork}
+            wanted={preview.wanted}
+            open={preview.open}
+            sideRef={previewSideRef}
+            // An anime's episode is picked on its own page, as on the hero.
+            onPlay={isAnimeCardId ? undefined : () => openPicker(meta, smartPlayEpisode(meta))}
+            onMore={() => openMeta(meta, isAnimeCardId ? { exact: true } : undefined)}
+          />
         )}
         {settings.cardHoverShine && (
           <div

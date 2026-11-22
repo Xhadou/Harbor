@@ -9515,7 +9515,7 @@ html[data-os="macos"] .mac-pv-label {
   z-index: 2;
   color: #fff;
 }
-html[data-os="macos"] :is(.mac-pv-label, .mac-pv-side) h3 {
+html[data-os="macos"] :is(.mac-pv-label h3, .mac-pv-side h3, .mac-pv-title) {
   display: -webkit-box;
   overflow: hidden;
   font-size: 15px;
@@ -9637,7 +9637,7 @@ html[data-os="macos"] .mac-pv[data-open] .mac-pv-side {
     opacity 340ms var(--ease-out) 240ms,
     translate 560ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
 }
-html[data-os="macos"] .mac-pv-side button {
+html[data-os="macos"] .mac-pv-side :is(button, [role="button"]) {
   pointer-events: auto;
 }
 html[data-os="macos"] .mac-pv-next {
@@ -9671,7 +9671,7 @@ html[data-os="macos"] .mac-pv-sound {
     color 120ms var(--ease-out),
     opacity 160ms ease-out;
 }
-html[data-os="macos"] :is(.mac-pv, .mac-pp)[data-playing] .mac-pv-sound {
+html[data-os="macos"] .mac-pv[data-playing] .mac-pv-sound {
   opacity: 1;
   pointer-events: auto;
 }
@@ -9752,65 +9752,26 @@ html[data-os="macos"] [data-expanding-card][data-row-card-expanded="true"] .expa
     opacity 360ms ease-out,
     transform var(--row-expand-ms, 480ms) cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* An opened poster: its wide picture fills the card, so the trailer, the title
-   and a line of facts lie straight on it, over a shade at the foot. */
-html[data-os="macos"] .mac-pp {
-  position: absolute;
-  inset: 0;
+/* An opened poster is the same preview (PosterPreview): its wide picture keeps
+   to its own 16:9 at the card's near edge, the trailer plays over it, and the
+   card opens further for the text beside it. Its parts are spans, the card
+   being a button, so the ones that are boxes are told so. While the card is
+   narrower than the picture, opening or closing, the picture fills it. */
+html[data-os="macos"] [data-card-previews] .expanding-card-artwork {
+  inline-size: min(100%, calc(var(--row-poster-height) * 16 / 9));
+}
+html[data-os="macos"] .mac-pv-poster {
   z-index: 3;
-  overflow: hidden;
+  block-size: 100%;
   border-radius: var(--poster-radius, 12px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--pv-trailer-out-ms, 280ms) ease-in-out;
 }
-/* A closing poster fades its trailer, title and shade as one, so the trailer
-   does not fade twice over. */
-html[data-os="macos"] .mac-pp:not([data-open]) .mac-pv-video {
-  transition: opacity 0s linear var(--pv-trailer-out-ms, 280ms);
+html[data-os="macos"]
+  .mac-pv-poster
+  :is(.mac-pv-wash, .mac-pv-media, .mac-pv-video, .mac-pv-facts) {
+  display: block;
 }
-html[data-os="macos"] .mac-pp[data-open] {
-  opacity: 1;
-  transition: opacity 340ms var(--ease-out) 300ms;
-}
-html[data-os="macos"] .mac-pp::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  z-index: 1;
-  block-size: 58%;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.78), rgb(0 0 0 / 0.3) 55%, transparent);
-}
-html[data-os="macos"] .mac-pp[data-playing] .mac-pv-video {
-  opacity: 1;
-}
-html[data-os="macos"] .mac-pp-text {
-  position: absolute;
-  inset-inline: 14px 44px;
-  inset-block-end: 12px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  color: #fff;
-}
-html[data-os="macos"] :is(.mac-pp-title, .mac-pp-facts) {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-html[data-os="macos"] .mac-pp-title {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 20px;
-}
-html[data-os="macos"] .mac-pp-facts {
-  color: rgb(255 255 255 / 0.72);
-  font-size: 12px;
-  line-height: 16px;
-}
-html[data-os="macos"] .mac-pp .mac-pv-sound {
-  inset-inline: auto 6px;
+html[data-os="macos"] .mac-pv-poster .mac-pv-side {
+  inline-size: clamp(200px, calc(var(--mac-pv-base) * 0.55), 256px);
 }
 
 /* Player bar. Every button is one size, and play, the main action, is one
