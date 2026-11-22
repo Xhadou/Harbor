@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  PREVIEW_CLOSE_EASE,
+  PREVIEW_CLOSE_MS,
   PREVIEW_HANDOFF_MS,
+  PREVIEW_LEAVE_AWAY_MS,
   PREVIEW_LEAVE_MS,
+  PREVIEW_OPEN_EASE,
+  PREVIEW_OPEN_MS,
   PREVIEW_REST_MS,
+  PREVIEW_TRAILER_OUT_MS,
   PREVIEW_WARM_MS,
+  bezierPoints,
+  easeProgress,
+  previewMotion,
   previewOpenDelay,
 } from "../src/lib/card-preview/policy.ts";
 import { collectionYears, pickCollectionFilm } from "../src/lib/card-preview/collection-pick.ts";
@@ -36,6 +45,52 @@ test("a card reached well after the last preview closed waits like the first", (
 
 test("an open card outlasts the hand-off, so two cards swap in one movement", () => {
   assert.ok(PREVIEW_LEAVE_MS > PREVIEW_HANDOFF_MS);
+});
+
+test("while a card is open every card moves on the opening curve, so two cards swap evenly", () => {
+  assert.deepEqual(previewMotion(true), { ms: PREVIEW_OPEN_MS, ease: PREVIEW_OPEN_EASE });
+});
+
+test("the last card to close has a shorter return of its own", () => {
+  assert.deepEqual(previewMotion(false), { ms: PREVIEW_CLOSE_MS, ease: PREVIEW_CLOSE_EASE });
+  assert.ok(PREVIEW_CLOSE_MS < PREVIEW_OPEN_MS);
+});
+
+test("a card closes sooner when the pointer left the row than when it may reach a neighbour", () => {
+  assert.ok(PREVIEW_LEAVE_AWAY_MS < PREVIEW_LEAVE_MS);
+});
+
+test("the trailer has faded before the card is back to its own width", () => {
+  assert.ok(PREVIEW_TRAILER_OUT_MS < PREVIEW_CLOSE_MS);
+});
+
+test("both curves are ones the row can follow in script", () => {
+  assert.deepEqual(bezierPoints(PREVIEW_OPEN_EASE), [0.4, 0, 0.2, 1]);
+  assert.ok(bezierPoints(PREVIEW_CLOSE_EASE));
+  assert.equal(bezierPoints("ease-out"), null);
+});
+
+test("a curve is followed as the browser follows it", () => {
+  assert.equal(easeProgress(PREVIEW_CLOSE_EASE, 0), 0);
+  assert.equal(easeProgress(PREVIEW_CLOSE_EASE, 1), 1);
+  assert.equal(easeProgress(PREVIEW_CLOSE_EASE, -1), 0);
+  assert.equal(easeProgress(PREVIEW_CLOSE_EASE, 2), 1);
+  // cubic-bezier(0.42, 0, 0.58, 1) is symmetric: half way in time is half way along.
+  assert.ok(Math.abs(easeProgress("cubic-bezier(0.42, 0, 0.58, 1)", 0.5) - 0.5) < 1e-6);
+  // A straight curve is the time itself.
+  assert.ok(Math.abs(easeProgress("cubic-bezier(0.25, 0.25, 0.75, 0.75)", 0.3) - 0.3) < 1e-6);
+  // CSS `ease` is cubic-bezier(0.25, 0.1, 0.25, 1): 80.24% of the way at half its time.
+  assert.ok(Math.abs(easeProgress("cubic-bezier(0.25, 0.1, 0.25, 1)", 0.5) - 0.8024) < 1e-3);
+  let last = 0;
+  for (let t = 0.05; t <= 1; t += 0.05) {
+    const now = easeProgress(PREVIEW_CLOSE_EASE, t);
+    assert.ok(now >= last);
+    last = now;
+  }
+});
+
+test("a curve the script cannot read is followed as plain time", () => {
+  assert.equal(easeProgress("ease-in-out", 0.25), 0.25);
 });
 
 test("a collection nobody has started plays its first film", () => {

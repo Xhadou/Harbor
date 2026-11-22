@@ -22,7 +22,7 @@ import { useViewActions } from "@/lib/view";
 import { resetPosterDock as resetPosterDockItems, updatePosterDock } from "@/lib/poster-dock";
 import { scrollDeltaToRevealCard } from "@/lib/poster-backdrop-expansion";
 import { RowCardExpansionProvider } from "@/components/row-card-expansion";
-import { PREVIEW_OPEN_EASE, PREVIEW_OPEN_MS } from "@/lib/card-preview/policy";
+import { PREVIEW_TRAILER_OUT_MS, easeProgress, previewMotion } from "@/lib/card-preview/policy";
 import { cardPreviewsOn } from "@/lib/card-preview/store";
 
 const GAP = 20;
@@ -294,8 +294,6 @@ export function Row({
     (previews || (effShape === "portrait" && holdsPosterCards(children)));
   const expandingCards =
     previewCards || (effShape === "portrait" && settings.posterBackdropExpansion);
-  // A card preview opens more slowly and more gently than the keyboard's expanding card.
-  const expandMs = previewCards ? PREVIEW_OPEN_MS : 480;
   const dockEnabled = effShape === "portrait" && settings.posterDockMagnification;
   const posterHeightRatio = effShape === "landscape" ? 9 / 16 : effShape === "square" ? 1 : 1.5;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -312,6 +310,10 @@ export function Row({
     index: number;
     widthScale: number;
   } | null>(null);
+  // A card preview opens more slowly and more gently than the keyboard's expanding card, and
+  // closes on a return of its own once no card is open.
+  const cardMotion = previewCards ? previewMotion(expandedCard !== null) : undefined;
+  const expandMs = cardMotion?.ms ?? 480;
   const onEndRef = useRef(onEndReached);
   useEffect(() => {
     onEndRef.current = onEndReached;
@@ -389,6 +391,9 @@ export function Row({
   const expansionFrameRef = useRef<number | null>(null);
   const expansionSettleRef = useRef<number | null>(null);
   const hadExpandedCardRef = useRef(false);
+  // Where the row stood before a card opened in it, and where this code last put it. Opening a
+  // card near the row's end scrolls the row to keep the card whole; closing brings it back.
+  const scrollHomeRef = useRef<{ home: number; placed: number } | null>(null);
 
   const expandRowCard = useCallback(
     (index: number, width: number) => {
@@ -417,6 +422,12 @@ export function Row({
       GAP,
     );
     if (Math.abs(delta) > 0.5) track.scrollLeft += delta;
+    if (scrollHomeRef.current) scrollHomeRef.current.placed = track.scrollLeft;
+  };
+  // The person scrolled the row while a card was open: the row stays where they put it.
+  const rowWasMoved = (track: HTMLDivElement) => {
+    const kept = scrollHomeRef.current;
+    return !kept || drag.current.active || Math.abs(track.scrollLeft - kept.placed) > 2;
   };
 
   useLayoutEffect(() => {
@@ -428,16 +439,45 @@ export function Row({
     if (expansionSettleRef.current !== null) window.clearTimeout(expansionSettleRef.current);
     track.style.scrollSnapType = "none";
     track.style.scrollBehavior = "auto";
+    const startedAt = performance.now();
     if (expandedCard) {
-      const startedAt = performance.now();
+      if (!scrollHomeRef.current) {
+        scrollHomeRef.current = { home: track.scrollLeft, placed: track.scrollLeft };
+      } else if (rowWasMoved(track)) {
+        scrollHomeRef.current = null;
+      }
       const keepExpandedCardVisible = () => {
         expansionFrameRef.current = null;
+        if (rowWasMoved(track)) scrollHomeRef.current = null;
         if (!drag.current.active) revealExpanded(track, expandedCard.index);
         if (performance.now() - startedAt < expandMs + 40) {
           expansionFrameRef.current = requestAnimationFrame(keepExpandedCardVisible);
         }
       };
       expansionFrameRef.current = requestAnimationFrame(keepExpandedCardVisible);
+    } else if (cardMotion && !rowWasMoved(track)) {
+      // The row goes home in step with the card's own return: same length, same curve.
+      const from = track.scrollLeft;
+      const home = scrollHomeRef.current?.home ?? from;
+      const returnHome = () => {
+        expansionFrameRef.current = null;
+        if (rowWasMoved(track)) {
+          scrollHomeRef.current = null;
+          return;
+        }
+        const t = (performance.now() - startedAt) / cardMotion.ms;
+        track.scrollLeft = from + (home - from) * easeProgress(cardMotion.ease, t);
+        if (scrollHomeRef.current) scrollHomeRef.current.placed = track.scrollLeft;
+        if (t < 1) expansionFrameRef.current = requestAnimationFrame(returnHome);
+        else scrollHomeRef.current = null;
+      };
+      if (Math.abs(home - from) > 0.5) {
+        expansionFrameRef.current = requestAnimationFrame(returnHome);
+      } else {
+        scrollHomeRef.current = null;
+      }
+    } else {
+      scrollHomeRef.current = null;
     }
     expansionSettleRef.current = window.setTimeout(() => {
       expansionSettleRef.current = null;
@@ -910,7 +950,9 @@ export function Row({
             style={
               {
                 "--row-poster-height": `${(cellWidth ?? effMin) * posterHeightRatio}px`,
+                // How long the width change now under way takes: a card's layers keep time by it.
                 "--row-expand-ms": `${expandMs}ms`,
+                ...(previewCards ? { "--pv-trailer-out-ms": `${PREVIEW_TRAILER_OUT_MS}ms` } : {}),
                 ...(expandingCards
                   ? {}
                   : { gridAutoColumns: cellWidth != null ? `${cellWidth}px` : `${effMin}px` }),
@@ -952,9 +994,7 @@ export function Row({
                           expandedWidth,
                           expanded,
                           previews: previewCards,
-                          motion: previewCards
-                            ? { ms: PREVIEW_OPEN_MS, ease: PREVIEW_OPEN_EASE }
-                            : undefined,
+                          motion: cardMotion,
                           onExpand: expandRowCard,
                           onCollapse: collapseRowCard,
                         }

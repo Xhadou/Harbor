@@ -9437,7 +9437,14 @@ html[data-os="macos"] .mac-cw-dismiss:hover {
 /* Card preview. A wide card at rest is its artwork with a name on it. When the
    pointer rests on it the row widens the card (row.tsx): the artwork keeps its
    place and its far edge dissolves into a blurred copy of itself, where the
-   name, the facts and Play stand. The trailer comes up over the artwork. */
+   name, the facts and Play stand. The trailer comes up over the artwork.
+
+   Closing is the same movement run backwards, with nothing cut: the words and
+   the trailer fade as the card starts to narrow, the blurred copy stays until
+   the card is nearly its own width again, and what the card shows at rest
+   comes back last. Each rule's plain state holds the way back; the
+   `[data-open]` state holds the way in. `--row-expand-ms` is the length of
+   the width change under way (row.tsx), which the layers keep time by. */
 html[data-os="macos"] .mac-pv {
   --mac-pv-base: 100%;
   position: relative;
@@ -9495,10 +9502,11 @@ html[data-os="macos"] .mac-pv-video {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 500ms var(--ease-out);
+  transition: opacity var(--pv-trailer-out-ms, 280ms) ease-in-out;
 }
 html[data-os="macos"] .mac-pv[data-playing] .mac-pv-video {
   opacity: 1;
+  transition: opacity 500ms var(--ease-out);
 }
 html[data-os="macos"] .mac-pv-label {
   position: absolute;
@@ -9525,10 +9533,10 @@ html[data-os="macos"] :is(.mac-pv-label p, .mac-pv-facts, .mac-pv-next) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The name on the artwork gives way to the trailer, and comes back once the
-   card has closed again. */
+/* The name on the artwork gives way to the trailer, and comes back over the
+   second half of the card's return. */
 html[data-os="macos"] :is(.mac-pv-label, .mac-pv-media::after) {
-  transition: opacity 160ms var(--ease-out) 260ms;
+  transition: opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
 }
 html[data-os="macos"] .mac-pv[data-open] :is(.mac-pv-label, .mac-pv-media::after) {
   opacity: 0;
@@ -9538,7 +9546,8 @@ html[data-os="macos"] .mac-pv[data-open] :is(.mac-pv-label, .mac-pv-media::after
    edge, so the picture has no hard end. A blur thins out toward its own edge,
    and a thin wash lets the artwork show through right up to where it stops:
    so the copy reaches well past the card and lies on a solid base. Nothing of
-   it is painted at rest. */
+   it is painted at rest. On the way back it stays whole while the card is
+   wider than its artwork, and thins out only over the last of the return. */
 html[data-os="macos"] .mac-pv-wash {
   position: absolute;
   inset: 0;
@@ -9559,7 +9568,8 @@ html[data-os="macos"] .mac-pv-wash {
   visibility: hidden;
   pointer-events: none;
   transition:
-    opacity 200ms var(--ease-out) 200ms,
+    opacity calc(var(--row-expand-ms, 480ms) * 0.4) ease-in-out
+      calc(var(--row-expand-ms, 480ms) * 0.6),
     visibility 0s linear var(--row-expand-ms, 480ms);
 }
 html[data-os="macos"] .mac-pv-wash::before {
@@ -9614,8 +9624,8 @@ html[data-os="macos"] .mac-pv-side {
   pointer-events: none;
   translate: -8px 0;
   transition:
-    opacity 100ms var(--ease-out),
-    translate 0s linear 100ms;
+    opacity 200ms ease-out,
+    translate 260ms ease-out;
 }
 html[dir="rtl"][data-os="macos"] .mac-pv-side {
   translate: 8px 0;
@@ -9655,7 +9665,15 @@ html[data-os="macos"] .mac-pv-sound {
   block-size: 28px;
   color: rgb(255 255 255 / 0.7);
   filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.7));
-  transition: color 120ms var(--ease-out);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    color 120ms var(--ease-out),
+    opacity 160ms ease-out;
+}
+html[data-os="macos"] :is(.mac-pv, .mac-pp)[data-playing] .mac-pv-sound {
+  opacity: 1;
+  pointer-events: auto;
 }
 html[data-os="macos"] .mac-pv-sound:hover {
   color: #fff;
@@ -9678,9 +9696,6 @@ html[data-os="macos"] .mac-pv-over:not([data-open])::after {
 html[data-os="macos"] .mac-pv-over .mac-pv-media::after {
   content: none;
 }
-html[data-os="macos"] .mac-pv-over .mac-pv-sound {
-  pointer-events: auto;
-}
 html[data-os="macos"] .mac-pv-about {
   display: -webkit-box;
   overflow: hidden;
@@ -9701,11 +9716,17 @@ html[data-os="macos"] .harbor-expanding-card-scope .mac-ep-root > button:first-c
 /* A new episode's card names its series on the artwork; the open panel names
    it beside the artwork instead. */
 html[data-os="macos"] .mac-ep-label {
-  transition: opacity 160ms var(--ease-out) 260ms;
+  transition: opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
 }
 html[data-os="macos"] .mac-ep-root:has(> .mac-pv-over[data-open]) .mac-ep-label {
   opacity: 0;
   transition-delay: 0s;
+}
+html[data-os="macos"] .harbor-expanding-card-scope :is(.mac-cw-play, .mac-cw-progress) {
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out),
+    opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
 }
 html[data-os="macos"]
   .mac-cw-root:has(> .mac-pv-over[data-open])
@@ -9718,10 +9739,12 @@ html[data-os="macos"] .mac-cw-root:has(> .mac-pv-over[data-open]) .mac-cw-art::a
 }
 
 /* A poster's wide picture fades in over the poster as the card opens, and
-   stays until the card has nearly closed, instead of replacing it at a stroke. */
+   gives way to it again over the last of the card's return, when the card is
+   nearly a poster's width. */
 html[data-os="macos"] .expanding-card-artwork {
   transition:
-    opacity 220ms ease-in calc(var(--row-expand-ms, 480ms) - 220ms),
+    opacity calc(var(--row-expand-ms, 480ms) * 0.5) ease-in-out
+      calc(var(--row-expand-ms, 480ms) * 0.5),
     transform var(--row-expand-ms, 480ms) cubic-bezier(0.4, 0, 0.2, 1);
 }
 html[data-os="macos"] [data-expanding-card][data-row-card-expanded="true"] .expanding-card-artwork {
@@ -9739,7 +9762,12 @@ html[data-os="macos"] .mac-pp {
   border-radius: var(--poster-radius, 12px);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 120ms var(--ease-out);
+  transition: opacity var(--pv-trailer-out-ms, 280ms) ease-in-out;
+}
+/* A closing poster fades its trailer, title and shade as one, so the trailer
+   does not fade twice over. */
+html[data-os="macos"] .mac-pp:not([data-open]) .mac-pv-video {
+  transition: opacity 0s linear var(--pv-trailer-out-ms, 280ms);
 }
 html[data-os="macos"] .mac-pp[data-open] {
   opacity: 1;
@@ -9783,7 +9811,6 @@ html[data-os="macos"] .mac-pp-facts {
 }
 html[data-os="macos"] .mac-pp .mac-pv-sound {
   inset-inline: auto 6px;
-  pointer-events: auto;
 }
 
 /* Player bar. Every button is one size, and play, the main action, is one

@@ -138,7 +138,7 @@ export function MacCollectionCard({
           </button>
         </div>
       </div>
-      {trailer.showing && (
+      {trailer.present && (
         <button
           type="button"
           onClick={trailer.toggleMuted}

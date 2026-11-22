@@ -33,7 +33,7 @@ export function PosterPreview({
         <span className="mac-pp-title">{meta.name}</span>
         {facts && <span className="mac-pp-facts">{facts}</span>}
       </span>
-      {trailer.showing && (
+      {trailer.present && (
         <span
           role="button"
           tabIndex={-1}

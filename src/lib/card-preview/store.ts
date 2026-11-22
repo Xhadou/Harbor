@@ -52,6 +52,18 @@ export function subscribeCardPreviewPlaying(fn: () => void): () => void {
   return () => playingSubs.delete(fn);
 }
 
+let videoBusyUntil = 0;
+
+/** A closing card is still fading its trailer out on the shared video, for `ms` more. */
+export function holdPreviewVideo(ms: number): void {
+  videoBusyUntil = Math.max(videoBusyUntil, performance.now() + ms);
+}
+
+/** How long the next card should wait before it takes the shared video. */
+export function previewVideoWaitMs(): number {
+  return Math.max(0, videoBusyUntil - performance.now());
+}
+
 let muted = true;
 const mutedSubs = new Set<() => void>();
 

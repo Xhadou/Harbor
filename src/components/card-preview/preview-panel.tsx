@@ -93,7 +93,7 @@ export function CardPreviewPanel({
           </div>
         )}
       </div>
-      {trailer.showing && (
+      {trailer.present && (
         <button
           type="button"
           onClick={stop(trailer.toggleMuted)}

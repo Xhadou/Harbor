@@ -7,11 +7,28 @@ import {
   type PointerEvent,
 } from "react";
 import { useRowCardExpansion } from "@/components/row-card-expansion";
-import { PREVIEW_LEAVE_MS, PREVIEW_LOOKUP_MS, previewOpenDelay } from "@/lib/card-preview/policy";
+import {
+  PREVIEW_LEAVE_AWAY_MS,
+  PREVIEW_LEAVE_MS,
+  PREVIEW_LOOKUP_MS,
+  PREVIEW_OPEN_MS,
+  previewOpenDelay,
+} from "@/lib/card-preview/policy";
 import { markPreviewOpen, sinceLastPreviewMs } from "@/lib/card-preview/store";
 
 const READY_RETRY_MS = 100;
 const READY_RETRIES = 30;
+// A closing card keeps what it showed until its width is back, whichever return it is on.
+const CLOSING_MS = PREVIEW_OPEN_MS + 120;
+
+/**
+ * Whether the pointer left a card through its side, toward the next card in the
+ * row, and not over its top or bottom edge, out of the row.
+ */
+function leftSideways(card: Element, clientY: number): boolean {
+  const box = card.getBoundingClientRect();
+  return clientY >= box.top && clientY <= box.bottom;
+}
 
 function reducedMotion(): boolean {
   return (
@@ -40,6 +57,14 @@ export function useCardPreview(measure: () => number, allowed = true) {
   // True a moment after the pointer arrives and for as long as the card is open:
   // the time to look up what the preview will play.
   const [wanted, setWanted] = useState(false);
+  // True from the moment the card stops being open until it has finished closing. It is set
+  // while rendering, so there is no frame in which the card is neither open nor closing.
+  const [closing, setClosing] = useState(false);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    setClosing(!open);
+  }
   const inside = useRef(false);
   const timers = useRef<{ open: number | null; lookup: number | null; leave: number | null }>({
     open: null,
@@ -88,18 +113,32 @@ export function useCardPreview(measure: () => number, allowed = true) {
     );
   }, [clear, enabled]);
 
-  const leave = useCallback(() => {
-    inside.current = false;
-    clear("open");
-    clear("lookup");
-    clear("leave");
-    timers.current.leave = window.setTimeout(() => {
-      timers.current.leave = null;
-      if (inside.current) return;
-      rowRef.current?.collapse();
-      setWanted(false);
-    }, PREVIEW_LEAVE_MS);
-  }, [clear]);
+  // `towardNext` is false when the pointer left the row itself: nothing is about to take the
+  // preview over, so the card need not wait for a neighbour before it starts to close.
+  const leave = useCallback(
+    (towardNext = true) => {
+      inside.current = false;
+      clear("open");
+      clear("lookup");
+      clear("leave");
+      timers.current.leave = window.setTimeout(
+        () => {
+          timers.current.leave = null;
+          if (inside.current) return;
+          rowRef.current?.collapse();
+          setWanted(false);
+        },
+        towardNext ? PREVIEW_LEAVE_MS : PREVIEW_LEAVE_AWAY_MS,
+      );
+    },
+    [clear],
+  );
+
+  useEffect(() => {
+    if (!closing) return;
+    const timer = window.setTimeout(() => setClosing(false), CLOSING_MS);
+    return () => window.clearTimeout(timer);
+  }, [closing]);
 
   useEffect(() => {
     if (!open) return;
@@ -133,7 +172,7 @@ export function useCardPreview(measure: () => number, allowed = true) {
   const onPointerLeave = useCallback(
     (event: PointerEvent) => {
       if (event.pointerType !== "mouse") return;
-      leave();
+      leave(leftSideways(event.currentTarget, event.clientY));
     },
     [leave],
   );
@@ -155,6 +194,8 @@ export function useCardPreview(measure: () => number, allowed = true) {
     enabled,
     open,
     wanted: wanted || open,
+    /** The card shows, or is still putting away, what its preview adds: keep it mounted. */
+    present: wanted || open || closing,
     arrive,
     leave,
     handlers: { onPointerEnter, onPointerLeave, onFocus, onBlur },
@@ -177,7 +218,7 @@ export function useCardPreviewOn(host: HTMLElement | null, measure: () => number
       arrive();
     };
     const onLeave = (event: globalThis.PointerEvent) => {
-      if (event.pointerType === "mouse") leave();
+      if (event.pointerType === "mouse") leave(leftSideways(host, event.clientY));
     };
     const onFocusIn = () => {
       if (!pointerModality()) arrive();

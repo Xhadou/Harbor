@@ -623,7 +623,7 @@ const PosterCard = memo(function PosterCard({
         >
           {posterOverlays}
         </Poster>
-        {preview.wanted && (
+        {preview.present && (
           <PosterPreview meta={meta} wanted={preview.wanted} open={preview.open} />
         )}
         {settings.cardHoverShine && (
