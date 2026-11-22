@@ -9694,8 +9694,18 @@ html[data-os="macos"] .mac-pv-about {
 /* A Continue Watching card in a row that opens cards: the artwork keeps the
    width it has at rest while the card around it widens, and what is drawn on
    the artwork for the card at rest steps back for the trailer. */
-html[data-os="macos"] .harbor-expanding-card-scope .mac-cw-root > :is(button, p) {
+html[data-os="macos"] .harbor-expanding-card-scope .mac-cw-root > :is(button, p),
+html[data-os="macos"] .harbor-expanding-card-scope .mac-ep-root > button:first-child {
   max-inline-size: calc(var(--row-poster-height) * 16 / 9);
+}
+/* A new episode's card names its series on the artwork; the open panel names
+   it beside the artwork instead. */
+html[data-os="macos"] .mac-ep-label {
+  transition: opacity 160ms var(--ease-out) 260ms;
+}
+html[data-os="macos"] .mac-ep-root:has(> .mac-pv-over[data-open]) .mac-ep-label {
+  opacity: 0;
+  transition-delay: 0s;
 }
 html[data-os="macos"]
   .mac-cw-root:has(> .mac-pv-over[data-open])

@@ -1,8 +1,11 @@
 import { memo } from "react";
 import { X } from "lucide-react";
+import { CardPreviewPanel } from "@/components/card-preview/preview-panel";
 import { Row } from "@/components/row";
+import type { Meta } from "@/lib/cinemeta";
 import { useT } from "@/lib/i18n";
 import type { NewEpisode } from "@/lib/new-episodes";
+import { isMacDesktop } from "@/lib/platform";
 import { useView } from "@/lib/view";
 
 type Props = {
@@ -24,25 +27,28 @@ const EpisodeCard = memo(function EpisodeCard({
   onDismiss: (key: string) => void;
 }) {
   const t = useT();
-  const { openMeta } = useView();
+  const { openMeta, openPicker } = useView();
   const art = ep.still ?? ep.poster;
+  const mac = isMacDesktop();
+  const series: Meta = {
+    id: ep.seriesId,
+    type: "series",
+    name: ep.seriesName,
+    poster: ep.poster ?? undefined,
+  };
+  const openEpisode = () =>
+    openMeta(series, { episodeHint: { season: ep.season, episode: ep.episode } });
 
   return (
-    <div className="group relative shrink-0">
+    <div className={`group relative shrink-0 ${mac ? "mac-ep-root" : ""}`}>
       <button
         type="button"
-        onClick={() =>
-          openMeta(
-            {
-              id: ep.seriesId,
-              type: "series",
-              name: ep.seriesName,
-              poster: ep.poster ?? undefined,
-            },
-            { episodeHint: { season: ep.season, episode: ep.episode } },
-          )
-        }
-        className="block w-full overflow-hidden rounded-lg bg-elevated text-start outline-none transition-transform duration-150 ease-in-out group-hover:scale-[1.015] motion-reduce:group-hover:scale-100"
+        onClick={openEpisode}
+        className={`block w-full overflow-hidden rounded-lg bg-elevated text-start outline-none ${
+          mac
+            ? "mac-card"
+            : "transition-transform duration-150 ease-in-out group-hover:scale-[1.015] motion-reduce:group-hover:scale-100"
+        }`}
       >
         <span className="relative block aspect-video w-full overflow-hidden bg-raised">
           {art ? (
@@ -54,8 +60,8 @@ const EpisodeCard = memo(function EpisodeCard({
               className="h-full w-full select-none object-cover"
             />
           ) : null}
-          <span className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
-          <span className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
+          <span className="mac-ep-label pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+          <span className="mac-ep-label absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
             <span className="truncate text-[13.5px] font-semibold leading-tight text-white">
               {ep.seriesName}
             </span>
@@ -63,6 +69,19 @@ const EpisodeCard = memo(function EpisodeCard({
           </span>
         </span>
       </button>
+      {mac && (
+        <CardPreviewPanel
+          meta={series}
+          art={art}
+          title={ep.seriesName}
+          facts={ep.title ? `S${ep.season} E${ep.episode} \u00b7 ${ep.title}` : label(ep)}
+          play={{
+            label: t("Play"),
+            onClick: () => openPicker(series, { season: ep.season, episode: ep.episode }),
+          }}
+          more={{ label: t("More info"), onClick: openEpisode }}
+        />
+      )}
       <button
         type="button"
         onClick={(e) => {
@@ -108,6 +127,7 @@ export function NewEpisodesSection({ episodes, onDismissOne, onDismissAll }: Pro
       min={260}
       shape="landscape"
       scrollKey="home:new-episodes"
+      previews
       headerRight={dismissAll}
     >
       {episodes.map((ep) => (
