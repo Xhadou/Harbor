@@ -5,12 +5,15 @@
 //!
 //! This keeps that folder beside the single file. It is made from the release's own archive,
 //! which must match the official checksum, and the whole folder is checked again before every
-//! use, as the single file is.
+//! use, as the single file is: hashed in full the first time and whenever any file in it has
+//! changed, and by each file's size and change time in between (`tree_stamp`).
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};
+
+use crate::ytdlp_update::FileStamp;
 
 pub(crate) const ARCHIVE: &str = "yt-dlp_macos.zip";
 pub(crate) const MAX_ARCHIVE: usize = 160 * 1024 * 1024;
@@ -134,6 +137,40 @@ fn unpack(archive: &[u8], destination: &Path) -> Result<(), ()> {
     Ok(())
 }
 
+/// The state of every file under `root` without reading one: the same walk and the same
+/// rules as `tree_digest`, over each file's path and `FileStamp`. Two equal stamps mean no
+/// file was written, added or removed in between.
+fn tree_stamp(root: &Path) -> Option<Vec<(String, FileStamp)>> {
+    let mut files = Vec::new();
+    let mut total = 0u64;
+    for entry in walkdir::WalkDir::new(root)
+        .follow_links(false)
+        .sort_by_file_name()
+    {
+        let entry = entry.ok()?;
+        let kind = entry.file_type();
+        if kind.is_dir() {
+            continue;
+        }
+        if !kind.is_file() || files.len() >= MAX_ENTRIES {
+            return None;
+        }
+        let metadata = entry.metadata().ok()?;
+        total = total.checked_add(metadata.len())?;
+        if total > MAX_UNPACKED {
+            return None;
+        }
+        let relative = entry.path().strip_prefix(root).ok()?.to_str()?;
+        files.push((relative.to_string(), FileStamp::of(&metadata)));
+    }
+    (!files.is_empty()).then_some(files)
+}
+
+/// The folder that last matched its seal, as it was then. Hashing all 124 MB of it took
+/// about 0.4 s, and every trailer lookup paid that before yt-dlp started.
+type VerifiedTree = (PathBuf, String, Vec<(String, FileStamp)>);
+static VERIFIED_TREE: std::sync::Mutex<Option<VerifiedTree>> = std::sync::Mutex::new(None);
+
 fn verified(directory: &Path, version: &str) -> Option<PathBuf> {
     let path = seal_path(directory, version);
     if std::fs::metadata(&path).ok()?.len() > MAX_SEAL {
@@ -148,7 +185,17 @@ fn verified(directory: &Path, version: &str) -> Option<PathBuf> {
     if !std::fs::symlink_metadata(&executable).ok()?.is_file() {
         return None;
     }
-    (tree_digest(&root)? == seal.tree_sha256).then_some(executable)
+    // Taken before the files are read: a write that lands during the hashing leaves a stamp
+    // that no longer matches, and the next use hashes the folder again.
+    let seen = (root.clone(), seal.tree_sha256.clone(), tree_stamp(&root)?);
+    if VERIFIED_TREE.lock().ok()?.as_ref() == Some(&seen) {
+        return Some(executable);
+    }
+    if tree_digest(&root)? != seal.tree_sha256 {
+        return None;
+    }
+    *VERIFIED_TREE.lock().ok()? = Some(seen);
+    Some(executable)
 }
 
 /// The unpacked yt-dlp of this release, if it is here and still what it was when it was made.
@@ -329,9 +376,16 @@ mod tests {
         let bytes = release();
         let executable = install_blocking(&home, VERSION, &bytes, &sha(&bytes)).unwrap();
         let root = executable.parent().unwrap().to_path_buf();
+        // Verified once first, so each change below has to be noticed against a folder that
+        // is remembered as good, not against one that is hashed for the first time.
+        assert!(verified(&home, VERSION).is_some(), "as made");
 
         std::fs::write(root.join("_internal/lib/python.dylib"), b"LIBRARY").unwrap();
-        assert_eq!(verified(&home, VERSION), None, "a changed file");
+        assert_eq!(
+            verified(&home, VERSION),
+            None,
+            "a changed file of the same size"
+        );
         std::fs::write(root.join("_internal/lib/python.dylib"), b"library").unwrap();
         assert!(verified(&home, VERSION).is_some(), "put back");
 

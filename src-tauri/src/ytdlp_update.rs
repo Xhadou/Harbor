@@ -372,12 +372,66 @@ async fn cached_executable(directory: &Path) -> Option<PathBuf> {
     }
 }
 
+/// What tells one state of a file from another without reading it: its size, when it was
+/// written and, where the system has them, which file it is and when it last changed in any
+/// way. The last of these is set by the system on every write and cannot be put back.
+#[derive(Clone, PartialEq, Eq)]
+pub(crate) struct FileStamp {
+    length: u64,
+    modified: Option<std::time::SystemTime>,
+    identity: (u64, u64, i64, i64),
+}
+
+impl FileStamp {
+    pub(crate) fn of(metadata: &std::fs::Metadata) -> Self {
+        #[cfg(unix)]
+        let identity = {
+            use std::os::unix::fs::MetadataExt;
+            (
+                metadata.dev(),
+                metadata.ino(),
+                metadata.ctime(),
+                metadata.ctime_nsec(),
+            )
+        };
+        #[cfg(not(unix))]
+        let identity = (0, 0, 0, 0);
+        Self {
+            length: metadata.len(),
+            modified: metadata.modified().ok(),
+            identity,
+        }
+    }
+}
+
+/// The file that last matched its digest, as it was then. Every run of yt-dlp comes through
+/// `read_verified`, and reading and hashing the whole 36 MB binary each time cost about 0.1 s
+/// and its size in memory; a launch starts several trailer lookups at once, which put some
+/// 185 MB of freed buffers on the process. An unchanged file is not read again; a file that
+/// has changed in any way is.
+static VERIFIED_FILE: LazyLock<std::sync::Mutex<Option<(PathBuf, String, FileStamp)>>> =
+    LazyLock::new(|| std::sync::Mutex::new(None));
+
 async fn read_verified(directory: &Path) -> Option<CachedRelease> {
     let manifest = read_limited(&directory.join(MANIFEST), MAX_METADATA).await?;
     let entry: CachedRelease = serde_json::from_slice(&manifest).ok()?;
-    let filename = entry.filename()?;
-    let bytes = read_limited(&directory.join(filename), MAX_BINARY).await?;
-    digest_matches(&bytes, &entry.sha256).then_some(entry)
+    let path = directory.join(entry.filename()?);
+    let metadata = tokio::fs::metadata(&path).await.ok()?;
+    if !metadata.is_file() {
+        return None;
+    }
+    // Taken before the file is read: a write that lands during the read leaves a stamp that
+    // no longer matches, and the next use reads the file again.
+    let seen = (path.clone(), entry.sha256.clone(), FileStamp::of(&metadata));
+    if VERIFIED_FILE.lock().ok()?.as_ref() == Some(&seen) {
+        return Some(entry);
+    }
+    let bytes = read_limited(&path, MAX_BINARY).await?;
+    if !digest_matches(&bytes, &entry.sha256) {
+        return None;
+    }
+    *VERIFIED_FILE.lock().ok()? = Some(seen);
+    Some(entry)
 }
 
 async fn read_limited(path: &Path, limit: usize) -> Option<Vec<u8>> {
@@ -796,6 +850,15 @@ mod tests {
         save_manifest(&directory, &entry)
             .await
             .expect("fixture manifest");
+        assert!(read_verified(&directory).await.is_some());
+        // Same size, other bytes: the file is remembered as good, and has to be read again.
+        tokio::fs::write(&path, b"VERIFIED EXTRACTOR")
+            .await
+            .expect("tamper fixture, same size");
+        assert!(read_verified(&directory).await.is_none());
+        tokio::fs::write(&path, b"verified extractor")
+            .await
+            .expect("restore fixture");
         assert!(read_verified(&directory).await.is_some());
         assert!(entry.fresh(1000 + CHECK_INTERVAL.as_secs() - 1));
         assert!(!entry.fresh(1000 + CHECK_INTERVAL.as_secs()));
