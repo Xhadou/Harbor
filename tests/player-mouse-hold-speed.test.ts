@@ -5,7 +5,7 @@ import test from "node:test";
 import { act, createElement } from "react";
 import { JSDOM } from "jsdom";
 import { useHoldSpeed, type HoldSpeed } from "../src/views/player/hooks/use-hold-speed.ts";
-import { DragClickStage } from "../src/views/player/drag-click-stage.tsx";
+import { CLICK_WAIT_MS, DragClickStage } from "../src/views/player/drag-click-stage.tsx";
 
 const HOLD_MS = 400;
 
@@ -131,6 +131,10 @@ test("a quick tap is still a click and never changes the rate", async () => {
     await view.hold(100);
     await view.release();
     assert.deepEqual(view.rates, []);
+    // A click waits to see that it is not the first half of a double click.
+    await act(async () => {
+      await sleep(CLICK_WAIT_MS + 60);
+    });
     assert.deepEqual(view.clicks, ["click"]);
   } finally {
     await view.unmount();
@@ -159,6 +163,9 @@ test("a hold does not engage while paused", async () => {
     await view.hold();
     assert.deepEqual(view.rates, []);
     await view.release();
+    await act(async () => {
+      await sleep(CLICK_WAIT_MS + 60);
+    });
     assert.deepEqual(view.clicks, ["click"]);
   } finally {
     await view.unmount();
