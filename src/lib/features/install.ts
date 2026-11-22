@@ -1,16 +1,30 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useSyncExternalStore } from "react";
+import { HAS_EBOOK, HAS_GAMES, HAS_MANGA, HAS_MUSIC } from "./edition";
 
 export type InstallFeatureKey = "plugins" | "games" | "music" | "ebook" | "manga";
 export type InstallFeatures = Record<InstallFeatureKey, boolean>;
 
+// The most this build can offer: a section the edition leaves out stays off whatever the
+// native side or a web preview answers.
 const ALL_ON: InstallFeatures = {
   plugins: true,
-  games: true,
-  music: true,
-  ebook: true,
-  manga: true,
+  games: HAS_GAMES,
+  music: HAS_MUSIC,
+  ebook: HAS_EBOOK,
+  manga: HAS_MANGA,
 };
+
+function withinEdition(value: Partial<InstallFeatures>): InstallFeatures {
+  const merged = { ...ALL_ON, ...value };
+  return {
+    plugins: merged.plugins,
+    games: merged.games && HAS_GAMES,
+    music: merged.music && HAS_MUSIC,
+    ebook: merged.ebook && HAS_EBOOK,
+    manga: merged.manga && HAS_MANGA,
+  };
+}
 
 let snapshot: InstallFeatures = ALL_ON;
 let loading: Promise<void> | null = null;
@@ -19,7 +33,7 @@ const listeners = new Set<() => void>();
 
 export async function readInstallFeatures(): Promise<InstallFeatures> {
   const value = await invoke<Partial<InstallFeatures>>("install_features");
-  return { ...ALL_ON, ...value };
+  return withinEdition(value);
 }
 
 export function getInstallFeatures(): InstallFeatures {

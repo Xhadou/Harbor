@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode, useRef } from "react";
 import { getCustomThemes, subscribeCustomThemes } from "@/lib/custom-themes";
 import { useSettings } from "@/lib/settings";
 import { isMacDesktop } from "@/lib/platform";
+import { HAS_THEMES } from "@/lib/features/edition";
 import {
   FEATURED_CUSTOM_THEMES,
   getThemeById,
@@ -46,12 +47,14 @@ type Tab =
 
 export function ThemePanel() {
   const t = useT();
-  const [tab, setTab] = useState<Tab>("theme");
+  // An edition with one look has nothing to pick on the theme, library and font tabs.
+  const [tab, setTab] = useState<Tab>(HAS_THEMES ? "theme" : "logo");
   const libraryOpen = useThemeLibraryOpen();
   const [themeCount, setThemeCount] = useState(() => getCustomThemes().length);
   useEffect(() => subscribeCustomThemes(() => setThemeCount(getCustomThemes().length)), []);
 
   useEffect(() => {
+    if (!HAS_THEMES) return;
     const req = consumeThemeLibraryRequest();
     if (req) {
       setTab("library");
@@ -62,20 +65,27 @@ export function ThemePanel() {
     );
   }, []);
 
-  useEffect(() => subscribeThemeEditorRequest(() => setTab("theme")), []);
+  useEffect(
+    () => (HAS_THEMES ? subscribeThemeEditorRequest(() => setTab("theme")) : undefined),
+    [],
+  );
 
   const tabs = [
-    { id: "theme" as const, label: t("Theme") },
-    { id: "library" as const, label: t("Your themes"), count: themeCount },
-    { id: "mylibrary" as const, label: t("My library") },
+    ...(HAS_THEMES
+      ? [
+          { id: "theme" as const, label: t("Theme") },
+          { id: "library" as const, label: t("Your themes"), count: themeCount },
+          { id: "mylibrary" as const, label: t("My library") },
+        ]
+      : []),
     { id: "logo" as const, label: t("Logo & icon") },
-    { id: "type" as const, label: t("Typography") },
+    ...(HAS_THEMES ? [{ id: "type" as const, label: t("Typography") }] : []),
     { id: "interface" as const, label: t("Interface") },
     { id: "ambience" as const, label: t("Ambience") },
     ...(isTauri ? [{ id: "window" as const, label: t("Window") }] : []),
   ];
 
-  const active: Tab = libraryOpen && tab !== "mylibrary" ? "library" : tab;
+  const active: Tab = HAS_THEMES && libraryOpen && tab !== "mylibrary" ? "library" : tab;
 
   const wasLibraryOpen = useRef(false);
   useEffect(() => {
@@ -83,16 +93,18 @@ export function ThemePanel() {
     wasLibraryOpen.current = libraryOpen;
   }, [libraryOpen, tab]);
 
-  useSubTabs(libraryOpen && tab !== "mylibrary" ? [] : tabs, tab, (id) => setTab(id as Tab));
+  useSubTabs(HAS_THEMES && libraryOpen && tab !== "mylibrary" ? [] : tabs, tab, (id) =>
+    setTab(id as Tab),
+  );
 
   return (
     <>
       <div key={active} className="harbor-cascade flex flex-col gap-10">
-        {active === "theme" && <ThemeTab />}
-        {active === "library" && <LibraryTab />}
-        {active === "mylibrary" && <LibraryTab startOpenTab="library" />}
+        {HAS_THEMES && active === "theme" && <ThemeTab />}
+        {HAS_THEMES && active === "library" && <LibraryTab />}
+        {HAS_THEMES && active === "mylibrary" && <LibraryTab startOpenTab="library" />}
         {active === "logo" && <LogoTab />}
-        {active === "type" && <TypographyTab />}
+        {HAS_THEMES && active === "type" && <TypographyTab />}
         {active === "interface" && <DisplaySection />}
         {active === "ambience" && <AmbienceSection />}
         {active === "window" && <WindowTab />}

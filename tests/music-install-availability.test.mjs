@@ -13,6 +13,9 @@ function store(invoke) {
   new Function("require", "module", "exports", compiled)(
     (id) => {
       if (id === "@tauri-apps/api/core") return { invoke };
+      // The full edition: every section is part of the build.
+      if (id === "./edition")
+        return { HAS_GAMES: true, HAS_MUSIC: true, HAS_MANGA: true, HAS_EBOOK: true };
       if (id === "react")
         return {
           useSyncExternalStore(subscribe, snapshot) {

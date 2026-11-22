@@ -5,12 +5,20 @@ import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { addWhisperFeature, shouldEnableWindowsWhisper } from "./tauri-args.mjs";
+import {
+  addMacEditionArgs,
+  addWhisperFeature,
+  shouldBuildMacEdition,
+  shouldEnableWindowsWhisper,
+} from "./tauri-args.mjs";
 
 const require = createRequire(import.meta.url);
 const cli = require.resolve("@tauri-apps/cli/tauri.js");
 const scriptsDir = dirname(fileURLToPath(import.meta.url));
-const args = process.argv.slice(2);
+const macEdition = shouldBuildMacEdition(process.platform, process.argv.slice(2), process.env);
+const args = macEdition ? addMacEditionArgs(process.argv.slice(2)) : process.argv.slice(2);
+// The frontend build Tauri starts reads the same choice (vite.config.ts).
+const env = macEdition ? { ...process.env, HARBOR_EDITION: "mac" } : process.env;
 const withWhisper = shouldEnableWindowsWhisper(process.platform, args);
 const command = withWhisper ? "powershell.exe" : process.execPath;
 const fullArgs = withWhisper
@@ -28,7 +36,7 @@ function runTauri() {
   const child = spawn(command, fullArgs, {
     stdio: "inherit",
     cwd: process.cwd(),
-    env: process.env,
+    env,
   });
   child.on("error", (error) => {
     console.error("Unable to start Tauri:", error.message);

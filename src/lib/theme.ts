@@ -13,6 +13,7 @@ import royalPreview from "@/assets/theme-previews/royal.png";
 import stremioPreview from "@/assets/theme-previews/stremio.png";
 import velvetPreview from "@/assets/theme-previews/velvet.png";
 import { getCustomThemes } from "./custom-themes";
+import { HAS_THEMES } from "./features/edition";
 import { t } from "./i18n";
 import { MIDNIGHT_PRESET } from "@/themes/midnight/midnight-preset";
 
@@ -137,7 +138,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "cool-grey",
     name: "Harbor default",
     blurb: "What ships out of the box.",
-    previewImage: harborPreview,
+    previewImage: HAS_THEMES ? harborPreview : "",
     swatch: ["#2c2e36", "#3a3d47", "#dcdde4"],
     tokens: {
       "--color-canvas": "oklch(0.18 0.004 260)",
@@ -158,7 +159,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "nord",
     name: "Nord",
     blurb: "Cool grey-blue. Arctic and crisp.",
-    previewImage: nordPreview,
+    previewImage: HAS_THEMES ? nordPreview : "",
     swatch: ["#2e3440", "#434c5e", "#88c0d0"],
     tokens: {
       "--color-canvas": "#2e3440",
@@ -180,7 +181,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "stremio",
     name: "Stremio",
     blurb: "Purple accent, Indigo gradient, Narrow icon rail.",
-    previewImage: stremioPreview,
+    previewImage: HAS_THEMES ? stremioPreview : "",
     swatch: ["#0c0b11", "#1a173e", "#7b5bf5"],
     tokens: {
       "--color-canvas": "#0c0b11",
@@ -208,7 +209,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "crunch",
     name: "Crunchy",
     blurb: "Charcoal chrome with a spice-orange accent. Bold and clean.",
-    previewImage: crunchPreview,
+    previewImage: HAS_THEMES ? crunchPreview : "",
     swatch: ["#000000", "#272727", "#ff640a"],
     tokens: {
       "--color-canvas": "#000000",
@@ -237,7 +238,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "tokyo-night",
     name: "Royal",
     blurb: "Deep navy with a warm orange accent.",
-    previewImage: royalPreview,
+    previewImage: HAS_THEMES ? royalPreview : "",
     swatch: ["#0c1118", "#1c2230", "#f08032"],
     tokens: {
       "--color-canvas": "#0c1118",
@@ -259,7 +260,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "dracula",
     name: "Dracula",
     blurb: "Violet on graphite, bold accents. Easy on the eyes.",
-    previewImage: draculaPreview,
+    previewImage: HAS_THEMES ? draculaPreview : "",
     swatch: ["#282a36", "#44475a", "#bd93f9"],
     tokens: {
       "--color-canvas": "#282a36",
@@ -281,7 +282,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "forest",
     name: "Forest",
     blurb: "Greens, low saturation.",
-    previewImage: forestPreview,
+    previewImage: HAS_THEMES ? forestPreview : "",
     swatch: ["#1a221d", "#26312a", "#dde7df"],
     tokens: {
       "--color-canvas": "oklch(0.18 0.018 145)",
@@ -303,7 +304,7 @@ export const THEME_PRESETS: Record<ThemePresetId, ThemePreset> = {
     id: "noir",
     name: "Noir",
     blurb: "Pure black. Clean.",
-    previewImage: noirPreview,
+    previewImage: HAS_THEMES ? noirPreview : "",
     swatch: ["#000000", "#0a0a0a", "#ffffff"],
     tokens: {
       "--color-canvas": "#000000",
@@ -1710,7 +1711,7 @@ export const FEATURED_CUSTOM_THEMES: ThemePreset[] = [
     buttonStyle: "flat",
     bokeh: false,
     css: kawaiiCss,
-    previewImage: kawaiiPreview,
+    previewImage: HAS_THEMES ? kawaiiPreview : "",
   },
   {
     id: "aurora" as ThemePresetId,
@@ -1740,13 +1741,13 @@ export const FEATURED_CUSTOM_THEMES: ThemePreset[] = [
     cardStyle: "glass",
     buttonStyle: "glossy",
     bokeh: true,
-    previewImage: auroraPreview,
+    previewImage: HAS_THEMES ? auroraPreview : "",
   },
   {
     id: "minui" as ThemePresetId,
     name: "MinUI",
     blurb: "Floating icon dock. Crisp and light. Big targets, restrained chrome.",
-    previewImage: minuiPreview,
+    previewImage: HAS_THEMES ? minuiPreview : "",
     swatch: ["#f7f7f8", "#ffffff", "#0d7c66"],
     tokens: {
       "--color-canvas": "#f6f6f7",
@@ -1776,7 +1777,7 @@ export const FEATURED_CUSTOM_THEMES: ThemePreset[] = [
     id: "minui-dark" as ThemePresetId,
     name: "MinUI Dark",
     blurb: "MinUI after dark. Same floating dock, deep charcoal chrome.",
-    previewImage: minuiDarkPreview,
+    previewImage: HAS_THEMES ? minuiDarkPreview : "",
     swatch: ["#101014", "#1a1a20", "#14b8a6"],
     tokens: {
       "--color-canvas": "#101014",
@@ -1833,7 +1834,7 @@ export const TEMPLATE_THEMES: ThemePreset[] = [
     buttonStyle: "flat",
     bokeh: false,
     fontPair: "sentient-switzer",
-    previewImage: velvetPreview,
+    previewImage: HAS_THEMES ? velvetPreview : "",
   },
 ];
 

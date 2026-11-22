@@ -12,6 +12,7 @@ import { isTauri } from "./player-panel/internals";
 import { Anime4kShaderList } from "./player-panel/anime4k-shader-list";
 import { ShaderCard } from "./shaders-panel/shader-card";
 import { MangaUpscaleCard } from "./shaders-panel/manga-upscale-card";
+import { HAS_MANGA } from "@/lib/features/edition";
 import { STAGE_LABEL, STAGE_SEQUENCE } from "./shaders-panel/stages";
 
 const ANIME_IDS = new Set(["fsrcnnx", "ravu", "nnedi3"]);
@@ -51,7 +52,7 @@ export function ShadersPanel() {
     isTauri
       ? [
           { id: "anime4k", label: t("Anime Shaders") },
-          ...(isAndroid() ? [] : [{ id: "manga", label: t("Manga Shaders") }]),
+          ...(isAndroid() || !HAS_MANGA ? [] : [{ id: "manga", label: t("Manga Shaders") }]),
           { id: "more", label: t("More shaders") },
         ]
       : [],
@@ -121,7 +122,7 @@ export function ShadersPanel() {
         </>
       )}
 
-      {tab === "manga" && <MangaUpscaleCard />}
+      {HAS_MANGA && tab === "manga" && <MangaUpscaleCard />}
 
       {tab === "more" && (
         <Section

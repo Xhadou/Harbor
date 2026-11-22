@@ -1,11 +1,11 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, rmSync } from "node:fs";
 import { execSync } from "node:child_process";
-import { defineConfig, type ViteDevServer, type HttpProxy } from "vite";
+import { defineConfig, type Plugin, type ViteDevServer, type HttpProxy } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import pkg from "./package.json" with { type: "json" };
 
-declare const process: { env: Record<string, string | undefined> };
+declare const process: { env: Record<string, string | undefined>; platform: string };
 
 function silenceMediapipeSourcemap() {
   return {
@@ -48,15 +48,112 @@ function servePublicMediapipe() {
   };
 }
 
+// Source that belongs only to the sections the Mac edition leaves out (see
+// src/lib/features/edition.ts). lib/manga/plugins stays: stream plugins share its host.
+const LEFT_OUT_OF_MAC_EDITION =
+  /\/src\/(?:views|lib|components|hooks|assets)\/(?:games|music|ebook|dj|spooktober)\/|\/src\/(?:views|components)\/manga\/|\/src\/lib\/manga\/(?!plugins\/)/;
+
+// Files under public/ that only those sections load, plus three nothing loads at all
+// (ort/ is a second copy of what lib/face bundles itself; nosources.png and chest-open.png
+// have no reference left). The no-SIMD MediaPipe build is for engines older than any the
+// Mac edition runs on.
+const PUBLIC_LEFT_OUT_OF_MAC_EDITION = [
+  "games",
+  "spooktober",
+  "pdfjs",
+  "flipbook",
+  "reader-icons",
+  "universe-logos",
+  "mangahero.png",
+  "manga-paper-boat.png",
+  "ebook-hero-open-books.png",
+  "ort",
+  "nosources.png",
+  "chest-open.png",
+  "mp-wasm/vision_wasm_nosimd_internal.js",
+  "mp-wasm/vision_wasm_nosimd_internal.wasm",
+];
+
+// The string tables of those sections, in every language: locales/en/games.ts and the like.
+const STRINGS_LEFT_OUT_OF_MAC_EDITION =
+  /\/src\/lib\/i18n\/locales\/[a-z]+\/(?:games?|music|ebook|manga|dj)(?:-[a-z0-9-]+)?\.ts$/;
+
+/**
+ * Leaves out of the Mac edition the files its missing sections would have used. The build
+ * writes an imported picture or model to disk when it reads the import, before it knows
+ * whether the code around it survives, so dropping the code alone leaves the files behind.
+ * A file with a hashed name that no script, stylesheet or page mentions cannot be asked for.
+ */
+function macEditionDiet(): Plugin {
+  let outDir = "dist";
+  const text = (source: string | Uint8Array) =>
+    typeof source === "string" ? source : new TextDecoder().decode(source);
+  return {
+    name: "harbor-mac-edition-diet",
+    apply: "build",
+    enforce: "post",
+    configResolved(config) {
+      outDir = config.build.outDir;
+    },
+    // A language's table is one object spread together from a file per subject. The files
+    // for a section that is left out are read as empty, so their text (450 kB in English
+    // alone, loaded at launch) is not carried for screens that do not exist.
+    load(id) {
+      return STRINGS_LEFT_OUT_OF_MAC_EDITION.test(id) ? "export default {};" : null;
+    },
+    generateBundle(_options, bundle) {
+      const readable = /\.(?:m?js|css|html|json)$/;
+      // Repeated until nothing more goes: a worker script that is no longer started is
+      // itself such a file, and it is the only thing naming the model it would have loaded.
+      for (;;) {
+        const haystack = Object.values(bundle)
+          .map((item) =>
+            item.type === "chunk"
+              ? item.code
+              : readable.test(item.fileName)
+                ? text(item.source)
+                : "",
+          )
+          .join("\n");
+        const unused = Object.entries(bundle).filter(
+          ([name, item]) =>
+            item.type === "asset" &&
+            !name.endsWith(".html") &&
+            !haystack.includes(name.slice(name.lastIndexOf("/") + 1)),
+        );
+        if (unused.length === 0) break;
+        for (const [name] of unused) delete bundle[name];
+      }
+    },
+    closeBundle() {
+      for (const path of PUBLIC_LEFT_OUT_OF_MAC_EDITION) {
+        rmSync(`${outDir}/${path}`, { recursive: true, force: true });
+      }
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const android = mode === "android" || process.env.HARBOR_TARGET === "android";
   const devHost = process.env.TAURI_DEV_HOST;
+  // The Mac edition ships without Games, Music, Manga, Ebooks and the extra themes
+  // (src/lib/features/edition.ts). A build made on a Mac is that edition unless
+  // HARBOR_EDITION says otherwise; the native side follows in scripts/tauri.mjs.
+  const edition = process.env.HARBOR_EDITION ?? (process.platform === "darwin" ? "mac" : "full");
+  const lean = !android && edition === "mac";
   return {
     staged: { "*": "vp check --fix" },
-    plugins: [react(), tailwindcss(), silenceMediapipeSourcemap(), servePublicMediapipe()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      silenceMediapipeSourcemap(),
+      servePublicMediapipe(),
+      ...(lean ? [macEditionDiet()] : []),
+    ],
     clearScreen: false,
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
+      __HARBOR_LEAN_EDITION__: JSON.stringify(lean),
       __IS_BETA_BUILD__: JSON.stringify(process.env.HARBOR_CHANNEL !== "stable"),
       __BUILD_ID__: JSON.stringify(
         process.env.HARBOR_BUILD_ID ||
@@ -89,7 +186,21 @@ export default defineConfig(({ mode }) => {
       : {
           build: {
             rollupOptions: {
-              input: { main: "index.html", retro: "retro-player.html", tray: "tray.html" },
+              // retro-player.html is the emulator's pop-out window, which is part of Games.
+              input: lean
+                ? { main: "index.html", tray: "tray.html" }
+                : { main: "index.html", retro: "retro-player.html", tray: "tray.html" },
+              // In the Mac edition nothing may run on behalf of a section that was left
+              // out. Without this, a module of that section that is still imported
+              // somewhere keeps whatever it does at load (stores, listeners) and all the
+              // code that work reaches, even though none of its exports is used.
+              ...(lean
+                ? {
+                    treeshake: {
+                      moduleSideEffects: (id: string) => !LEFT_OUT_OF_MAC_EDITION.test(id),
+                    },
+                  }
+                : {}),
             },
           },
         }),

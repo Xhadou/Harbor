@@ -38,3 +38,25 @@ export function addWhisperFeature(args) {
   result.splice(end, 0, "--features", "asr-whisper");
   return result;
 }
+
+// The Mac edition leaves Games and Music out of the native side as well as the
+// frontend (vite.config.ts reads the same HARBOR_EDITION). Plugins stay.
+export function shouldBuildMacEdition(platform, args, env) {
+  const command = args[0];
+  return (
+    platform === "darwin" &&
+    env.HARBOR_EDITION !== "full" &&
+    (command === "dev" || command === "build") &&
+    !args.includes("-h") &&
+    !args.includes("--help") &&
+    !args.includes("--version")
+  );
+}
+
+// Cargo's own flags go after the `--` that ends the Tauri options.
+export function addMacEditionArgs(args) {
+  const cargo = ["--no-default-features", "--features", "plugins"];
+  const divider = args.indexOf("--");
+  if (divider < 0) return [...args, "--", ...cargo];
+  return [...args.slice(0, divider + 1), ...cargo, ...args.slice(divider + 1)];
+}

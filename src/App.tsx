@@ -153,6 +153,7 @@ import { FavoritesProvider } from "@/lib/iptv/favorites";
 import { MediaFavoritesProvider } from "@/lib/media-favorites";
 import { CharacterFavoritesProvider } from "@/lib/character-favorites";
 import { MangaFavoritesProvider } from "@/lib/manga-favorites";
+import { NoMangaFavorites } from "@/lib/manga-favorites-absent";
 import { LocalWatchlistProvider } from "@/lib/local-watchlist";
 import { useSettings } from "@/lib/settings";
 import {
@@ -174,12 +175,22 @@ import { useDiscordPresence } from "@/lib/discord/use-discord-presence";
 import { useWatchShare } from "@/lib/social/watch-presence";
 import { usePluginCataloguesAvailable } from "@/lib/streams/plugins/available";
 import { SpooktoberHome } from "@/views/spooktober/spooktober-home";
+import { Home } from "@/views/home";
 
 // Shell re-renders on its own state (idle-evict timers, memory pressure, immersive, games nav).
 // Memoizing the view stops that from cascading into a full re-render of the home feed, which the
 // profiler measured rendering ~18 times a second while the user was on other tabs.
-const MemoSpooktoberHome = memo(SpooktoberHome);
+// The seasonal festival wraps Home; an edition without the extra themes mounts Home itself.
+const HomeRoot: typeof SpooktoberHome = HAS_THEMES ? SpooktoberHome : Home;
+const MemoSpooktoberHome = memo(HomeRoot);
+
+// Without Games the shell needs no game access around it, only its own children.
+const GamesAccess: typeof GameAccessProvider = HAS_GAMES
+  ? GameAccessProvider
+  : ({ children }) => <>{children}</>;
+const MangaFavorites = HAS_MANGA ? MangaFavoritesProvider : NoMangaFavorites;
 import { useInstallFeatures, useInstallFeaturesReady } from "@/lib/features/install";
+import { HAS_EBOOK, HAS_GAMES, HAS_MANGA, HAS_MUSIC, HAS_THEMES } from "@/lib/features/edition";
 import { ParentalProvider } from "@/lib/parental";
 import { TraktProvider } from "@/lib/trakt/provider";
 import { AnilistProvider } from "@/lib/anilist/provider";
@@ -204,18 +215,26 @@ import { SFX } from "@/lib/sfx";
 import { startMediaSessionWindowTracking } from "@/lib/media-session";
 import { QueueBasket } from "@/components/queue-basket/queue-basket";
 
+// A section this edition leaves out (lib/features/edition.ts) is never imported: the
+// condition is a build-time constant, so its chunk is not built at all. Nothing renders
+// or preloads it either, so the stand-in promise is never waited on.
+const absent = <T,>(): Promise<T> => new Promise<T>(() => {});
+
 // Keep the Music UI outside the core startup graph. These chunks are not loaded
 // at all when the installer reports Music as unavailable.
-const MusicDock = lazy(() =>
-  import("@/components/music/music-dock").then((m) => ({ default: m.MusicDock })),
-);
+const importMusicDock = (): Promise<typeof import("@/components/music/music-dock")> =>
+  HAS_MUSIC ? import("@/components/music/music-dock") : absent();
+const importMusicSurprise = (): Promise<
+  typeof import("@/components/music/music-surprise-prompt")
+> => (HAS_MUSIC ? import("@/components/music/music-surprise-prompt") : absent());
+const importMusicVideoMini = (): Promise<typeof import("@/components/music/music-video-mini")> =>
+  HAS_MUSIC ? import("@/components/music/music-video-mini") : absent();
+const MusicDock = lazy(() => importMusicDock().then((m) => ({ default: m.MusicDock })));
 const MusicSurprisePrompt = lazy(() =>
-  import("@/components/music/music-surprise-prompt").then((m) => ({
-    default: m.MusicSurprisePrompt,
-  })),
+  importMusicSurprise().then((m) => ({ default: m.MusicSurprisePrompt })),
 );
 const MusicVideoMini = lazy(() =>
-  import("@/components/music/music-video-mini").then((m) => ({ default: m.MusicVideoMini })),
+  importMusicVideoMini().then((m) => ({ default: m.MusicVideoMini })),
 );
 
 class ThemeErrorBoundary extends Component<
@@ -266,8 +285,14 @@ const importQueue = () => import("@/views/queue");
 const importService = () => import("@/views/service");
 const importSettings = () => import("@/views/settings");
 const importShows = () => import("@/views/shows");
-const importMusic = () => import("@/views/music");
-const importGames = () => import("@/views/games");
+const importMusic = (): Promise<typeof import("@/views/music")> =>
+  HAS_MUSIC ? import("@/views/music") : absent();
+const importGames = (): Promise<typeof import("@/views/games")> =>
+  HAS_GAMES ? import("@/views/games") : absent();
+const importManga = (): Promise<typeof import("@/views/manga")> =>
+  HAS_MANGA ? import("@/views/manga") : absent();
+const importEBook = (): Promise<typeof import("@/views/ebook")> =>
+  HAS_EBOOK ? import("@/views/ebook") : absent();
 const importLibrary = () => import("@/views/library");
 const importCommunityCollections = () => import("@/views/collections/community-hub");
 const importSports = () => import("@/views/sports");
@@ -339,8 +364,8 @@ const MatchDetailView = lazy(() =>
 const PlaylistVodView = lazy(() => importVod().then((m) => ({ default: m.PlaylistVodView })));
 const SportsView = lazy(() => importSports().then((m) => ({ default: m.SportsView })));
 const DownloadsView = lazy(() => importDownloads().then((m) => ({ default: m.DownloadsView })));
-const MangaView = lazy(() => import("@/views/manga").then((m) => ({ default: m.MangaView })));
-const EBookView = lazy(() => import("@/views/ebook").then((m) => ({ default: m.EBookView })));
+const MangaView = lazy(() => importManga().then((m) => ({ default: m.MangaView })));
+const EBookView = lazy(() => importEBook().then((m) => ({ default: m.EBookView })));
 const OnboardingModal = lazy(() =>
   importOnboarding().then((m) => ({ default: m.OnboardingModal })),
 );
@@ -517,7 +542,7 @@ export function App({ onReady }: { onReady?: () => void }) {
                                       <FavoritesProvider>
                                         <MediaFavoritesProvider>
                                           <CharacterFavoritesProvider>
-                                            <MangaFavoritesProvider>
+                                            <MangaFavorites>
                                               <LocalWatchlistProvider>
                                                 <ContextMenuProvider>
                                                   <TopRankModalProvider>
@@ -558,8 +583,12 @@ export function App({ onReady }: { onReady?: () => void }) {
                                                       <TogetherParticipantLeftToast />
                                                       <AnilistSyncToast />
                                                       <MalSyncToast />
-                                                      <MangaSyncToast tracker="anilist" />
-                                                      <MangaSyncToast tracker="mal" />
+                                                      {HAS_MANGA && (
+                                                        <MangaSyncToast tracker="anilist" />
+                                                      )}
+                                                      {HAS_MANGA && (
+                                                        <MangaSyncToast tracker="mal" />
+                                                      )}
                                                       <ListToastHost />
                                                       <DiagnosticsConsentHost />
                                                       <TogetherLeaveForLiveModal />
@@ -583,9 +612,11 @@ export function App({ onReady }: { onReady?: () => void }) {
                                                         <NuvioMutationRetryRunner />
                                                         <AutoDownloadRunner />
                                                         <RemindersRunner />
-                                                        <GameDownloadNotificationsRunner />
-                                                        <GameSourceAlertsRunner />
-                                                        <MangaTrackingRunner />
+                                                        {HAS_GAMES && (
+                                                          <GameDownloadNotificationsRunner />
+                                                        )}
+                                                        {HAS_GAMES && <GameSourceAlertsRunner />}
+                                                        {HAS_MANGA && <MangaTrackingRunner />}
                                                       </AfterFirstPaint>
                                                       <PlayOnModal />
                                                       <GamepadRunner />
@@ -623,7 +654,7 @@ export function App({ onReady }: { onReady?: () => void }) {
                                                   </TopRankModalProvider>
                                                 </ContextMenuProvider>
                                               </LocalWatchlistProvider>
-                                            </MangaFavoritesProvider>
+                                            </MangaFavorites>
                                           </CharacterFavoritesProvider>
                                         </MediaFavoritesProvider>
                                       </FavoritesProvider>
@@ -796,7 +827,7 @@ function StatsSyncRunner() {
       const now = performance.now();
       if (!force && now - last < STATS_SYNC_MIN_GAP_MS) return;
       last = now;
-      syncProfileStats(authKey, listMangaProgress(pid).length).catch(() => {});
+      syncProfileStats(authKey, HAS_MANGA ? listMangaProgress(pid).length : 0).catch(() => {});
     };
     const first = window.setTimeout(() => run(true), STATS_SYNC_FIRST_MS);
     const every = window.setInterval(() => run(false), STATS_SYNC_EVERY_MS);
@@ -1441,6 +1472,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
             openList(handle, listId);
           });
           const stopOpenMusic = onDeepLinkOpenMusic((link) => {
+            if (!HAS_MUSIC) return;
             setView("music");
             void Promise.all([
               import("@/lib/music/navigation"),
@@ -1642,6 +1674,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
     if (!musicEnabled) return;
     let disposed = false;
     let stop: (() => void) | undefined;
+    if (!HAS_MUSIC) return;
     void import("@/lib/music/taskbar-buttons").then(({ startMusicTaskbarButtons }) => {
       if (!disposed) stop = startMusicTaskbarButtons();
     });
@@ -1651,14 +1684,14 @@ function Shell({ onReady }: { onReady?: () => void }) {
     };
   }, [musicEnabled]);
   useEffect(() => {
-    if (musicEnabled) {
+    if (HAS_MUSIC && musicEnabled) {
       void import("@/lib/music/taskbar-buttons").then(({ syncMusicTaskbarArtwork }) =>
         syncMusicTaskbarArtwork(),
       );
     }
   }, [musicEnabled, settings.musicArtworkAppIcon]);
   useEffect(() => {
-    if (musicEnabled) {
+    if (HAS_MUSIC && musicEnabled) {
       void import("@/lib/music/player").then(({ resetMusicForProfile }) => resetMusicForProfile());
     }
   }, [musicEnabled, activeProfileForMusic]);
@@ -1730,7 +1763,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
   const quickLibraryVisible =
     !kid && !kidsTop && !playerActive && !pickerTop && !bigPicture && !immersive && !chromeHidden;
   return (
-    <GameAccessProvider
+    <GamesAccess
       profile={activeProfile?.id ?? "default"}
       enabled={installFeatures.games && !kid && !bigPicture && !playerActive}
       gamesActive={gamesTop}
@@ -1847,7 +1880,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
               <WindowControls />
             </div>
           )}
-          {musicEnabled && (
+          {HAS_MUSIC && musicEnabled && (
             <Suspense fallback={null}>
               <MusicDock />
               <MusicVideoMini />
@@ -1972,7 +2005,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
                 </Suspense>
               </div>
             )}
-            {musicAlive && (
+            {HAS_MUSIC && musicAlive && (
               <div className={layer(musicTop)}>
                 <Suspense fallback={null}>
                   <MusicView
@@ -1987,7 +2020,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
                 </Suspense>
               </div>
             )}
-            {gamesAlive && (
+            {HAS_GAMES && gamesAlive && (
               <div {...layerProps(gamesTop)}>
                 <Suspense fallback={<GameRouteLoading />}>
                   <GameDockWelcome
@@ -2079,14 +2112,14 @@ function Shell({ onReady }: { onReady?: () => void }) {
                 </Suspense>
               </div>
             )}
-            {mangaAlive && (
+            {HAS_MANGA && mangaAlive && (
               <div {...layerProps(mangaTop)}>
                 <Suspense fallback={null}>
                   <MangaView />
                 </Suspense>
               </div>
             )}
-            {ebookAlive && (
+            {HAS_EBOOK && ebookAlive && (
               <div {...layerProps(ebookTop)}>
                 <Suspense fallback={null}>
                   <EBookView />
@@ -2381,7 +2414,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
             )}
           </div>
         </div>
-        <GameLibraryDock visible={quickLibraryVisible && !gamesTop} />
+        {HAS_GAMES && <GameLibraryDock visible={quickLibraryVisible && !gamesTop} />}
         {player && (
           <Suspense fallback={null}>
             <PlayerView
@@ -2405,7 +2438,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
         <TabHotkeys />
         {!player && <OfflineBanner />}
       </div>
-    </GameAccessProvider>
+    </GamesAccess>
   );
 }
 
