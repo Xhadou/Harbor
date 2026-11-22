@@ -45,7 +45,7 @@ function harness(
     react: React,
     "react/jsx-runtime": jsx,
     "lucide-react": icons,
-    "@/components/card-preview/preview-panel": { CardPreviewPanel: empty },
+    "@/components/card-preview/preview-panel": { CardSidePanel: empty },
     "@/components/icons/play-filled": { Play: icons.Play },
     "@/lib/cinemeta": { narrowMediaType: (type: string) => type },
     "@/lib/meta-resource": { resolveMeta: async () => null },

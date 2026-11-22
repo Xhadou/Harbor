@@ -9434,17 +9434,18 @@ html[data-os="macos"] .mac-cw-dismiss:hover {
   color: #fff;
 }
 
-/* Card preview. A wide card at rest is its artwork with a name on it. When the
-   pointer rests on it the row widens the card (row.tsx): the artwork keeps its
-   place and its far edge dissolves into a blurred copy of itself, where the
-   name, the facts and Play stand. The trailer comes up over the artwork.
+/* Card preview. When the pointer rests on a title's card, its trailer plays in
+   the card's picture. The picture carries nothing but the trailer's sound
+   control, so nothing collides with what the trailer itself shows; the
+   actions appear under the card, at the far end of the lines that name it
+   (`.mac-pv-under` for a wide card, `.mac-under-acts` for a poster, which
+   also widens to its wide picture first).
 
-   Closing is the same movement run backwards, with nothing cut: the words and
-   the trailer fade as the card starts to narrow, the blurred copy stays until
-   the card is nearly its own width again, and what the card shows at rest
-   comes back last. Each rule's plain state holds the way back; the
-   `[data-open]` state holds the way in. `--row-expand-ms` is the length of
-   the width change under way (row.tsx), which the layers keep time by. */
+   Closing runs the same way backwards, with nothing cut: the trailer and the
+   actions fade first, and what the card shows at rest comes back last. Each
+   rule's plain state holds the way back; the `[data-open]` state holds the way
+   in. `--row-expand-ms` is the length of the row's movement under way
+   (row.tsx), which the layers keep time by. */
 html[data-os="macos"] .mac-pv {
   --mac-pv-base: 100%;
   position: relative;
@@ -9465,20 +9466,12 @@ html[data-os="macos"] .mac-pv::after {
   inset: 0;
   z-index: 5;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
   opacity: 0;
   pointer-events: none;
   transition: opacity 120ms var(--ease-out);
 }
-html[data-os="macos"] .mac-pv:hover::after {
-  opacity: 1;
-}
 html[data-os="macos"] .mac-pv[data-open]::after {
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
-  opacity: 1;
-}
-html[data-os="macos"] .mac-pv:has(.mac-pv-hit:focus-visible)::after {
-  box-shadow: inset 0 0 0 2px var(--color-accent);
   opacity: 1;
 }
 html[data-os="macos"] .mac-pv-media {
@@ -9487,16 +9480,6 @@ html[data-os="macos"] .mac-pv-media {
   inset-inline-start: 0;
   inline-size: var(--mac-pv-base);
   overflow: hidden;
-}
-html[data-os="macos"] .mac-pv-media::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  z-index: 1;
-  block-size: 62%;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.74), rgb(0 0 0 / 0.28) 55%, transparent);
-  pointer-events: none;
 }
 html[data-os="macos"] .mac-pv-video {
   position: absolute;
@@ -9508,14 +9491,7 @@ html[data-os="macos"] .mac-pv[data-playing] .mac-pv-video {
   opacity: 1;
   transition: opacity 500ms var(--ease-out);
 }
-html[data-os="macos"] .mac-pv-label {
-  position: absolute;
-  inset-inline: 12px;
-  inset-block-end: 10px;
-  z-index: 2;
-  color: #fff;
-}
-html[data-os="macos"] :is(.mac-pv-label h3, .mac-pv-side h3, .mac-pv-title) {
+html[data-os="macos"] .mac-pv-title {
   display: -webkit-box;
   overflow: hidden;
   font-size: 15px;
@@ -9525,7 +9501,7 @@ html[data-os="macos"] :is(.mac-pv-label h3, .mac-pv-side h3, .mac-pv-title) {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-html[data-os="macos"] :is(.mac-pv-label p, .mac-pv-facts, .mac-pv-next) {
+html[data-os="macos"] .mac-pv-facts {
   overflow: hidden;
   color: rgb(255 255 255 / 0.72);
   font-size: 12px;
@@ -9533,15 +9509,80 @@ html[data-os="macos"] :is(.mac-pv-label p, .mac-pv-facts, .mac-pv-next) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The name on the artwork gives way to the trailer, and comes back over the
-   second half of the card's return. */
-html[data-os="macos"] :is(.mac-pv-label, .mac-pv-media::after) {
-  transition: opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
+html[data-os="macos"] .mac-pv-actions {
+  display: flex;
+  gap: 8px;
+  margin-block-start: 10px;
 }
-html[data-os="macos"] .mac-pv[data-open] :is(.mac-pv-label, .mac-pv-media::after) {
+/* The trailer's sound: a bare glyph in the picture's corner. */
+html[data-os="macos"] .mac-pv-sound {
+  position: absolute;
+  inset-block-end: 4px;
+  inset-inline-start: 6px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 28px;
+  block-size: 28px;
+  color: rgb(255 255 255 / 0.7);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.7));
   opacity: 0;
-  transition-delay: 0s;
+  pointer-events: none;
+  transition:
+    color 120ms var(--ease-out),
+    opacity 160ms ease-out;
 }
+html[data-os="macos"] .mac-pv[data-playing] .mac-pv-sound {
+  opacity: 1;
+  pointer-events: auto;
+}
+html[data-os="macos"] .mac-pv-sound:hover {
+  color: #fff;
+}
+
+/* The preview laid over a card that keeps its own artwork: the panel is
+   see-through over the artwork, lets every click through to the card, and
+   only its sound control takes the pointer. */
+html[data-os="macos"] .mac-pv-over {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 2;
+  background: none;
+  pointer-events: none;
+}
+/* A wide card's actions (CardPreviewPanel): at the far end of the lines under
+   the card. They come up over the tail of those lines on a strip of the
+   page's own colour, so a long title dissolves under them and nothing under
+   the card is laid out again. */
+html[data-os="macos"] .mac-pv-under {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  block-size: 38px;
+  padding-inline-start: 32px;
+  background: linear-gradient(to right, transparent, var(--color-canvas) 24px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-out;
+}
+html[dir="rtl"][data-os="macos"] .mac-pv-under {
+  background: linear-gradient(to left, transparent, var(--color-canvas) 24px);
+}
+html[data-os="macos"] .mac-pv-under[data-open] {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 340ms ease-out 240ms;
+}
+/* The side panel (CardSidePanel): a wide card that opens sideways and plays
+   nothing. The row widens the card; the artwork keeps its place and its far
+   edge dissolves into a blurred copy of itself, where the title, the facts,
+   the story and the actions stand. */
 /* The blurred copy lies over the artwork and is let through only past its far
    edge, so the picture has no hard end. A blur thins out toward its own edge,
    and a thin wash lets the artwork show through right up to where it stops:
@@ -9600,14 +9641,6 @@ html[data-os="macos"] .mac-pv[data-open] .mac-pv-wash {
     opacity 380ms var(--ease-out),
     visibility 0s;
 }
-html[data-os="macos"] .mac-pv-hit {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  border-radius: inherit;
-  outline: none;
-  cursor: default;
-}
 html[data-os="macos"] .mac-pv-side {
   position: absolute;
   inset-block: 0;
@@ -9640,62 +9673,6 @@ html[data-os="macos"] .mac-pv[data-open] .mac-pv-side {
 html[data-os="macos"] .mac-pv-side :is(button, [role="button"]) {
   pointer-events: auto;
 }
-html[data-os="macos"] .mac-pv-next {
-  margin-block-start: 6px;
-  color: rgb(255 255 255 / 0.92);
-}
-html[data-os="macos"] .mac-pv-next span {
-  color: rgb(255 255 255 / 0.56);
-}
-html[data-os="macos"] .mac-pv-actions {
-  display: flex;
-  gap: 8px;
-  margin-block-start: 10px;
-}
-/* The trailer's sound: a bare glyph in the corner the name left free. */
-html[data-os="macos"] .mac-pv-sound {
-  position: absolute;
-  inset-block-end: 4px;
-  inset-inline-start: 6px;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 28px;
-  block-size: 28px;
-  color: rgb(255 255 255 / 0.7);
-  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.7));
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    color 120ms var(--ease-out),
-    opacity 160ms ease-out;
-}
-html[data-os="macos"] .mac-pv[data-playing] .mac-pv-sound {
-  opacity: 1;
-  pointer-events: auto;
-}
-html[data-os="macos"] .mac-pv-sound:hover {
-  color: #fff;
-}
-
-/* The same preview laid over a card that keeps its own artwork (Continue
-   Watching, a new episode): the panel is see-through over the artwork, lets
-   every click through to the card, and only its buttons take the pointer. */
-html[data-os="macos"] .mac-pv-over {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
-  z-index: 2;
-  background: none;
-  pointer-events: none;
-}
-html[data-os="macos"] .mac-pv-over:not([data-open])::after {
-  opacity: 0;
-}
-html[data-os="macos"] .mac-pv-over .mac-pv-media::after {
-  content: none;
-}
 html[data-os="macos"] .mac-pv-about {
   display: -webkit-box;
   overflow: hidden;
@@ -9707,21 +9684,12 @@ html[data-os="macos"] .mac-pv-about {
   -webkit-line-clamp: 2;
 }
 /* A Continue Watching card in a row that opens cards: the artwork keeps the
-   width it has at rest while the card around it widens, and what is drawn on
-   the artwork for the card at rest steps back for the trailer. */
-html[data-os="macos"] .harbor-expanding-card-scope .mac-cw-root > :is(button, p),
-html[data-os="macos"] .harbor-expanding-card-scope .mac-ep-root > button:first-child {
+   width it has at rest while the card around it widens. */
+html[data-os="macos"] .harbor-expanding-card-scope .mac-cw-root > :is(button, p) {
   max-inline-size: calc(var(--row-poster-height) * 16 / 9);
 }
-/* A new episode's card names its series on the artwork; the open panel names
-   it beside the artwork instead. */
-html[data-os="macos"] .mac-ep-label {
-  transition: opacity 260ms ease-in-out calc(var(--row-expand-ms, 480ms) * 0.5);
-}
-html[data-os="macos"] .mac-ep-root:has(> .mac-pv-over[data-open]) .mac-ep-label {
-  opacity: 0;
-  transition-delay: 0s;
-}
+/* What a Continue Watching card draws on its artwork at rest steps back
+   while the card is open, and returns over the second half of the way back. */
 html[data-os="macos"] .harbor-expanding-card-scope :is(.mac-cw-play, .mac-cw-progress) {
   transition:
     background-color 120ms var(--ease-out),
@@ -9915,10 +9883,7 @@ html[data-os="macos"] .mac-under-acts[data-open] [role="button"] {
    trailer is given a layer of its own, and its place no longer depends on
    that judgement. */
 html[data-os="macos"] .mac-pv[data-live]::after,
-html[data-os="macos"] .mac-pv[data-live] .mac-pv-media::after,
-html[data-os="macos"]
-  .mac-pv[data-live]
-  :is(.mac-pv-wash, .mac-pv-side, .mac-pv-sound, .mac-pv-label, .mac-pv-shade, .mac-pv-bar) {
+html[data-os="macos"] .mac-pv[data-live] :is(.mac-pv-sound, .mac-pv-shade, .mac-pv-bar) {
   will-change: transform;
 }
 

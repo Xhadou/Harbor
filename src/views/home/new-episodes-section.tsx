@@ -60,21 +60,35 @@ const EpisodeCard = memo(function EpisodeCard({
               className="h-full w-full select-none object-cover"
             />
           ) : null}
-          <span className="mac-ep-label pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
-          <span className="mac-ep-label absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
-            <span className="truncate text-[13.5px] font-semibold leading-tight text-white">
-              {ep.seriesName}
-            </span>
-            <span className="truncate text-[12px] leading-tight text-white/70">{label(ep)}</span>
-          </span>
+          {!mac && (
+            <>
+              <span className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
+              <span className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-3">
+                <span className="truncate text-[13.5px] font-semibold leading-tight text-white">
+                  {ep.seriesName}
+                </span>
+                <span className="truncate text-[12px] leading-tight text-white/70">
+                  {label(ep)}
+                </span>
+              </span>
+            </>
+          )}
         </span>
       </button>
       {mac && (
+        // macOS: the artwork stays clear for the trailer; the card is named under it.
+        <>
+          <p className="mt-2.5 truncate text-[13px] font-medium text-ink">{ep.seriesName}</p>
+          <p className="mac-cw-caption">
+            <span className="truncate">
+              {ep.title ? `S${ep.season} E${ep.episode} \u00b7 ${ep.title}` : label(ep)}
+            </span>
+          </p>
+        </>
+      )}
+      {mac && (
         <CardPreviewPanel
           meta={series}
-          art={art}
-          title={ep.seriesName}
-          facts={ep.title ? `S${ep.season} E${ep.episode} \u00b7 ${ep.title}` : label(ep)}
           play={{
             label: t("Play"),
             onClick: () => openPicker(series, { season: ep.season, episode: ep.episode }),

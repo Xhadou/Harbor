@@ -4,7 +4,7 @@ import {
   resolvePlaybackRedirect,
 } from "@/lib/streams/playback-redirect";
 import { Check, X, ListVideo } from "lucide-react";
-import { CardPreviewPanel } from "@/components/card-preview/preview-panel";
+import { CardSidePanel } from "@/components/card-preview/preview-panel";
 import { Play } from "@/components/icons/play-filled";
 import simklLogo from "@/assets/simkl.png";
 import traktLogo from "@/assets/trakt.svg";
@@ -1080,8 +1080,7 @@ export const ContinueCard = memo(function ContinueCard({
         </p>
       )}
       {mac && (
-        <CardPreviewPanel
-          meta={meta}
+        <CardSidePanel
           art={src}
           title={displayTitle}
           facts={macCaption}

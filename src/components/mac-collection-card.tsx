@@ -1,25 +1,16 @@
-import { Volume2, VolumeX } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent, type Ref } from "react";
-import { useCardPreview } from "@/components/card-preview/use-card-preview";
-import { usePreviewTrailer } from "@/components/card-preview/use-preview-trailer";
-import { Play } from "@/components/icons/play-filled";
+import { useEffect, useState, type MouseEvent, type Ref } from "react";
+import { CardPreviewPanel } from "@/components/card-preview/preview-panel";
 import { collectionPreview, type CollectionPreview } from "@/lib/card-preview/collection-film";
 import { useT } from "@/lib/i18n";
 import { smartPlayEpisode } from "@/lib/smart-play";
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 
-const STANDING_LABEL = {
-  start: "Start with",
-  next: "Up next",
-  again: "Watch again",
-} as const;
-
 /**
- * A collection on macOS: its artwork with the name on it at rest. When the
- * pointer rests on it the card widens in its row; the trailer of the next film
- * to watch plays where the artwork is, and the name, the films and Play stand
- * beside it.
+ * A collection on macOS: its artwork, with its name and its films in the lines
+ * under it. When the pointer rests on it, the trailer of the next film to
+ * watch plays where the artwork is, and Play and All films come up at the end
+ * of those lines.
  */
 export function MacCollectionCard({
   cardRef,
@@ -43,16 +34,12 @@ export function MacCollectionCard({
   const t = useT();
   const { settings } = useSettings();
   const { openPicker } = useView();
-  const sideRef = useRef<HTMLDivElement>(null);
-  const preview = useCardPreview(() => {
-    const side = sideRef.current;
-    return side ? side.offsetLeft + side.offsetWidth : 0;
-  });
+  const [wanted, setWanted] = useState(false);
   const [details, setDetails] = useState<{ id: number; value: CollectionPreview } | null>(null);
   const current = details?.id === collectionId ? details.value : null;
 
   useEffect(() => {
-    if (!preview.wanted || collectionId <= 0 || current) return;
+    if (!wanted || collectionId <= 0 || current) return;
     let cancelled = false;
     void collectionPreview(settings.tmdbKey, collectionId).then((value) => {
       if (!cancelled && value) setDetails({ id: collectionId, value });
@@ -60,39 +47,27 @@ export function MacCollectionCard({
     return () => {
       cancelled = true;
     };
-  }, [preview.wanted, collectionId, current, settings.tmdbKey]);
-
-  const trailer = usePreviewTrailer({
-    meta: current?.film ?? null,
-    wanted: preview.wanted,
-    open: preview.open,
-  });
+  }, [wanted, collectionId, current, settings.tmdbKey]);
 
   const films = current?.count ?? count;
-  const facts = [films != null ? t("{count} films", { count: films }) : null, current?.years]
+  const facts = [
+    films != null ? t("{count} films", { count: films }) : t("Collection"),
+    current?.years,
+  ]
     .filter(Boolean)
     .join(" · ");
   const art = backdrop?.replace("/t/p/original/", "/t/p/w780/");
+  const film = current?.film;
 
   return (
-    <div
-      ref={cardRef}
-      data-live={preview.present ? "true" : undefined}
-      data-open={preview.open ? "true" : undefined}
-      data-playing={trailer.showing ? "true" : undefined}
-      onContextMenu={onContextMenu}
-      className="mac-card mac-pv"
-      style={{ background }}
-      {...preview.handlers}
-    >
-      {art && (
-        <div
-          aria-hidden
-          className="mac-pv-wash"
-          style={{ "--mac-pv-art": `url("${art}")` } as CSSProperties}
-        />
-      )}
-      <div className="mac-pv-media">
+    <div ref={cardRef} onContextMenu={onContextMenu} className="group relative w-full min-w-0">
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={name}
+        className="mac-card mac-cw-art relative block aspect-video w-full overflow-hidden outline-none"
+        style={{ background }}
+      >
         {art && (
           <img
             src={art}
@@ -103,52 +78,21 @@ export function MacCollectionCard({
             onLoad={(e) => e.currentTarget.setAttribute("data-on", "true")}
           />
         )}
-        <div ref={trailer.slot} aria-hidden className="mac-pv-video" />
-        <div className="mac-pv-label">
-          <h3>{name}</h3>
-          <p>{films != null ? t("{count} films", { count: films }) : t("Collection")}</p>
-        </div>
-      </div>
-      <button type="button" aria-label={name} onClick={onOpen} className="mac-pv-hit" />
-      <div ref={sideRef} className="mac-pv-side" inert={!preview.open}>
-        <h3 className="mac-pv-title">{name}</h3>
-        {facts && <p className="mac-pv-facts">{facts}</p>}
-        {current && (
-          <p className="mac-pv-next">
-            <span>{t(STANDING_LABEL[current.standing])}</span> {current.film.name}
-          </p>
-        )}
-        <div className="mac-pv-actions">
-          {current && (
-            <button
-              type="button"
-              onClick={() => openPicker(current.film, smartPlayEpisode(current.film))}
-              aria-label={t("Play {name}", { name: current.film.name })}
-              className="mac-btn mac-btn-onart inline-flex"
-            >
-              <Play size={11} fill="currentColor" />
-              {t("Play")}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onOpen}
-            className="mac-btn mac-btn-onart-quiet inline-flex"
-          >
-            {t("All films")}
-          </button>
-        </div>
-      </div>
-      {trailer.present && (
-        <button
-          type="button"
-          onClick={trailer.toggleMuted}
-          aria-label={trailer.muted ? t("Unmute") : t("Mute")}
-          className="mac-pv-sound"
-        >
-          {trailer.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </button>
-      )}
+      </button>
+      <p className="mt-2.5 truncate text-[13px] font-medium text-ink">{name}</p>
+      <p className="mac-cw-caption">
+        <span className="truncate">{facts}</span>
+      </p>
+      <CardPreviewPanel
+        meta={film ?? null}
+        onWanted={() => setWanted(true)}
+        play={
+          film
+            ? { label: t("Play"), onClick: () => openPicker(film, smartPlayEpisode(film)) }
+            : undefined
+        }
+        more={{ label: t("All films"), onClick: onOpen }}
+      />
     </div>
   );
 }
