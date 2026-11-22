@@ -6,22 +6,6 @@ import { SportsNavIcon } from "@/components/icons/sports-nav-icon";
 import { Popcorn, Puzzle } from "lucide-react";
 import { NavGlyph } from "@/components/icons/nav-glyph";
 import { NavLottie } from "@/components/icons/nav-lottie";
-import lotHome from "@/assets/lottie/nav/home.json";
-import lotCatalogs from "@/assets/lottie/nav/catalogs.json";
-import lotMovies from "@/assets/lottie/nav/movies.json";
-import lotMusic from "@/assets/lottie/nav/music.json";
-import lotShows from "@/assets/lottie/nav/shows.json";
-import lotAnime from "@/assets/lottie/nav/anime.json";
-import lotManga from "@/assets/lottie/nav/manga.json";
-import lotEbook from "@/assets/lottie/nav/ebook.json";
-import lotLiveTv from "@/assets/lottie/nav/live-tv.json";
-import lotPlaylists from "@/assets/lottie/nav/playlists.json";
-import lotCalendar from "@/assets/lottie/nav/calendar.json";
-import lotLibrary from "@/assets/lottie/nav/library.json";
-import lotCollections from "@/assets/lottie/nav/collections.json";
-import lotDownloads from "@/assets/lottie/nav/downloads.json";
-import lotAddons from "@/assets/lottie/nav/addons.json";
-import lotSettings from "@/assets/lottie/nav/settings.json";
 import { useUnseenReminderCount } from "@/lib/reminders";
 import { AddonsIcon } from "@/components/icons/addons-icon";
 import { CatalogsIcon } from "@/components/icons/catalogs-icon";
@@ -40,6 +24,27 @@ import { GamesNavIcon } from "@/components/icons/games-nav-icon";
 import type { LockableTab } from "@/lib/parental";
 import type { View } from "@/lib/view";
 import { customizeNavigation } from "./navigation-policy";
+
+// Each hover animation is fetched when its icon is first played. Together they are 250 kB,
+// and a window with the native sidebar never plays one.
+const animation = (load: () => Promise<{ default: object }>) => () =>
+  load().then((module) => module.default);
+const lotHome = animation(() => import("@/assets/lottie/nav/home.json"));
+const lotCatalogs = animation(() => import("@/assets/lottie/nav/catalogs.json"));
+const lotMovies = animation(() => import("@/assets/lottie/nav/movies.json"));
+const lotMusic = animation(() => import("@/assets/lottie/nav/music.json"));
+const lotShows = animation(() => import("@/assets/lottie/nav/shows.json"));
+const lotAnime = animation(() => import("@/assets/lottie/nav/anime.json"));
+const lotManga = animation(() => import("@/assets/lottie/nav/manga.json"));
+const lotEbook = animation(() => import("@/assets/lottie/nav/ebook.json"));
+const lotLiveTv = animation(() => import("@/assets/lottie/nav/live-tv.json"));
+const lotPlaylists = animation(() => import("@/assets/lottie/nav/playlists.json"));
+const lotCalendar = animation(() => import("@/assets/lottie/nav/calendar.json"));
+const lotLibrary = animation(() => import("@/assets/lottie/nav/library.json"));
+const lotCollections = animation(() => import("@/assets/lottie/nav/collections.json"));
+const lotDownloads = animation(() => import("@/assets/lottie/nav/downloads.json"));
+const lotAddons = animation(() => import("@/assets/lottie/nav/addons.json"));
+const lotSettings = animation(() => import("@/assets/lottie/nav/settings.json"));
 
 function CalendarNavIcon({ active }: { active: boolean }) {
   const unseen = useUnseenReminderCount();

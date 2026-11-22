@@ -6,26 +6,43 @@ import { hydrateCustomThemes } from "@/lib/custom-themes";
 import { getUiLanguage } from "@/lib/i18n/store";
 import { ensureUiLocale } from "@/lib/i18n/load-locale";
 import { applyOsDataset } from "@/lib/platform";
+import { loadLottie } from "@/lib/lottie-lazy";
 import { loadSecrets } from "@/lib/secret-store";
 import { getInstallFeatures, loadInstallFeatures } from "@/lib/features/install";
+import { HAS_MUSIC } from "@/lib/features/edition";
 import { initSubtitleCache } from "@/lib/subtitles/subtitle-cache";
-import { CaptionsApp } from "@/views/captions-app";
-import { ModalOverlayApp } from "@/views/modal-overlay-app";
-import { HdrOverlayApp } from "@/views/hdr-overlay-app";
 import { hdrOverlayEmitAction } from "@/lib/hdr-overlay";
-import { PipApp } from "@/views/pip";
-import { VideoPipApp } from "@/views/video-pip";
-import "@/lib/awards-history-eager";
 import "@/index.css";
 import "flag-icons/css/flag-icons.min.css";
 import { startTaskbarProgress } from "@/lib/download/taskbar-progress";
 import { completeBetaReturnPreferences } from "@/lib/updater/beta-return";
 import { proactiveStorageCleanup } from "@/lib/storage-recovery";
 
-// Loaded only when a DJ window is actually opened; not part of the core entry graph.
-const DjDeckApp = lazy(() =>
-  import("@/views/dj-deck-app").then((module) => ({ default: module.DjDeckApp })),
+// The small windows (captions, overlays, picture in picture) load this same page. Each is
+// fetched by the window that shows it, because between them they import the whole player
+// interface, which the main window would otherwise carry through every launch.
+const CaptionsApp = lazy(() =>
+  import("@/views/captions-app").then((module) => ({ default: module.CaptionsApp })),
 );
+const ModalOverlayApp = lazy(() =>
+  import("@/views/modal-overlay-app").then((module) => ({ default: module.ModalOverlayApp })),
+);
+const HdrOverlayApp = lazy(() =>
+  import("@/views/hdr-overlay-app").then((module) => ({ default: module.HdrOverlayApp })),
+);
+const PipApp = lazy(() => import("@/views/pip").then((module) => ({ default: module.PipApp })));
+const VideoPipApp = lazy(() =>
+  import("@/views/video-pip").then((module) => ({ default: module.VideoPipApp })),
+);
+
+// Loaded only when a DJ window is actually opened; not part of the core entry graph.
+const importDjDeck = (): Promise<typeof import("@/views/dj-deck-app")> =>
+  HAS_MUSIC ? import("@/views/dj-deck-app") : new Promise(() => {});
+const DjDeckApp = lazy(() => importDjDeck().then((module) => ({ default: module.DjDeckApp })));
+
+// The awards table is 2.6 MB of data that has to be in place before the first card is drawn.
+// Asked for here, it is fetched and parsed beside this script, not as part of it.
+const awardsReady = import("@/lib/awards-history-eager").catch(() => {});
 
 let returnPreferencesReady = true;
 
@@ -232,7 +249,7 @@ async function mount() {
   // the boot splash never clears. Cleaning up from inside a component is too late.
   if (!isAuxWindow) proactiveStorageCleanup();
   await loadInstallFeatures();
-  const musicEnabled = getInstallFeatures().music;
+  const musicEnabled = HAS_MUSIC && getInstallFeatures().music;
   if (
     "__TAURI_INTERNALS__" in window &&
     !isHdrOverlay &&
@@ -246,38 +263,46 @@ async function mount() {
     returnPreferencesReady = completeBetaReturnPreferences(__APP_VERSION__);
   }
   await Promise.all([
+    awardsReady,
     loadSecrets(),
     hydrateCustomThemes().catch(() => {}),
     ensureUiLocale(getUiLanguage()),
-    musicEnabled && !isHdrOverlay && !isModal && !isCaptions && !isPip && !isVideoPip
+    HAS_MUSIC && musicEnabled && !isHdrOverlay && !isModal && !isCaptions && !isPip && !isVideoPip
       ? import("@/lib/music/player").then(({ initializeMusic }) => initializeMusic())
       : Promise.resolve(),
   ]);
   if (!isHdrOverlay && !isModal && !isCaptions && !isDjDeck) void initSubtitleCache();
   if (!isHdrOverlay && !isModal && !isCaptions && !isPip && !isVideoPip && !isDjDeck)
     startTaskbarProgress();
+  // The loading animation's player is fetched on first use; fetch it once the launch is over
+  // so the first loader a page shows starts moving at once.
+  if (!isAuxWindow) window.setTimeout(() => void loadLottie().catch(() => {}), 4000);
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      {isHdrOverlay ? (
-        <HdrOverlayApp />
-      ) : isDjDeck ? (
-        musicEnabled ? (
-          <Suspense fallback={null}>
-            <DjDeckApp />
-          </Suspense>
-        ) : null
-      ) : isCaptions ? (
-        <CaptionsApp />
-      ) : isModal ? (
-        <ModalOverlayApp />
-      ) : isVideoPip ? (
-        <VideoPipApp />
-      ) : isPip ? (
-        <PipApp />
+      {isAuxWindow ? (
+        // One boundary around the window's app and StartupReady, so the splash is taken
+        // down when the app is on screen and not while its script is still arriving.
+        <Suspense fallback={null}>
+          {isHdrOverlay ? (
+            <HdrOverlayApp />
+          ) : isDjDeck ? (
+            musicEnabled ? (
+              <DjDeckApp />
+            ) : null
+          ) : isCaptions ? (
+            <CaptionsApp />
+          ) : isModal ? (
+            <ModalOverlayApp />
+          ) : isVideoPip ? (
+            <VideoPipApp />
+          ) : (
+            <PipApp />
+          )}
+          {!isHdrOverlay && <StartupReady />}
+        </Suspense>
       ) : (
         <MainRoot />
       )}
-      {(isModal || isPip || isVideoPip || isCaptions || isDjDeck) && <StartupReady />}
     </StrictMode>,
   );
 }

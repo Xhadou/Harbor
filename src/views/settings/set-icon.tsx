@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { icons, type LucideIcon } from "lucide-react";
+import { Circle, MonitorPlay, Scaling, type LucideIcon } from "lucide-react";
 import { SETTINGS_ICON_FILE } from "./settings-icon-map";
 
 const RAW = import.meta.glob("../../assets/settings-icons/*.svg", {
@@ -7,6 +7,11 @@ const RAW = import.meta.glob("../../assets/settings-icons/*.svg", {
   query: "?raw",
   import: "default",
 }) as Record<string, string>;
+
+// The settings icons with no drawing of their own in assets/settings-icons. They are named
+// here, not looked up in lucide's whole table, because that table is all 1,500 icons and it
+// was landing in the launch script. tests/settings-icon-fallbacks.test.mjs keeps this in step.
+const FALLBACK: Record<string, LucideIcon> = { MonitorPlay, Scaling };
 
 const BY_FILE: Record<string, string> = {};
 for (const [path, body] of Object.entries(RAW)) {
@@ -49,7 +54,7 @@ export function SetIcon({
   const file = SETTINGS_ICON_FILE[name];
   const body = file ? BY_FILE[file] : undefined;
   if (!body) {
-    const Fallback = icons[name as keyof typeof icons] ?? icons.Circle;
+    const Fallback = FALLBACK[name] ?? Circle;
     return (
       <Fallback
         size={px}

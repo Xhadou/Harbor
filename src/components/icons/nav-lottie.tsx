@@ -1,7 +1,8 @@
-import lottie, { type AnimationItem } from "lottie-web";
+import type { AnimationItem } from "lottie-web";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { useSettings } from "@/lib/settings";
+import { loadLottie } from "@/lib/lottie-lazy";
 
 export function NavLottie({
   data,
@@ -9,7 +10,8 @@ export function NavLottie({
   fallback,
   loop = false,
 }: {
-  data: object;
+  /** The animation, or a function that fetches it when the icon is first played. */
+  data: object | (() => Promise<object>);
   hovered?: boolean;
   fallback: ReactNode;
   loop?: boolean;
@@ -25,23 +27,31 @@ export function NavLottie({
     if (!play || reduce || anim.current) return;
     const el = host.current;
     if (!el) return;
-    const a = lottie.loadAnimation({
-      container: el,
-      renderer: "svg",
-      loop,
-      autoplay: true,
-      animationData: data,
-      rendererSettings: {
-        progressiveLoad: false,
-        hideOnTransparent: true,
-        preserveAspectRatio: "xMidYMid meet",
-      },
+    let cancelled = false;
+    const source = typeof data === "function" ? data() : data;
+    void Promise.all([loadLottie(), source]).then(([lottie, animationData]) => {
+      if (cancelled || anim.current || !el.isConnected) return;
+      const a = lottie.loadAnimation({
+        container: el,
+        renderer: "svg",
+        loop,
+        autoplay: true,
+        animationData,
+        rendererSettings: {
+          progressiveLoad: false,
+          hideOnTransparent: true,
+          preserveAspectRatio: "xMidYMid meet",
+        },
+      });
+      anim.current = a;
+      a.addEventListener("DOMLoaded", () => {
+        if (anim.current === a) setReady(true);
+      });
+      if (a.isLoaded) setReady(true);
     });
-    anim.current = a;
-    a.addEventListener("DOMLoaded", () => {
-      if (anim.current === a) setReady(true);
-    });
-    if (a.isLoaded) setReady(true);
+    return () => {
+      cancelled = true;
+    };
   }, [play, reduce, data, loop]);
 
   useEffect(() => {

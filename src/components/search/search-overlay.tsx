@@ -20,7 +20,6 @@ import { EBookRow } from "./ebook-row";
 import { SportsRow } from "./sports-row";
 import { CharacterGroup } from "./character-group";
 import { EmptyState } from "./empty-state";
-import { GuideModal } from "./guide-modal";
 import { LiveTvRow } from "./live-tv-row";
 import { TopMatch } from "./top-match";
 import { CollectionHitsRow } from "./collection-pane";
@@ -47,6 +46,10 @@ import { isMagnetInput, isDirectVideoUrl } from "@/lib/torrent/magnet";
 import { useProfiles } from "@/lib/profiles";
 import { useInstallFeatures } from "@/lib/features/install";
 import { steamStoreQuery } from "@/lib/games/steam-store-search";
+// The TV guide brings the live-stream players with it; it loads when the guide is opened.
+const GuideModal = lazy(() =>
+  import("./guide-modal").then((module) => ({ default: module.GuideModal })),
+);
 const SteamStoreSearch = lazy(() =>
   import("./steam-store-search").then((module) => ({ default: module.SteamStoreSearch })),
 );
@@ -727,7 +730,11 @@ export function SearchOverlay() {
           </div>
         </div>
       </div>
-      {guideOpen && <GuideModal onClose={() => setGuideOpen(false)} />}
+      {guideOpen && (
+        <Suspense fallback={null}>
+          <GuideModal onClose={() => setGuideOpen(false)} />
+        </Suspense>
+      )}
     </div>,
     document.body,
   );

@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useGamepads, type GamepadInfo } from "@/lib/gamepad/store";
 import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
-import { ControllerSvg, detectLayout } from "@/views/settings/controllers-panel/controller-svg";
+import { detectLayout } from "@/views/settings/controllers-panel/controller-shape";
+
+// The controller drawing is 230 kB of path data and is shown only when a pad connects.
+const ControllerSvg = lazy(() =>
+  import("@/views/settings/controllers-panel/controller-svg").then((module) => ({
+    default: module.ControllerSvg,
+  })),
+);
 
 const SHOW_MS = 4200;
 
@@ -61,7 +68,9 @@ export function ControllerConnectedToast() {
         }`}
       >
         <span className="w-[78px] shrink-0">
-          <ControllerSvg layout={layout} compact />
+          <Suspense fallback={null}>
+            <ControllerSvg layout={layout} compact />
+          </Suspense>
         </span>
         <span className="flex min-w-0 flex-col">
           <span className="text-[13.5px] font-semibold text-ink">{t("Controller connected")}</span>
