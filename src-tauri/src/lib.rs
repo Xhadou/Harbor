@@ -269,6 +269,18 @@ fn harbor_flush_done() {
     CLOSE_FLUSH_DONE.store(true, std::sync::atomic::Ordering::SeqCst);
 }
 
+/// The page's entry script calls this as it starts. The window is otherwise shown when the
+/// page has finished loading (`on_page_load` below), and "finished" waits for every file
+/// the page has asked for by then, which now includes files it fetches beside its script
+/// and, on a quick start, the first pictures. A slow network must not hold the window back.
+#[cfg(desktop)]
+#[tauri::command]
+fn harbor_page_started(window: tauri::WebviewWindow) {
+    if window.label() == "main" {
+        let _ = window.show();
+    }
+}
+
 #[cfg(desktop)]
 #[tauri::command]
 fn harbor_startup_ready(window: tauri::WebviewWindow) {
@@ -1819,6 +1831,7 @@ pub fn run() {
             ebook_tts::ebook_tts_cancel,
             ebook_tts::ebook_tts_voices,
             harbor_flush_done,
+            harbor_page_started,
             harbor_startup_ready,
             close_aux_windows,
             desktop_notify::send_clickable_notification,

@@ -129,6 +129,13 @@ if (isDjDeck) {
 }
 const isRemote = detectRemoteMode();
 applyOsDataset();
+// Ask for the window now: the splash is on the page already. Waiting for the page to finish
+// loading would wait for whatever it has fetched by then (see harbor_page_started in lib.rs).
+if ("__TAURI_INTERNALS__" in window && !isRemote && getCurrentWindow().label === "main") {
+  void import("@tauri-apps/api/core")
+    .then(({ invoke }) => invoke("harbor_page_started"))
+    .catch(() => {});
+}
 if (isRemote) {
   document.documentElement.style.overflow = "auto";
   document.body.style.overflow = "auto";
