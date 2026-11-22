@@ -60,6 +60,7 @@ test("row initialization consumes observer width and passes the known page scrol
         return () => {};
       },
     },
+    "@/lib/card-preview/store": { cardPreviewsOn: () => false },
     "@/lib/settings": { useSettings: () => ({ settings }) },
     "@/lib/i18n": { useT: () => (s) => s, useUiLanguage: () => "en", isRtl: () => false },
     "@/lib/view": {

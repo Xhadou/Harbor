@@ -280,7 +280,9 @@ export function Row({
     shape === "portrait" && settings.rowCardStyle === "tv" && holdsPosterCards(children);
   const effShape: RowShape = tvCards ? "landscape" : shape;
   const effMin = Math.max(72, Math.round((tvCards ? TV_CARD_MIN : min) * settings.posterScale));
-  const previewCards = previews && cardPreviewsOn(settings);
+  const previewCards =
+    cardPreviewsOn(settings) &&
+    (previews || (effShape === "portrait" && holdsPosterCards(children)));
   const expandingCards =
     previewCards || (effShape === "portrait" && settings.posterBackdropExpansion);
   const dockEnabled = effShape === "portrait" && settings.posterDockMagnification;

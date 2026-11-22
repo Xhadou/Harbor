@@ -40,6 +40,8 @@ import {
 } from "./pick-card/card-hover";
 import { CustomHoverOverlay, customHoverPosterProps } from "./pick-card/custom-hover";
 import { ExpandingCardArtwork, useExpandingCard } from "./pick-card/use-expanding-card";
+import { PosterPreview } from "./card-preview/poster-preview";
+import { useCardPreview } from "./card-preview/use-card-preview";
 import { getCustomHover } from "@/lib/custom-hover";
 import {
   ClassicAwardBadge,
@@ -123,6 +125,16 @@ const PosterCard = memo(function PosterCard({
     tmdbKey: settings.tmdbKey,
     focusEnabled: settings.posterFocusedCard,
   });
+  // macOS card previews: the poster opens onto its wide picture under a resting pointer, and
+  // the trailer plays there. A title is the only thing with a trailer to play.
+  const preview = useCardPreview(
+    expandingCard.previewWidth,
+    expandingCard.previews && !kids && (meta.type === "movie" || meta.type === "series"),
+  );
+  const prepareWide = expandingCard.prepare;
+  useEffect(() => {
+    if (preview.wanted) prepareWide();
+  }, [preview.wanted, prepareWide]);
   const cardStyle: CardHoverStyle =
     kids || !settings.hoverPreviewEnabled ? "none" : settings.cardHoverStyle;
   const activeCustom = cardStyle === "custom" ? getCustomHover(settings.customHoverId) : null;
@@ -553,13 +565,18 @@ const PosterCard = memo(function PosterCard({
       }
       onContextMenu={(e) => openContextMenu(e, { kind: "meta", meta, membership })}
       onFocus={(e) => {
-        expandingCard.onFocus();
+        // In a row of card previews the card waits like it does under the pointer.
+        if (expandingCard.previews) preview.handlers.onFocus();
+        else expandingCard.onFocus();
         if (!expandingCard.enabled) hoverPreviewFocus(meta, e.currentTarget);
       }}
       onBlur={(e) => {
-        expandingCard.onBlur();
+        if (expandingCard.previews) preview.handlers.onBlur(e);
+        else expandingCard.onBlur();
         hoverPreviewBlur(e.currentTarget);
       }}
+      onPointerEnter={preview.handlers.onPointerEnter}
+      onPointerLeave={preview.handlers.onPointerLeave}
       data-media-card
       data-expanding-card={expandingCard.enabled ? "" : undefined}
       data-row-card-expanded={expandingCard.expanded ? "true" : undefined}
@@ -606,6 +623,9 @@ const PosterCard = memo(function PosterCard({
         >
           {posterOverlays}
         </Poster>
+        {preview.wanted && (
+          <PosterPreview meta={meta} wanted={preview.wanted} open={preview.open} />
+        )}
         {settings.cardHoverShine && (
           <div
             aria-hidden

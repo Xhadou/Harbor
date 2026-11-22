@@ -28,6 +28,9 @@ export function useExpandingCard({
 }) {
   const row = useRowCardExpansion();
   const enabled = row?.enabled === true;
+  // A row that opens cards under a resting pointer (macOS card previews) asks for the wide
+  // picture when a card is about to open, not for every poster that comes on screen.
+  const previews = row?.previews === true;
   const focusedCardEffectEnabled = focusEnabled;
   const collapseRowCard = row?.collapse;
   const artworkKey = expandingCardArtworkKey(meta, tmdbKey);
@@ -140,7 +143,7 @@ export function useExpandingCard({
   }, [row]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || previews) return;
     const card = cardRef.current;
     if (!card) return;
     let requested = false;
@@ -149,7 +152,17 @@ export function useExpandingCard({
       requested = true;
       void loadArtwork("auto");
     });
-  }, [artworkKey, cardRef, enabled, loadArtwork]);
+  }, [artworkKey, cardRef, enabled, loadArtwork, previews]);
+
+  const prepare = useCallback(() => {
+    void loadArtwork("high");
+  }, [loadArtwork]);
+  // How wide the card opens, or 0 while its wide picture is not on screen yet.
+  const previewWidth = useCallback(() => {
+    if (!artworkRef.current || !artworkReadyRef.current) return 0;
+    const anchor = cardRef.current?.querySelector<HTMLElement>("[data-preview-anchor]");
+    return anchor ? expandedCardWidth(anchor.getBoundingClientRect().height) : 0;
+  }, [cardRef]);
 
   useEffect(() => {
     if (artwork || !enabled || !focusIntentRef.current) return;
@@ -179,6 +192,9 @@ export function useExpandingCard({
     onFocus,
     onArtworkError,
     onArtworkReady,
+    previews,
+    prepare,
+    previewWidth,
   };
 }
 

@@ -9717,6 +9717,63 @@ html[data-os="macos"] .mac-cw-root:has(> .mac-pv-over[data-open]) .mac-cw-art::a
   opacity: 0;
 }
 
+/* An opened poster: its wide picture fills the card, so the trailer, the title
+   and a line of facts lie straight on it, over a shade at the foot. */
+html[data-os="macos"] .mac-pp {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  border-radius: var(--poster-radius, 12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms var(--ease-out);
+}
+html[data-os="macos"] .mac-pp[data-open] {
+  opacity: 1;
+  transition: opacity 260ms var(--ease-out) 200ms;
+}
+html[data-os="macos"] .mac-pp::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 1;
+  block-size: 58%;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.78), rgb(0 0 0 / 0.3) 55%, transparent);
+}
+html[data-os="macos"] .mac-pp[data-playing] .mac-pv-video {
+  opacity: 1;
+}
+html[data-os="macos"] .mac-pp-text {
+  position: absolute;
+  inset-inline: 14px 44px;
+  inset-block-end: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+html[data-os="macos"] :is(.mac-pp-title, .mac-pp-facts) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html[data-os="macos"] .mac-pp-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+}
+html[data-os="macos"] .mac-pp-facts {
+  color: rgb(255 255 255 / 0.72);
+  font-size: 12px;
+  line-height: 16px;
+}
+html[data-os="macos"] .mac-pp .mac-pv-sound {
+  inset-inline: auto 6px;
+  pointer-events: auto;
+}
+
 /* Player bar. Every button is one size, and play, the main action, is one
    step larger. The readout at the end of the timeline reads like the one at
    its start. */

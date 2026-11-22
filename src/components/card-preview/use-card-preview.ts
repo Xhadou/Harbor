@@ -10,6 +10,9 @@ import { useRowCardExpansion } from "@/components/row-card-expansion";
 import { PREVIEW_LEAVE_MS, PREVIEW_LOOKUP_MS, previewOpenDelay } from "@/lib/card-preview/policy";
 import { markPreviewOpen, sinceLastPreviewMs } from "@/lib/card-preview/store";
 
+const READY_RETRY_MS = 100;
+const READY_RETRIES = 30;
+
 function reducedMotion(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -30,9 +33,9 @@ function pointerModality(): boolean {
  * rested on it, and closes it shortly after it leaves. The row does the
  * widening; `measure` says how wide the open card is.
  */
-export function useCardPreview(measure: () => number) {
+export function useCardPreview(measure: () => number, allowed = true) {
   const row = useRowCardExpansion();
-  const enabled = row?.previews === true;
+  const enabled = allowed && row?.previews === true;
   const open = enabled && row?.expanded === true;
   // True a moment after the pointer arrives and for as long as the card is open:
   // the time to look up what the preview will play.
@@ -66,12 +69,23 @@ export function useCardPreview(measure: () => number) {
       if (inside.current) setWanted(true);
     }, PREVIEW_LOOKUP_MS);
     clear("open");
-    timers.current.open = window.setTimeout(() => {
+    // A card may not be ready the moment its wait is over (a poster opens onto a wide picture
+    // that is still loading): `measure` answers 0 until it is, and the card is asked again for
+    // a few seconds while the pointer stays.
+    const tryOpen = (triesLeft: number) => {
       timers.current.open = null;
       if (!inside.current) return;
       const width = measureRef.current();
-      if (width > 0) rowRef.current?.expand(width);
-    }, previewOpenDelay(sinceLastPreviewMs()));
+      if (width > 0) {
+        rowRef.current?.expand(width);
+      } else if (triesLeft > 0) {
+        timers.current.open = window.setTimeout(() => tryOpen(triesLeft - 1), READY_RETRY_MS);
+      }
+    };
+    timers.current.open = window.setTimeout(
+      () => tryOpen(READY_RETRIES),
+      previewOpenDelay(sinceLastPreviewMs()),
+    );
   }, [clear, enabled]);
 
   const leave = useCallback(() => {
