@@ -3290,8 +3290,8 @@ html[data-theme-card="stremio"] button.group:not([data-no-card-ring]):hover > .r
   opacity: 0;
   transform: scale(1.025);
   transition:
-    opacity 0ms linear 480ms,
-    transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0ms linear var(--row-expand-ms, 480ms),
+    transform var(--row-expand-ms, 480ms) cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-expanding-card][data-row-card-expanded="true"] .expanding-card-artwork {
@@ -9560,7 +9560,7 @@ html[data-os="macos"] .mac-pv-wash {
   pointer-events: none;
   transition:
     opacity 200ms var(--ease-out) 200ms,
-    visibility 0s linear 480ms;
+    visibility 0s linear var(--row-expand-ms, 480ms);
 }
 html[data-os="macos"] .mac-pv-wash::before {
   content: "";
@@ -9587,7 +9587,7 @@ html[data-os="macos"] .mac-pv[data-open] .mac-pv-wash {
   opacity: 1;
   visibility: visible;
   transition:
-    opacity 260ms var(--ease-out),
+    opacity 380ms var(--ease-out),
     visibility 0s;
 }
 html[data-os="macos"] .mac-pv-hit {
@@ -9624,8 +9624,8 @@ html[data-os="macos"] .mac-pv[data-open] .mac-pv-side {
   opacity: 1;
   translate: none;
   transition:
-    opacity 260ms var(--ease-out) 140ms,
-    translate 420ms cubic-bezier(0.16, 1, 0.3, 1) 100ms;
+    opacity 340ms var(--ease-out) 240ms,
+    translate 560ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
 }
 html[data-os="macos"] .mac-pv-side button {
   pointer-events: auto;
@@ -9717,6 +9717,18 @@ html[data-os="macos"] .mac-cw-root:has(> .mac-pv-over[data-open]) .mac-cw-art::a
   opacity: 0;
 }
 
+/* A poster's wide picture fades in over the poster as the card opens, and
+   stays until the card has nearly closed, instead of replacing it at a stroke. */
+html[data-os="macos"] .expanding-card-artwork {
+  transition:
+    opacity 220ms ease-in calc(var(--row-expand-ms, 480ms) - 220ms),
+    transform var(--row-expand-ms, 480ms) cubic-bezier(0.4, 0, 0.2, 1);
+}
+html[data-os="macos"] [data-expanding-card][data-row-card-expanded="true"] .expanding-card-artwork {
+  transition:
+    opacity 360ms ease-out,
+    transform var(--row-expand-ms, 480ms) cubic-bezier(0.4, 0, 0.2, 1);
+}
 /* An opened poster: its wide picture fills the card, so the trailer, the title
    and a line of facts lie straight on it, over a shade at the foot. */
 html[data-os="macos"] .mac-pp {
@@ -9731,7 +9743,7 @@ html[data-os="macos"] .mac-pp {
 }
 html[data-os="macos"] .mac-pp[data-open] {
   opacity: 1;
-  transition: opacity 260ms var(--ease-out) 200ms;
+  transition: opacity 340ms var(--ease-out) 300ms;
 }
 html[data-os="macos"] .mac-pp::after {
   content: "";

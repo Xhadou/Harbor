@@ -6,7 +6,11 @@
  */
 
 /** How long the pointer rests on a card before the first preview opens. */
-export const PREVIEW_REST_MS = 500;
+export const PREVIEW_REST_MS = 700;
+/** How long a card takes to open or close. */
+export const PREVIEW_OPEN_MS = 680;
+/** The curve it follows: it starts gently and settles, where the row's own curve leaps. */
+export const PREVIEW_OPEN_EASE = "cubic-bezier(0.4, 0, 0.2, 1)";
 /** How long it rests on the next card while a preview is, or has just been, open. */
 export const PREVIEW_HANDOFF_MS = 100;
 /** How long after a preview closes the next card still counts as "the next card". */

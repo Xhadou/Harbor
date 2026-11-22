@@ -22,6 +22,7 @@ import { useViewActions } from "@/lib/view";
 import { resetPosterDock as resetPosterDockItems, updatePosterDock } from "@/lib/poster-dock";
 import { scrollDeltaToRevealCard } from "@/lib/poster-backdrop-expansion";
 import { RowCardExpansionProvider } from "@/components/row-card-expansion";
+import { PREVIEW_OPEN_EASE, PREVIEW_OPEN_MS } from "@/lib/card-preview/policy";
 import { cardPreviewsOn } from "@/lib/card-preview/store";
 
 const GAP = 20;
@@ -75,6 +76,8 @@ function LazyChild({
     expandedWidth?: number;
     expanded: boolean;
     previews: boolean;
+    /** How long the cell takes to change width, and its curve, when not the default. */
+    motion?: { ms: number; ease: string };
     onExpand: (index: number, width: number) => void;
     onCollapse: (index: number) => void;
   };
@@ -151,6 +154,12 @@ function LazyChild({
           ? {
               flex: "0 0 auto",
               flexBasis: `${expansion.expandedWidth ?? expansion.baseWidth}px`,
+              ...(expansion.motion
+                ? {
+                    transitionDuration: `${expansion.motion.ms}ms`,
+                    transitionTimingFunction: expansion.motion.ease,
+                  }
+                : null),
             }
           : span
             ? { gridColumn: span }
@@ -285,6 +294,8 @@ export function Row({
     (previews || (effShape === "portrait" && holdsPosterCards(children)));
   const expandingCards =
     previewCards || (effShape === "portrait" && settings.posterBackdropExpansion);
+  // A card preview opens more slowly and more gently than the keyboard's expanding card.
+  const expandMs = previewCards ? PREVIEW_OPEN_MS : 480;
   const dockEnabled = effShape === "portrait" && settings.posterDockMagnification;
   const posterHeightRatio = effShape === "landscape" ? 9 / 16 : effShape === "square" ? 1 : 1.5;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -422,7 +433,7 @@ export function Row({
       const keepExpandedCardVisible = () => {
         expansionFrameRef.current = null;
         if (!drag.current.active) revealExpanded(track, expandedCard.index);
-        if (performance.now() - startedAt < 520) {
+        if (performance.now() - startedAt < expandMs + 40) {
           expansionFrameRef.current = requestAnimationFrame(keepExpandedCardVisible);
         }
       };
@@ -434,7 +445,7 @@ export function Row({
       if (!expandedCard) track.style.scrollSnapType = "";
       track.style.scrollBehavior = "";
       measureScroll();
-    }, 540);
+    }, expandMs + 60);
   }, [expandedCard]);
 
   useEffect(
@@ -899,6 +910,7 @@ export function Row({
             style={
               {
                 "--row-poster-height": `${(cellWidth ?? effMin) * posterHeightRatio}px`,
+                "--row-expand-ms": `${expandMs}ms`,
                 ...(expandingCards
                   ? {}
                   : { gridAutoColumns: cellWidth != null ? `${cellWidth}px` : `${effMin}px` }),
@@ -940,6 +952,9 @@ export function Row({
                           expandedWidth,
                           expanded,
                           previews: previewCards,
+                          motion: previewCards
+                            ? { ms: PREVIEW_OPEN_MS, ease: PREVIEW_OPEN_EASE }
+                            : undefined,
                           onExpand: expandRowCard,
                           onCollapse: collapseRowCard,
                         }
