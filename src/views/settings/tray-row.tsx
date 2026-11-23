@@ -4,6 +4,7 @@ import { ToggleRow } from "./shared";
 import { SettingGroup } from "./kit";
 
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 
 export function TrayRow() {
   const t = useT();
@@ -11,21 +12,24 @@ export function TrayRow() {
   const on = settings.closeToTray;
   return (
     <SettingGroup>
-      <ToggleRow
-        label={t("Close to the system tray")}
-        sub={t(
-          "Closing the window tucks Harbor into the tray instead of quitting, so it reopens instantly. Right-click the tray icon for quick controls, or pick Quit to exit fully.",
-        )}
-        leading={
-          <Minimize2
-            size={18}
-            strokeWidth={2.2}
-            className={on ? "text-accent" : "text-ink-subtle"}
-          />
-        }
-        value={on}
-        onChange={(closeToTray) => update({ closeToTray })}
-      />
+      {/* A Mac keeps running when its window is closed; there is nothing to choose. */}
+      {!isMacDesktop() && (
+        <ToggleRow
+          label={t("Close to the system tray")}
+          sub={t(
+            "Closing the window tucks Harbor into the tray instead of quitting, so it reopens instantly. Right-click the tray icon for quick controls, or pick Quit to exit fully.",
+          )}
+          leading={
+            <Minimize2
+              size={18}
+              strokeWidth={2.2}
+              className={on ? "text-accent" : "text-ink-subtle"}
+            />
+          }
+          value={on}
+          onChange={(closeToTray) => update({ closeToTray })}
+        />
+      )}
       <ToggleRow
         label={t("Always on top")}
         sub={t("Keep the Harbor window above other windows.")}

@@ -28,6 +28,7 @@ import {
 } from "../kit";
 import { Section } from "../shared";
 import { ProfileAudioSetting } from "../profile-audio-setting";
+import { HAS_MUSIC } from "@/lib/features/edition";
 import { AvatarRing } from "./avatar-ring";
 import { resizeAvatar } from "./avatar-utils";
 import { pushAvatarToEcosystem } from "@/lib/account/avatar-sync";
@@ -347,7 +348,8 @@ export function IdentityTab() {
         </SettingRow>
       </Section>
 
-      <ProfileAudioSetting />
+      {/* A profile's song plays through the music section, which this edition may not have. */}
+      {HAS_MUSIC && <ProfileAudioSetting />}
 
       <SettingsModal
         open={colorOpen}

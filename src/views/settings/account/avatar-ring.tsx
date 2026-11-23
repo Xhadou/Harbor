@@ -1,5 +1,6 @@
 import { CatAvatar } from "@/components/icons/cat-avatar";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 
 export function AvatarRing({
   src,
@@ -18,7 +19,12 @@ export function AvatarRing({
       onClick={onClick}
       type="button"
       aria-label={t("Change your picture")}
-      className={`group relative shrink-0 overflow-hidden rounded-full ring-2 transition hover:ring-ink focus-visible:ring-ink ${color ? "border-[3px] ring-canvas" : "ring-edge-soft"}`}
+      className={
+        isMacDesktop()
+          ? // macOS: one ring in the person's colour, and nothing added to it under the pointer.
+            "mac-avatar group relative shrink-0 overflow-hidden rounded-full"
+          : `group relative shrink-0 overflow-hidden rounded-full ring-2 transition hover:ring-ink focus-visible:ring-ink ${color ? "border-[3px] ring-canvas" : "ring-edge-soft"}`
+      }
       style={{ width: size, height: size, borderColor: color }}
     >
       {src ? (

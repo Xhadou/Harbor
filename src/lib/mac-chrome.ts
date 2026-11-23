@@ -132,6 +132,11 @@ export const MAC_ABSENT_HOTKEYS: ReadonlySet<string> = new Set([
 export const MAC_ABSENT_SETTINGS: ReadonlySet<string> = new Set([
   "Interface scale",
   "Interface scale (accessibility)",
+  // Closing the window always leaves the Mac app running (`mac_native::window_close`).
+  "Close to the system tray",
+  "System tray",
+  // A profile's song plays through the music section, which the Mac edition is built without.
+  "Profile songs",
 ]);
 
 export function macDefaultBinding(id: string, binding: string, os: OsClass): string {

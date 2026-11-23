@@ -5,6 +5,7 @@ import { Check, RotateCw } from "../icons";
 import { useEffect, useState } from "react";
 import { IS_BETA_BUILD } from "@/lib/build-info";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { readBetaReturnContext } from "@/lib/updater/beta-return";
 import { ROW_DESC, Section } from "../shared";
 import { SettingRow } from "../kit";
@@ -47,7 +48,17 @@ function AboutRow() {
             : `${__APP_VERSION__}${IS_BETA_BUILD ? ` (${t("Beta")})` : ""}`
         }
       />
-      <InfoLine label={t("Build")} value={isTauri ? t("Desktop (Tauri 2 / WebView2)") : t("Web")} />
+      <InfoLine
+        label={t("Build")}
+        value={
+          // Names of software, not words to translate.
+          isMacDesktop() && isTauri
+            ? "macOS (Tauri 2 / WebKit)"
+            : isTauri
+              ? t("Desktop (Tauri 2 / WebView2)")
+              : t("Web")
+        }
+      />
     </>
   );
 }

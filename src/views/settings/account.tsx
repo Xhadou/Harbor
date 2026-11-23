@@ -3,6 +3,7 @@ import { useSettings } from "@/lib/settings";
 import { useEffect, useState } from "react";
 import { Info, Link2 } from "./icons";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { ROW_DESC, Section, ToggleRow } from "./shared";
 import { useSubTabs } from "./sub-tabs";
 import { IdentityTab } from "./account/identity-tab";
@@ -328,18 +329,21 @@ function StremioDeeplinkRow() {
         value={on}
         onChange={(stremioDeeplinkInstall) => update({ stremioDeeplinkInstall })}
       />
-      <div className="flex items-start gap-2.5 rounded-[10px] bg-elevated px-4 py-3">
-        <Info size={18} className="mt-[2px] shrink-0 text-ink-subtle" />
-        <p className={`max-w-[66ch] ${ROW_DESC}`}>
-          {on
-            ? t(
-                "Heads up: if Stremio is also installed, Windows may ask which app to use the first time a stremio:// link fires. Pick Harbor to make it stick.",
-              )
-            : t(
-                "stremio:// links now open in the Stremio app. Harbor will only install when you trigger it from inside Harbor.",
-              )}
-        </p>
-      </div>
+      {/* The note for the switch being on is about a prompt only Windows shows. */}
+      {!(on && isMacDesktop()) && (
+        <div className="flex items-start gap-2.5 rounded-[10px] bg-elevated px-4 py-3">
+          <Info size={18} className="mt-[2px] shrink-0 text-ink-subtle" />
+          <p className={`max-w-[66ch] ${ROW_DESC}`}>
+            {on
+              ? t(
+                  "Heads up: if Stremio is also installed, Windows may ask which app to use the first time a stremio:// link fires. Pick Harbor to make it stick.",
+                )
+              : t(
+                  "stremio:// links now open in the Stremio app. Harbor will only install when you trigger it from inside Harbor.",
+                )}
+          </p>
+        </div>
+      )}
     </SettingGroup>
   );
 }

@@ -8440,6 +8440,16 @@ html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > :not(.hset
 html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > :not(.hset-row):last-child {
   margin-block-end: 14px;
 }
+/* A row is pulled out by its padding on both sides, so it has to be that much
+   wider than the card's inside as well: at the card's own width it reached the
+   left edge and stopped two paddings short of the right one, and so did its
+   control and its highlight. "Fill what is available" takes the row's own
+   margins into account, so it is right wherever a row sits, pulled out or not,
+   and for a row that is a button, which does not stretch by itself. */
+html[data-os="macos"] .harbor-settings-shell .hset-row {
+  inline-size: -webkit-fill-available;
+  inline-size: stretch;
+}
 /* A card inside a card would draw a box in a box. */
 html[data-os="macos"] .harbor-settings-shell .harbor-settings-group .harbor-settings-group {
   padding-inline: 0;
@@ -8459,6 +8469,46 @@ html[data-os="macos"] .harbor-settings-shell .harbor-settings-group > .hset-row:
 }
 html[data-os="macos"] .harbor-settings-shell .hset-row[data-interactive]:hover {
   background: var(--hset-mac-well);
+}
+
+/* One focus ring in Settings: the accent colour, just outside the control.
+   Pages drew their own (white rings, accent rings, rings inside rings); those
+   are switched off here so a control never wears two. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  :is(
+    button,
+    a,
+    input,
+    select,
+    textarea,
+    summary,
+    [role="switch"],
+    [role="tab"],
+    [tabindex]
+  ):focus-visible {
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-inset-ring-shadow: 0 0 #0000;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+html[data-os="macos"] .harbor-settings-shell :is(input, textarea):focus-visible {
+  outline-offset: 0;
+}
+/* A tag on a row (Active, Experimental, New) is written as it is spoken, not
+   in spaced capitals: it says what a thing is and does not compete with the
+   row's title. */
+html[data-os="macos"] .harbor-settings-shell .uppercase {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* The picture in Settings › Account: one ring in the person's colour. Under
+   the pointer the picture dims and says what a click does; nothing is added
+   around it. */
+html[data-os="macos"] .mac-avatar {
+  border: 2px solid var(--mac-hairline);
 }
 
 /* The heading above a card. */
