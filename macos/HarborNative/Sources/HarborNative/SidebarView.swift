@@ -16,6 +16,8 @@ final class SidebarModel {
 
     private(set) var groups: [Group] = []
     private(set) var account: SidebarAccount?
+    /// `account.image` decoded once per change, not on every redraw.
+    private(set) var accountPicture: AccountPicture.Source?
     private(set) var settings: SidebarItem?
     private(set) var isShown = false
     /// The web app wants a sidebar on this view (it may still be collapsed).
@@ -47,6 +49,9 @@ final class SidebarModel {
             let items = payload.items.filter { $0.section == id }
             guard !items.isEmpty else { return nil }
             return Group(section: SidebarSection(id: id, title: titles[id] ?? nil), items: items)
+        }
+        if payload.account?.image != account?.image {
+            accountPicture = AccountPicture.decode(payload.account?.image)
         }
         account = payload.account
         settings = payload.settings
@@ -140,11 +145,7 @@ struct SidebarFoot: View {
             if let account = model.account {
                 Button(action: model.openAccount) {
                     HStack(spacing: 8) {
-                        Text(account.initials)
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 26, height: 26)
-                            .background(Circle().fill(Color.accentColor))
+                        AccountPicture(account: account, picture: model.accountPicture)
                         Text(account.name)
                             .font(.system(size: 13, weight: .medium))
                             .lineLimit(1)
@@ -172,5 +173,85 @@ struct SidebarFoot: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+}
+
+/// The profile's picture at the foot, as the web app's account menu draws it:
+/// the picture with a ring in the profile's colour, or initials on that colour.
+struct AccountPicture: View {
+    enum Source {
+        case image(NSImage)
+        case remote(URL)
+    }
+
+    let account: SidebarAccount
+    let picture: Source?
+
+    private static let size: CGFloat = 26
+
+    static func decode(_ string: String?) -> Source? {
+        guard let string else { return nil }
+        if string.hasPrefix("data:"), let comma = string.firstIndex(of: ","),
+            let data = Data(base64Encoded: String(string[string.index(after: comma)...])),
+            let image = NSImage(data: data)
+        {
+            return .image(image)
+        }
+        if let url = URL(string: string), let scheme = url.scheme?.lowercased(),
+            scheme == "http" || scheme == "https"
+        {
+            return .remote(url)
+        }
+        return nil
+    }
+
+    /// `#rrggbb`, as the web app stores a profile's colour.
+    static func color(_ hex: String?) -> Color? {
+        guard let hex, hex.hasPrefix("#"), hex.count == 7,
+            let value = UInt32(hex.dropFirst(), radix: 16)
+        else { return nil }
+        return Color(
+            .sRGB,
+            red: Double((value >> 16) & 0xFF) / 255,
+            green: Double((value >> 8) & 0xFF) / 255,
+            blue: Double(value & 0xFF) / 255)
+    }
+
+    var body: some View {
+        content
+            .frame(width: Self.size, height: Self.size)
+            .clipShape(Circle())
+            .overlay {
+                // The initials already sit on the colour; only a picture is ringed.
+                if picture != nil, let ring = Self.color(account.color) {
+                    Circle().strokeBorder(ring, lineWidth: 1.5)
+                }
+            }
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var content: some View {
+        switch picture {
+        case .image(let image):
+            Image(nsImage: image).resizable().scaledToFill()
+        case .remote(let url):
+            AsyncImage(url: url) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFill()
+                } else {
+                    initials
+                }
+            }
+        case nil:
+            initials
+        }
+    }
+
+    private var initials: some View {
+        Text(account.initials)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: Self.size, height: Self.size)
+            .background(Self.color(account.color) ?? Color.accentColor)
     }
 }

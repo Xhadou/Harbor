@@ -28,6 +28,11 @@ struct SidebarSection: Codable, Equatable, Sendable {
 struct SidebarAccount: Codable, Equatable, Sendable {
     var name: String
     var initials: String
+    /// The profile's colour as `#rrggbb`: behind the initials, or a ring around the picture.
+    var color: String? = nil
+    /// The profile's picture: a PNG `data:` URL drawn by the page, or a remote
+    /// http(s) address. nil shows the initials.
+    var image: String? = nil
 }
 
 struct SidebarPayload: Codable, Equatable, Sendable {

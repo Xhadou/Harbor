@@ -155,6 +155,30 @@ final class SidebarTests: XCTestCase {
         controller.sidebar.model.select("settings")
         XCTAssertEqual(EventLog.kinds(), ["sidebar-account", "sidebar-select"])
     }
+
+    func testFootShowsTheProfilePictureThePageDrew() {
+        // A 1×1 PNG, as the page hands it over.
+        let png =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        let model = SidebarModel(
+            payload: SidebarPayload(
+                visible: true, collapsed: false, items: [item("home", "browse")],
+                account: SidebarAccount(name: "Pratyush", initials: "PR", color: "#60a5fa", image: png)))
+        guard case .image = model.accountPicture else {
+            return XCTFail("the page's picture was not decoded")
+        }
+        model.apply(
+            SidebarPayload(
+                visible: true, collapsed: false, items: [item("home", "browse")],
+                account: SidebarAccount(name: "Pratyush", initials: "PR")))
+        XCTAssertNil(model.accountPicture)
+        guard case .remote = AccountPicture.decode("https://example.com/a.png") else {
+            return XCTFail("a remote picture was not kept as an address")
+        }
+        XCTAssertNil(AccountPicture.decode("tauri://localhost/avatars/a.webp"))
+        XCTAssertNotNil(AccountPicture.color("#60a5fa"))
+        XCTAssertNil(AccountPicture.color("rgb(1, 2, 3)"))
+    }
 }
 
 final class TitleBarDoubleClickTests: XCTestCase {

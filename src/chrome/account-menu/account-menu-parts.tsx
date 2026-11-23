@@ -1,4 +1,5 @@
 import { AvatarImage } from "@/components/avatar-image";
+import { avatarFace } from "./account-avatar";
 import { useT } from "@/lib/i18n";
 import { type Profile } from "@/lib/profiles";
 import type { User } from "@/lib/stremio";
@@ -16,10 +17,9 @@ export function ProfileAvatar({
   size?: "sm" | "md" | "lg";
 }) {
   const dim = size === "lg" ? "h-12 w-12" : size === "sm" ? "h-7 w-7" : "h-9 w-9";
-  const src = profile?.avatar ?? fallbackAvatar ?? user?.avatar ?? null;
-  const ringStyle = profile?.color ? { boxShadow: `0 0 0 2px ${profile.color}` } : undefined;
+  const face = avatarFace({ profile, user, fallbackAvatar });
 
-  if (!src && profile?.name && profile?.color) {
+  if (face.kind === "initials") {
     const textDim =
       size === "lg"
         ? "text-base font-bold"
@@ -29,16 +29,19 @@ export function ProfileAvatar({
     return (
       <div
         className={`${dim} shrink-0 overflow-hidden rounded-full flex items-center justify-center text-white shadow-sm ring-1 ring-edge`}
-        style={{ backgroundColor: profile.color, ...ringStyle }}
+        style={{ backgroundColor: face.color, boxShadow: `0 0 0 2px ${face.color}` }}
       >
-        <span className={textDim}>{(profile.name.slice(0, 2) || "P").toUpperCase()}</span>
+        <span className={textDim}>{face.initials}</span>
       </div>
     );
   }
 
   return (
-    <div className={`${dim} shrink-0 overflow-hidden rounded-full bg-elevated`} style={ringStyle}>
-      <AvatarImage src={src} className="h-full w-full object-cover" />
+    <div
+      className={`${dim} shrink-0 overflow-hidden rounded-full bg-elevated`}
+      style={face.ring ? { boxShadow: `0 0 0 2px ${face.ring}` } : undefined}
+    >
+      <AvatarImage src={face.src} className="h-full w-full object-cover" />
     </div>
   );
 }

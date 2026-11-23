@@ -1,4 +1,5 @@
 import { useEffect, useRef, useSyncExternalStore } from "react";
+import { avatarFace, useAccountAvatarInputs } from "@/chrome/account-menu/account-avatar";
 import { AccountMenu } from "@/chrome/account-menu/account-menu";
 import { useSidebarNavigation } from "@/chrome/context-page-navigation";
 import { useT } from "@/lib/i18n";
@@ -11,6 +12,7 @@ import { nativeChromeCoverStore } from "./native-chrome-cover";
 import { onNativeEvent, pushNativeJson } from "./native-events";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
 import { setNativeSearchParts } from "./native-search-state";
+import { useSidebarAvatarImage } from "./sidebar-avatar";
 import { settingsNavStore, settingsPageOf } from "./settings-sidebar";
 import {
   buildNativeSidebar,
@@ -41,6 +43,9 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
   const settingsNav = useSyncExternalStore(...settingsNavStore);
 
   const profileName = activeProfile?.name ?? "";
+  // The same picture the account menu shows, not a stand-in.
+  const face = avatarFace(useAccountAvatarInputs());
+  const avatarImage = useSidebarAvatarImage(face.kind === "image" ? face.src : null);
   const navigation = buildNativeSidebar(entries, view, t, {
     renamed: customization.renamed,
     kid: !!kid,
@@ -53,7 +58,14 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
     ...navigation,
     ...(settingsNav ? { items: settingsNav.items, sections: settingsNav.sections } : null),
     // Under parental lock the profile cannot be switched, as in the React sidebar.
-    account: locked ? null : { name: profileName, initials: profileInitials(profileName) },
+    account: locked
+      ? null
+      : {
+          name: profileName,
+          initials: face.kind === "initials" ? face.initials : profileInitials(profileName),
+          color: face.kind === "initials" ? face.color : (face.ring ?? undefined),
+          image: face.kind === "image" ? (avatarImage ?? undefined) : undefined,
+        },
   });
   useEffect(() => {
     pushNativeJson("mac_native_sidebar_set", payload);

@@ -192,6 +192,7 @@ async function fixture(harborSignedIn = false, stremioSignedIn = false, kid = fa
   dependencies["@/lib/theme-auth"] = auth;
   const menuEvents = load("lib/social/account-menu-open.ts", dependencies);
   dependencies["@/lib/social/account-menu-open"] = menuEvents;
+  dependencies["./account-avatar"] = load("chrome/account-menu/account-avatar.ts", dependencies);
   dependencies["./account-menu-parts"] = load(
     "chrome/account-menu/account-menu-parts.tsx",
     dependencies,

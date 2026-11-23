@@ -1,8 +1,7 @@
 import { HarborAccountDialog } from "@/views/account/harbor-account-dialog";
 import { ParentalPinModal } from "@/components/parental-pin-modal";
 import { useT } from "@/lib/i18n";
-import { useSettings } from "@/lib/settings";
-import { isNuvioProviderActive } from "@/lib/nuvio/nuvio-client";
+import { useAccountAvatarInputs, useIsNuvioAccount } from "./account-avatar";
 import { verifyProfilePassword } from "@/lib/profile-password";
 import { StatusDot, StatusPicker } from "@/chrome/sidebar/status-control";
 import { AccountMenuPanel } from "./account-menu-panel";
@@ -32,7 +31,6 @@ export function AccountMenu({
   triggerClassName?: string;
 }) {
   const t = useT();
-  const { settings } = useSettings();
   const ctrl = useAccountMenu();
   const {
     ref,
@@ -50,13 +48,9 @@ export function AccountMenu({
     selectProfile,
   } = ctrl;
 
-  const isNuvio =
-    settings.accountProvider === "nuvio" ||
-    (typeof isNuvioProviderActive === "function" ? isNuvioProviderActive() : false);
+  const isNuvio = useIsNuvioAccount();
+  const avatarInputs = useAccountAvatarInputs();
   const kid = !!activeProfile?.kid;
-  const harborAvatar = settings.harborAvatar?.startsWith("/kids/avatars/")
-    ? null
-    : settings.harborAvatar;
   const isPlaceholder =
     typeof isPlaceholderName === "function" ? isPlaceholderName(activeProfile?.name) : false;
   const name = isNuvio
@@ -87,12 +81,7 @@ export function AccountMenu({
 
   const avatar = (size: "md" | "lg") => (
     <span className="relative inline-flex shrink-0">
-      <ProfileAvatar
-        profile={activeProfile}
-        user={isNuvio ? null : user}
-        fallbackAvatar={isNuvio ? null : harborAvatar}
-        size={size}
-      />
+      <ProfileAvatar {...avatarInputs} size={size} />
       {showStatus && (
         <span className="pointer-events-auto">
           <StatusDot

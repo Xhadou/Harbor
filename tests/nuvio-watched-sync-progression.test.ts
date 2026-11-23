@@ -136,7 +136,7 @@ const activeProfileId = read("../src/lib/active-profile-id.ts");
 const privileges = read("../src/lib/profiles/privileges.ts");
 const signedOutHero = read("../src/views/account/signed-out-hero.tsx");
 const profilesModule = read("../src/lib/profiles.tsx");
-const accountMenuParts = read("../src/chrome/account-menu/account-menu-parts.tsx");
+const accountAvatar = read("../src/chrome/account-menu/account-avatar.ts");
 
 test("isStremioActivePrimary and activeProfileIsPrimary evaluate primary status accurately", () => {
   assert.match(
@@ -169,5 +169,5 @@ test("ProfilesProvider synthesizes Nuvio activeProfile with avatar, color ring a
   assert.match(profilesModule, /nuvioProfileToHarborProfile/);
   assert.match(profilesModule, /resolveNuvioAvatar\(p\)/);
   assert.match(profilesModule, /effectiveActiveProfile/);
-  assert.match(accountMenuParts, /profile\.name\.slice\(0, 2\)/);
+  assert.match(accountAvatar, /profile\.name\.slice\(0, 2\)/);
 });

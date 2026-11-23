@@ -61,7 +61,14 @@ final class SnapshotProbe: XCTestCase {
                     SidebarSection(id: "library", title: "Library"),
                     SidebarSection(id: "more", title: "More"),
                 ],
-                account: locked ? nil : SidebarAccount(name: "Pratyush", initials: "PR"),
+                // SNAPSHOT_AVATAR=/path/picture.png renders the profile's picture as the page sends it.
+                account: locked
+                    ? nil
+                    : SidebarAccount(
+                        name: "Pratyush", initials: "PR", color: "#60a5fa",
+                        image: ProcessInfo.processInfo.environment["SNAPSHOT_AVATAR"]
+                            .flatMap { FileManager.default.contents(atPath: $0) }
+                            .map { "data:image/png;base64," + $0.base64EncodedString() }),
                 settings: item("settings", "Settings", "gearshape", "foot")))
         window.layoutIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(0.6))
