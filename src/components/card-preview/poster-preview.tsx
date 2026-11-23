@@ -17,6 +17,8 @@ type PreviewActions = {
   /** Left out for a title whose episode is picked on its own page. */
   onPlay?: () => void;
   onMore: () => void;
+  /** What the second button says where "More info" is not it (a collection: "All films"). */
+  moreLabel?: string;
 };
 
 /**
@@ -32,14 +34,19 @@ type PreviewActions = {
 export function PosterPreview({
   meta,
   title,
+  facts: givenFacts,
   wanted,
   open,
   foot,
   onPlay,
   onMore,
+  moreLabel,
 }: PreviewActions & {
-  meta: Meta;
+  /** The title whose trailer plays; null while it is not known yet (a collection's next film). */
+  meta: Meta | null;
   title: string;
+  /** The line under the title where the card is not the title its trailer belongs to. */
+  facts?: string;
   wanted: boolean;
   open: boolean;
   /** The card draws no title under itself: the title and the actions go on the picture. */
@@ -47,7 +54,7 @@ export function PosterPreview({
 }) {
   const t = useT();
   const trailer = usePreviewTrailer({ meta, wanted, open, quality: getQualityHint() });
-  const facts = heroFacts(meta).join(" · ");
+  const facts = givenFacts ?? (meta ? heroFacts(meta).join(" · ") : "");
   return (
     <span
       data-live="true"
@@ -66,7 +73,12 @@ export function PosterPreview({
             {facts && <span className="mac-pv-facts">{facts}</span>}
           </span>
           <span className="mac-pv-actions">
-            <PreviewButtons onPlay={onPlay} onMore={onMore} quiet="mac-btn-onart-quiet" />
+            <PreviewButtons
+              onPlay={onPlay}
+              onMore={onMore}
+              moreLabel={moreLabel}
+              quiet="mac-btn-onart-quiet"
+            />
           </span>
         </span>
       )}
@@ -85,7 +97,7 @@ export function PosterPreview({
   );
 }
 
-function PreviewButtons({ onPlay, onMore, quiet }: PreviewActions & { quiet: string }) {
+function PreviewButtons({ onPlay, onMore, moreLabel, quiet }: PreviewActions & { quiet: string }) {
   const t = useT();
   return (
     <>
@@ -106,7 +118,7 @@ function PreviewButtons({ onPlay, onMore, quiet }: PreviewActions & { quiet: str
         onClick={press(onMore)}
         className={`mac-btn ${quiet} inline-flex`}
       >
-        {t("More info")}
+        {moreLabel ?? t("More info")}
       </span>
     </>
   );
@@ -119,8 +131,15 @@ function PreviewButtons({ onPlay, onMore, quiet }: PreviewActions & { quiet: str
  * uncovered as it widens. Their width is told to the caption
  * (`--mac-under-acts`), which keeps the title and the facts clear of them.
  */
-export function PosterPreviewUnder({ open, onPlay, onMore }: PreviewActions & { open: boolean }) {
+export function PosterPreviewUnder({
+  open,
+  onPlay,
+  onMore,
+  moreLabel,
+}: PreviewActions & { open: boolean }) {
   const buttons = useRef<HTMLSpanElement>(null);
+  // Measured again when a button comes or goes (a collection's Play waits for its film).
+  const shown = `${onPlay ? "play" : ""}|${moreLabel ?? ""}`;
   useLayoutEffect(() => {
     const node = buttons.current;
     const caption = node?.closest<HTMLElement>(".mac-card-under");
@@ -129,11 +148,16 @@ export function PosterPreviewUnder({ open, onPlay, onMore }: PreviewActions & { 
     return () => {
       caption.style.removeProperty("--mac-under-acts");
     };
-  }, []);
+  }, [shown]);
   return (
     <span className="mac-under-acts" data-open={open ? "true" : undefined} inert={!open}>
       <span ref={buttons} className="mac-under-btns">
-        <PreviewButtons onPlay={onPlay} onMore={onMore} quiet="mac-btn-secondary" />
+        <PreviewButtons
+          onPlay={onPlay}
+          onMore={onMore}
+          moreLabel={moreLabel}
+          quiet="mac-btn-secondary"
+        />
       </span>
     </span>
   );

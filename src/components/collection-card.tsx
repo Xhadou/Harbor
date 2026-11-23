@@ -11,18 +11,21 @@ import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
 import { useContextMenu } from "@/lib/context-menu";
 import { isMacDesktop } from "@/lib/platform";
-import { MacCollectionCard } from "./mac-collection-card";
+import { MacCollectionCard, MacCollectionPoster } from "./mac-collection-card";
 
 export function CollectionCard({
   id,
   name,
   knownBackdrop,
   knownCount,
+  poster: asPoster = false,
 }: {
   id: number;
   name: string;
   knownBackdrop?: string | null;
   knownCount?: number | null;
+  /** macOS, in a row of posters: the card is a poster too and opens like one. */
+  poster?: boolean;
 }) {
   const { settings } = useSettings();
   const { openCollection } = useView();
@@ -32,6 +35,7 @@ export function CollectionCard({
   const [inView, setInView] = useState(false);
   const [backdrop, setBackdrop] = useState<string | null>(knownBackdrop ?? null);
   const [count, setCount] = useState<number | null>(knownCount ?? null);
+  const [posterArt, setPosterArt] = useState<string | null>(null);
   const [resolvedId, setResolvedId] = useState<number>(id);
 
   useEffect(() => {
@@ -64,6 +68,7 @@ export function CollectionCard({
       }
       if (cancelled || !c) return;
       setBackdrop(c.backdrop ?? null);
+      setPosterArt(c.poster ?? null);
       setCount(c.parts.length);
       setResolvedId(c.id);
     })();
@@ -102,6 +107,21 @@ export function CollectionCard({
   const openCard = () => {
     if (resolvedId > 0) openCollection(resolvedId);
   };
+
+  if (asPoster && isMacDesktop()) {
+    return (
+      <MacCollectionPoster
+        cardRef={ref}
+        name={name}
+        count={count}
+        poster={posterArt}
+        backdrop={backdrop}
+        collectionId={resolvedId}
+        onOpen={openCard}
+        onContextMenu={openMenu}
+      />
+    );
+  }
 
   if (isMacDesktop()) {
     return (

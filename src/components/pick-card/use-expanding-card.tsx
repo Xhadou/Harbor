@@ -19,7 +19,7 @@ type ArtworkState = {
  * An element's height as laid out. Its on-screen box is larger while the card is lifted
  * (`.mac-lift` scales it), and the width a card opens to is a layout length.
  */
-function layoutHeight(el: HTMLElement): number {
+export function layoutHeight(el: HTMLElement): number {
   const height = Number.parseFloat(getComputedStyle(el).height);
   return Number.isFinite(height) ? height : el.offsetHeight;
 }
