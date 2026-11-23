@@ -15,6 +15,8 @@ export const WINDOW_CLOSED_EVENT = "harbor://window-closed";
  */
 export function WindowClosedBridge() {
   useEffect(() => {
+    // The browser preview has no native side to hear from.
+    if (!("__TAURI_INTERNALS__" in window)) return;
     let unlisten: (() => void) | undefined;
     let cancelled = false;
     void import("@tauri-apps/api/event").then(({ listen }) =>
