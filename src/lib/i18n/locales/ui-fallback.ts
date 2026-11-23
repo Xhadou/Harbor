@@ -3141,6 +3141,8 @@ const uiFallback: Record<string, string> = {
   Shortcuts: "Shortcuts",
   "Video downloads are managed on the Downloads page.":
     "Video downloads are managed on the Downloads page.",
+  "Stop playback when you minimize Harbor to the Dock.":
+    "Stop playback when you minimize Harbor to the Dock.",
 };
 
 export default uiFallback;

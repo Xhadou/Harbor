@@ -200,7 +200,7 @@ export function AccountProviderPanel() {
                 e.stopPropagation();
                 selectProvider("stremio");
               }}
-              className={`rounded-xl px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+              className={`hset-provider-pick rounded-xl px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                 activeProvider === "stremio"
                   ? "bg-accent text-canvas font-semibold shadow-md shadow-accent/20"
                   : "bg-raised text-ink hover:bg-elevated"
@@ -334,7 +334,7 @@ export function AccountProviderPanel() {
                 e.stopPropagation();
                 selectProvider("nuvio");
               }}
-              className={`rounded-xl px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+              className={`hset-provider-pick rounded-xl px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
                 activeProvider === "nuvio"
                   ? "bg-accent text-canvas font-semibold shadow-md shadow-accent/20"
                   : "bg-raised text-ink hover:bg-elevated"

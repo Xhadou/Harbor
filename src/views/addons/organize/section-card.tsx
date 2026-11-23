@@ -149,7 +149,7 @@ function OrganizeRow({
   return (
     <div
       ref={rowRef}
-      className={`relative flex items-center gap-3 rounded-2xl border border-edge-soft bg-elevated px-3 py-3 sm:gap-4 sm:px-4 ${
+      className={`mac-organize-row relative flex items-center gap-3 rounded-2xl border border-edge-soft bg-elevated px-3 py-3 sm:gap-4 sm:px-4 ${
         dragging ? "opacity-50 ring-1 ring-accent/40" : ""
       } ${entry.muted ? "opacity-60" : ""}`}
     >

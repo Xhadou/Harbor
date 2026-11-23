@@ -8375,7 +8375,9 @@ html[data-os="macos"] .hset-grid > .hset-rail > :not(.hset-rail-nav) {
 html[data-os="macos"] .hset-mac-tabs {
   position: sticky;
   inset-block-start: 0;
-  z-index: 5;
+  /* Above anything a page raises within itself (a segmented control's labels
+     are at 10), below menus and panels. */
+  z-index: 20;
   display: flex;
   align-self: flex-start;
   max-inline-size: 100%;
@@ -8385,9 +8387,14 @@ html[data-os="macos"] .hset-mac-tabs {
   overflow-x: auto;
   scrollbar-width: none;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--color-elevated) 88%, transparent);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: color-mix(in srgb, var(--color-elevated) 88%, var(--color-canvas));
+  /* The strip stays put while the page scrolls, so the page must pass under
+     it and not round it: it stood as a see-through pill with rows showing
+     beside it and in the sliver above it. The page's own ground is laid
+     behind the strip across the whole width (a spread shadow, cut to a band),
+     which shows nothing at rest and covers what scrolls beneath. */
+  box-shadow: 0 0 0 100vmax var(--color-canvas);
+  clip-path: inset(-12px -100vmax -9px -100vmax);
 }
 html[data-os="macos"] .hset-mac-tabs::-webkit-scrollbar {
   display: none;
@@ -8648,13 +8655,41 @@ html[data-os="macos"]
 /* A Settings button is one size wherever it stands. The compact size reached
    only the buttons in a row's control column; one beside a note, or under a
    list, kept the larger type and padding of the other platforms. */
-html[data-os="macos"] .harbor-settings-shell .hset-main .hset-btn:not(.hset-btn-icon) {
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-main
+  :is(.hset-btn:not(.hset-btn-icon), .hset-artwork-actions button, .hset-provider-pick) {
   block-size: var(--hset-ctl-h);
   min-block-size: var(--hset-ctl-h);
   padding-inline: 12px;
   border-radius: 7px;
   font-size: 13px;
   font-weight: 500;
+}
+
+/* A row of a list that can be put in order (stream priority, the addons'
+   own order): a card's corner where it was a pill, and arrows the size of the
+   other small buttons where they were 44 px each. */
+html[data-os="macos"] .mac-organize-row {
+  padding-block: 8px;
+  border-radius: 10px;
+}
+html[data-os="macos"] .mac-organize-row button:not(.cursor-grab) {
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 6px;
+}
+html[data-os="macos"] .mac-organize-row button:not(.cursor-grab) svg {
+  inline-size: 15px;
+  block-size: 15px;
+}
+
+/* A row's icon is drawn plain. One row (beta updates) set its own in a
+   filled square, which no other row has. */
+html[data-os="macos"] .harbor-settings-shell .hset-row-lead > span.rounded-md {
+  inline-size: auto;
+  block-size: auto;
+  background: none;
 }
 
 /* A field drawn as a well round its input (a service's key with its logo, a

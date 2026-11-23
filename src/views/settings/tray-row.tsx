@@ -38,7 +38,12 @@ export function TrayRow() {
       />
       <ToggleRow
         label={t("Pause when minimized")}
-        sub={t("Stop playback when you minimize Harbor or send it to the tray.")}
+        sub={
+          // Closing the window always pauses on a Mac, whatever this says, and there is no tray.
+          isMacDesktop()
+            ? t("Stop playback when you minimize Harbor to the Dock.")
+            : t("Stop playback when you minimize Harbor or send it to the tray.")
+        }
         value={settings.pauseMinimized}
         onChange={(pauseMinimized) => update({ pauseMinimized })}
       />
