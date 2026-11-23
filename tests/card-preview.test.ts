@@ -6,6 +6,7 @@ import {
   PREVIEW_HANDOFF_MS,
   PREVIEW_LEAVE_AWAY_MS,
   PREVIEW_LEAVE_MS,
+  PREVIEW_LOOKUP_MS,
   PREVIEW_OPEN_EASE,
   PREVIEW_OPEN_MS,
   PREVIEW_REST_MS,
@@ -17,6 +18,7 @@ import {
   previewOpenDelay,
 } from "../src/lib/card-preview/policy.ts";
 import { collectionYears, pickCollectionFilm } from "../src/lib/card-preview/collection-pick.ts";
+import { createTakeover } from "../src/lib/card-preview/takeover.ts";
 
 const TODAY = "2026-11-22";
 const saga = [
@@ -34,7 +36,7 @@ test("the first card waits for the pointer to rest on it", () => {
   assert.equal(previewOpenDelay(null), PREVIEW_REST_MS);
 });
 
-test("the next card opens almost at once while a preview is open or has just closed", () => {
+test("the next card waits less while a preview is open or has just closed", () => {
   assert.equal(previewOpenDelay(0), PREVIEW_HANDOFF_MS);
   assert.equal(previewOpenDelay(PREVIEW_WARM_MS), PREVIEW_HANDOFF_MS);
 });
@@ -43,8 +45,56 @@ test("a card reached well after the last preview closed waits like the first", (
   assert.equal(previewOpenDelay(PREVIEW_WARM_MS + 1), PREVIEW_REST_MS);
 });
 
-test("an open card outlasts the hand-off, so two cards swap in one movement", () => {
-  assert.ok(PREVIEW_LEAVE_MS > PREVIEW_HANDOFF_MS);
+test("no card opens under a pointer that is only passing", () => {
+  // The shorter wait is still a rest, and the card that was left has closed by then.
+  assert.ok(PREVIEW_HANDOFF_MS >= 1000);
+  assert.ok(PREVIEW_HANDOFF_MS < PREVIEW_REST_MS);
+  // The trailer is looked up well before the card opens.
+  assert.ok(PREVIEW_LOOKUP_MS < PREVIEW_HANDOFF_MS);
+});
+
+test("an open card waits for the card the pointer rests on, and no longer than that", () => {
+  let clock = 1000;
+  const takeover = createTakeover(() => clock);
+  assert.equal(takeover.waitMs("row"), 0);
+  takeover.announce("row", PREVIEW_HANDOFF_MS);
+  // The open card looks when its own short wait is over: the neighbour is still counting.
+  clock += PREVIEW_LEAVE_MS;
+  assert.equal(takeover.waitMs("row"), PREVIEW_HANDOFF_MS - PREVIEW_LEAVE_MS);
+  // The pointer moved on before the neighbour opened: nothing is waiting, the card may close.
+  takeover.cancel();
+  assert.equal(takeover.waitMs("row"), 0);
+  // A card that never opens (its picture did not come) does not hold the open one for ever.
+  takeover.announce("row", PREVIEW_HANDOFF_MS);
+  clock += PREVIEW_HANDOFF_MS + 1;
+  assert.equal(takeover.waitMs("row"), 0);
+});
+
+test("a card waiting in another row holds nothing open in this one", () => {
+  const takeover = createTakeover(() => 0);
+  takeover.announce("row above", PREVIEW_HANDOFF_MS);
+  assert.equal(takeover.waitMs("row"), 0);
+  assert.equal(takeover.waitMs("row above"), PREVIEW_HANDOFF_MS);
+});
+
+test("leaving the row ends the wait and tells the card still open in that row", () => {
+  const takeover = createTakeover(() => 0);
+  let told = 0;
+  let toldElsewhere = 0;
+  const stop = takeover.onLeftRow("row", () => {
+    told += 1;
+  });
+  takeover.onLeftRow("row above", () => {
+    toldElsewhere += 1;
+  });
+  takeover.announce("row", PREVIEW_HANDOFF_MS);
+  takeover.leftRow("row");
+  assert.equal(takeover.waitMs("row"), 0);
+  assert.equal(told, 1);
+  assert.equal(toldElsewhere, 0);
+  stop();
+  takeover.leftRow("row");
+  assert.equal(told, 1);
 });
 
 test("while a card is open every card moves on the opening curve, so two cards swap evenly", () => {

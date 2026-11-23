@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   CARD_LIFT_PX,
   CARD_LIFT_SCALE,
+  OPEN_CARD_CLEAR_PX,
   liftRoom,
   liftScale,
   openWidthWithin,
@@ -41,6 +42,23 @@ test("an open card keeps the distance to its neighbours a lifted card at rest ha
     const distanceOpen = gap + liftRoom(open, rest, scale) - overflow(open);
     assert.ok(Math.abs(distanceOpen - distanceAtRest) < 1e-9);
     assert.ok(Math.abs(distanceAtRest - (gap - CARD_LIFT_PX / 2)) < 1e-9);
+  }
+});
+
+test("an open card stands further from its neighbours than a lifted one, by the clearance", () => {
+  const gap = 12;
+  const rest = 176;
+  const open = 470;
+  const scale = liftScale(rest);
+  const overflow = (width: number) => (width * (scale - 1)) / 2;
+  const distance = gap + liftRoom(open, rest, scale, OPEN_CARD_CLEAR_PX) - overflow(open);
+  assert.ok(Math.abs(distance - (gap - CARD_LIFT_PX / 2 + OPEN_CARD_CLEAR_PX)) < 1e-9);
+  // A card that opens in place has not widened and takes no room at all.
+  assert.equal(liftRoom(rest, rest, scale, OPEN_CARD_CLEAR_PX), 0);
+  for (const limit of [1200, 480, 300]) {
+    const width = openWidthWithin(open, rest, limit, scale, OPEN_CARD_CLEAR_PX);
+    const room = liftRoom(width, rest, scale, OPEN_CARD_CLEAR_PX);
+    assert.ok(width + 2 * room <= Math.max(limit, rest) + 1e-9);
   }
 });
 

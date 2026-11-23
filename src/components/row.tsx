@@ -5,6 +5,7 @@ import {
   memo,
   startTransition,
   useCallback,
+  useId,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -29,6 +30,7 @@ import {
   easeProgress,
   previewMotion,
   type PreviewMotion,
+  OPEN_CARD_CLEAR_PX,
   liftRoom,
   liftScale,
   openWidthWithin,
@@ -126,6 +128,8 @@ function LazyChild({
     previews: boolean;
     /** How long the cell takes to change width, and its curve, when not the default. */
     motion?: { ms: number; ease: string };
+    /** Which row the card is in, for cards that wait on one another (card previews). */
+    rowId: string;
     onExpand: (index: number, width: number) => void;
     onCollapse: (index: number) => void;
   };
@@ -224,6 +228,7 @@ function LazyChild({
             enabled
             previews={expansion.previews}
             expanded={expansion.expanded}
+            rowId={expansion.rowId}
             onExpand={expansion.onExpand}
             onCollapse={expansion.onCollapse}
           >
@@ -468,6 +473,7 @@ export function Row({
   const scrollHomeRef = useRef<{ home: number; placed: number } | null>(null);
   const lastExpandedIndexRef = useRef(0);
 
+  const rowId = useId();
   const expandRowCard = useCallback(
     (index: number, width: number) => {
       if (!expandingCards) return;
@@ -1188,10 +1194,18 @@ export function Row({
               const liftedRow = macRow && previewCards;
               const openWidth =
                 fittedWidth !== undefined && liftedRow
-                  ? openWidthWithin(fittedWidth, baseWidth, viewportLimit, rowLift)
+                  ? openWidthWithin(
+                      fittedWidth,
+                      baseWidth,
+                      viewportLimit,
+                      rowLift,
+                      OPEN_CARD_CLEAR_PX,
+                    )
                   : fittedWidth;
               const room =
-                openWidth !== undefined && liftedRow ? liftRoom(openWidth, baseWidth, rowLift) : 0;
+                openWidth !== undefined && liftedRow
+                  ? liftRoom(openWidth, baseWidth, rowLift, OPEN_CARD_CLEAR_PX)
+                  : 0;
               const expandedWidth = openWidth === undefined ? undefined : openWidth + 2 * room;
               return (
                 <LazyChild
@@ -1209,6 +1223,7 @@ export function Row({
                           expanded,
                           previews: previewCards,
                           motion: cardMotion,
+                          rowId,
                           onExpand: expandRowCard,
                           onCollapse: collapseRowCard,
                         }

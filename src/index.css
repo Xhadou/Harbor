@@ -9360,23 +9360,29 @@ html[data-os="macos"] .mac-card {
 }
 
 /* A card under the pointer, or holding keyboard focus, lifts: the whole card,
-   its title with it, grows a little towards the viewer. Nothing is drawn
-   around it. It stays lifted while its preview is open, so a card rises first
-   and then opens within the lift.
+   its title with it, rises towards the viewer, about a tenth larger, and its
+   picture takes a soft shadow. Nothing is drawn around it. It rises slowly: it
+   moves off gently, covers most of the way in the middle and takes its time to
+   settle, so a pointer that is only crossing a row leaves the cards almost
+   still. It stays lifted while its preview is open, so a card rises first and,
+   after a rest, opens within the lift.
 
    The way back is as considered as the way in. A card the pointer only passed
-   over settles quickly. A card that was open settles over the same time as it
-   closes (`--row-expand-ms`, the row's movement under way), so its size and its
-   width come to rest together. `data-pv-closing` marks that card from the
-   render in which it stops being open. */
+   over settles a little quicker than it rose. A card that was open settles over
+   the same time as it closes (`--row-expand-ms`, the row's movement under way),
+   so its size and its width come to rest together. `data-pv-closing` marks that
+   card from the render in which it stops being open. */
 html[data-os="macos"] {
   /* A poster in a grid; also `CARD_LIFT_SCALE` in src/lib/card-preview/policy.ts.
-     A row sets its own, so each of its cards grows by the same eight pixels of
-     width whatever its shape (row.tsx). */
-  --mac-lift-scale: 1.045;
+     A row sets its own, so each of its cards grows by the same eighteen pixels
+     of width whatever its shape (row.tsx). */
+  --mac-lift-scale: 1.102;
+  --mac-lift-shadow:
+    0 18px 30px -16px rgb(0 0 0 / 0.75), 0 6px 14px -8px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 html[data-os="macos"] .mac-lift {
-  --lift-ms: 300ms;
+  --lift-ms: 420ms;
   --lift-ease: cubic-bezier(0.3, 0, 0.1, 1);
   transform-origin: center;
   transition: transform var(--lift-ms) var(--lift-ease);
@@ -9391,10 +9397,29 @@ html[data-os="macos"]
     :has(:focus-visible),
     :has(.mac-pv[data-open])
   ) {
-  --lift-ms: 240ms;
-  --lift-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --lift-ms: 520ms;
+  --lift-ease: cubic-bezier(0.4, 0, 0.15, 1);
   z-index: 2;
   transform: scale(var(--mac-lift-scale));
+}
+/* The picture of a lifted card: a poster, a wide card's artwork, an episode's still.
+   The shadow is short, so it does not fall across the title of its own card. */
+html[data-os="macos"] .mac-lift :is(.harbor-card-ring, .mac-cw-art),
+html[data-os="macos"] .mac-ep-root.mac-lift > button {
+  transition: box-shadow var(--lift-ms) var(--lift-ease);
+}
+html[data-os="macos"]
+  .mac-lift:not([data-no-card-ring]):is(
+    :hover,
+    :focus-visible,
+    :has(:focus-visible),
+    :has(.mac-pv[data-open])
+  )
+  :is(.harbor-card-ring, .mac-cw-art),
+html[data-os="macos"]
+  .mac-ep-root.mac-lift:is(:hover, :has(:focus-visible), :has(.mac-pv[data-open]))
+  > button {
+  box-shadow: var(--mac-lift-shadow);
 }
 /* Under the keyboard a card also dims and clears as focus moves along the row,
    and that rule states its own transition; the lift keeps its place in it. */
@@ -9405,18 +9430,15 @@ html[data-os="macos"]:not([data-input-modality="pointer"]) #root .mac-lift[data-
     filter 220ms ease;
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-os="macos"] .mac-lift {
+  html[data-os="macos"] .mac-lift,
+  html[data-os="macos"] .mac-lift :is(.harbor-card-ring, .mac-cw-art),
+  html[data-os="macos"] .mac-ep-root.mac-lift > button {
     transition: none;
   }
 }
 /* Other platforms ring a poster under the pointer; here the lift says it. */
 html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-ring::after {
   box-shadow: none;
-}
-/* The lifted poster's shadow stays short, so it does not fall across the
-   title of the very card the pointer is on. */
-html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-ring {
-  box-shadow: 0 10px 22px -10px rgb(0 0 0 / 0.6);
 }
 
 /* A label on a poster (New, In cinema, Dub): one quiet chip, in ordinary

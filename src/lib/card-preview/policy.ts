@@ -1,12 +1,15 @@
 /**
- * When a card opens into its preview. The first card waits for the pointer to
- * rest on it, so passing over a row opens nothing. Once one preview has been
- * open, the next card opens almost at once: the two cards then swap in one
+ * When a card opens into its preview. A card waits for the pointer to rest on
+ * it for a good while, so moving along a row opens nothing, and the trailer has
+ * that time to be found before the card opens. While a preview is open, or has
+ * only just closed, the person is plainly looking at previews: the next card
+ * they rest on waits less, though still long enough that passing over it opens
+ * nothing. The open card stays open through that wait, so the two swap in one
  * movement and the row under the pointer does not shift twice.
  */
 
 /** How long the pointer rests on a card before the first preview opens. */
-export const PREVIEW_REST_MS = 700;
+export const PREVIEW_REST_MS = 3000;
 /** How long a card takes to open, or to change places with the card that opens next. */
 export const PREVIEW_OPEN_MS = 680;
 /** The curve it follows: it starts gently and settles, where the row's own curve leaps. */
@@ -18,15 +21,24 @@ export const PREVIEW_CLOSE_EASE = "cubic-bezier(0.3, 0, 0.1, 1)";
 /** How long a trailer takes to give the picture, and its sound, back to the artwork. */
 export const PREVIEW_TRAILER_OUT_MS = 280;
 /** How long it rests on the next card while a preview is, or has just been, open. */
-export const PREVIEW_HANDOFF_MS = 100;
+export const PREVIEW_HANDOFF_MS = 1000;
 /** How long after a preview closes the next card still counts as "the next card". */
 export const PREVIEW_WARM_MS = 400;
-/** How long a preview stays open after the pointer leaves it. Longer than the hand-off. */
+/**
+ * How long a preview stays open after the pointer leaves it for another card: long enough
+ * to cross the gap between two cards and come back without the card starting to close.
+ * If the pointer then rests on a card of the same row, the open card waits on for that
+ * card to take over (takeover.ts), and the two change places in one movement.
+ */
 export const PREVIEW_LEAVE_MS = 160;
 /** The same wait when the pointer left the row altogether: no card is about to take over. */
 export const PREVIEW_LEAVE_AWAY_MS = 60;
-/** How long the pointer rests before the trailer is looked up, ahead of the card opening. */
-export const PREVIEW_LOOKUP_MS = 150;
+/**
+ * How long the pointer rests before the trailer is looked up, well ahead of the card
+ * opening: a pointer on its way elsewhere starts no lookup, and one that stays has its
+ * trailer found by the time the card opens.
+ */
+export const PREVIEW_LOOKUP_MS = 300;
 
 /**
  * The wait before a card opens, given how long ago a preview was last open
@@ -88,9 +100,9 @@ export function easeProgress(ease: string, t: number): number {
  * otherwise: a poster in a grid. The same number is `--mac-lift-scale` in index.css;
  * `tests/mac-card-lift.test.ts` holds the two together.
  */
-export const CARD_LIFT_SCALE = 1.045;
+export const CARD_LIFT_SCALE = 1.102;
 /** How many pixels wider a lifted card in a row is, whatever its shape. */
-export const CARD_LIFT_PX = 8;
+export const CARD_LIFT_PX = 18;
 
 /**
  * The lift for a row whose cards are `restWidth` wide. Every card grows by the same
@@ -101,11 +113,20 @@ export function liftScale(restWidth: number): number {
 }
 
 /**
- * The room an open, lifted card needs on each side so it stays as far from its neighbours
- * as a lifted card at rest does: the lift's share of the width the card gained by opening.
+ * How much further an open card stands from the cards beside it than a lifted card at
+ * rest does. A lifted poster may come close to its neighbours; an open one ends in its
+ * buttons, which need to stand clear of the next card's own lines.
  */
-export function liftRoom(openWidth: number, restWidth: number, scale: number): number {
-  return Math.max(0, ((openWidth - restWidth) * (scale - 1)) / 2);
+export const OPEN_CARD_CLEAR_PX = 7;
+
+/**
+ * The room an open, lifted card needs on each side: the lift's share of the width the
+ * card gained by opening, which keeps it as far from its neighbours as a lifted card at
+ * rest is, and `clear` on top of that. A card that has not widened needs none.
+ */
+export function liftRoom(openWidth: number, restWidth: number, scale: number, clear = 0): number {
+  if (openWidth <= restWidth) return 0;
+  return ((openWidth - restWidth) * (scale - 1)) / 2 + Math.max(0, clear);
 }
 
 /**
@@ -117,7 +138,9 @@ export function openWidthWithin(
   restWidth: number,
   limit: number,
   scale: number,
+  clear = 0,
 ): number {
-  if (openWidth + 2 * liftRoom(openWidth, restWidth, scale) <= limit) return openWidth;
-  return Math.max(restWidth, (limit + restWidth * (scale - 1)) / scale);
+  if (openWidth + 2 * liftRoom(openWidth, restWidth, scale, clear) <= limit) return openWidth;
+  const room = 2 * Math.max(0, clear);
+  return Math.max(restWidth, (limit - room + restWidth * (scale - 1)) / scale);
 }

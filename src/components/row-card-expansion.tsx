@@ -5,6 +5,8 @@ type RowCardExpansionValue = {
   /** The row opens a card under a resting pointer (macOS card previews), not only under keyboard focus. */
   previews: boolean;
   expanded: boolean;
+  /** The row this card is in: two cards with the same value share a row. */
+  rowId: string;
   expand: (width: number) => void;
   collapse: () => void;
 };
@@ -16,6 +18,7 @@ export function RowCardExpansionProvider({
   enabled,
   previews = false,
   expanded,
+  rowId = "",
   onExpand,
   onCollapse,
   children,
@@ -24,6 +27,7 @@ export function RowCardExpansionProvider({
   enabled: boolean;
   previews?: boolean;
   expanded: boolean;
+  rowId?: string;
   onExpand: (index: number, width: number) => void;
   onCollapse: (index: number) => void;
   children: ReactNode;
@@ -31,8 +35,8 @@ export function RowCardExpansionProvider({
   const expand = useCallback((width: number) => onExpand(index, width), [index, onExpand]);
   const collapse = useCallback(() => onCollapse(index), [index, onCollapse]);
   const value = useMemo<RowCardExpansionValue>(
-    () => ({ enabled, previews, expanded, expand, collapse }),
-    [collapse, enabled, expand, expanded, previews],
+    () => ({ enabled, previews, expanded, rowId, expand, collapse }),
+    [collapse, enabled, expand, expanded, previews, rowId],
   );
 
   return (
