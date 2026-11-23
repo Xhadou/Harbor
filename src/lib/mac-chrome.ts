@@ -144,6 +144,12 @@ export const MAC_ABSENT_SETTINGS: ReadonlySet<string> = new Set([
   "Gemini · in-player song ID",
   // The Mac edition is built without the eBook reader.
   "Create folders for eBooks",
+  // A Mac's title bar and its buttons are the system's.
+  "Window title bar",
+  "Top-right controls",
+  "Frost the top bar on scroll",
+  // The Mac sidebar is the system's own and draws its own icons.
+  "Animated sidebar icons",
 ]);
 
 export function macDefaultBinding(id: string, binding: string, os: OsClass): string {

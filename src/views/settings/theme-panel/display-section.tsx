@@ -39,19 +39,22 @@ export function AmbienceSection() {
   const soundEffectsEnabled = settings.soundTheme !== "none";
   return (
     <>
-      <Section title={t("Sidebar")} subtitle={t("How the navigation icons behave.")}>
-        <SettingGroup>
-          <ToggleRow
-            label={t("Animated sidebar icons")}
-            sub={t(
-              "Sidebar icons play a short animation when you hover them. Turn this off to keep them as plain static icons.",
-            )}
-            value={settings.navIconAnimations}
-            onChange={(v) => update({ navIconAnimations: v })}
-            leading={<MousePointer2 size={18} strokeWidth={2} />}
-          />
-        </SettingGroup>
-      </Section>
+      {/* The Mac sidebar is the system's own and draws its own icons. */}
+      {!isMacDesktop() && (
+        <Section title={t("Sidebar")} subtitle={t("How the navigation icons behave.")}>
+          <SettingGroup>
+            <ToggleRow
+              label={t("Animated sidebar icons")}
+              sub={t(
+                "Sidebar icons play a short animation when you hover them. Turn this off to keep them as plain static icons.",
+              )}
+              value={settings.navIconAnimations}
+              onChange={(v) => update({ navIconAnimations: v })}
+              leading={<MousePointer2 size={18} strokeWidth={2} />}
+            />
+          </SettingGroup>
+        </Section>
+      )}
 
       <Section
         title={t("Sound effects")}

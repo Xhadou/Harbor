@@ -226,20 +226,19 @@ function WindowTab() {
   const { settings } = useSettings();
   return (
     <>
-      {isTauri && (
+      {/* A Mac's title bar and its buttons are the system's: there is nothing here to choose. */}
+      {isTauri && !isMacDesktop() && (
         <Section
           title={t("Window title bar")}
           subtitle={t(
             "Choose whether your operating system draws the title bar, or Harbor draws its own.",
           )}
         >
-          {!isMacDesktop() && (
-            <SettingGroup>
-              <NativeTitleBarRow />
-            </SettingGroup>
-          )}
+          <SettingGroup>
+            <NativeTitleBarRow />
+          </SettingGroup>
           <SettingGroup label={t("Harbor's own bar")}>
-            {!isMacDesktop() && <HybridBarRow />}
+            <HybridBarRow />
             <TopbarAppearanceRow />
             {settings.topbarAppearance !== "transparent" && <TopbarScrollBlurRow />}
           </SettingGroup>
