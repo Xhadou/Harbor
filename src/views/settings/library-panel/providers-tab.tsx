@@ -10,6 +10,7 @@ import { useSettings } from "@/lib/settings";
 import { useAuth } from "@/lib/auth";
 import { hasCustomMetaAddon, hasCustomMetaAddonAsync } from "@/lib/meta-resource";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { Section, Segmented, ToggleRow } from "../shared";
 import { ROW_ACTION, SettingGroup, SettingRow, Nested } from "../kit";
 import { EpisodeOrderSetting } from "../episode-order-setting";
@@ -147,24 +148,29 @@ export function ProvidersTab(props: ProviderKeysArgs) {
       </Section>
 
       <Section title={t("Song identification")}>
-        <SettingGroup>
-          <SettingRow
-            wide
-            icon={<Music size={18} strokeWidth={2} />}
-            label={t("Song ID provider")}
-            desc={t("Which service names the track when you tap Identify song in the player.")}
-          >
-            <Segmented
-              value={settings.songIdProvider}
-              options={[
-                { value: "audd", label: t("AudD") },
-                { value: "ai", label: t("AI (Gemini)") },
-              ]}
-              onChange={(v) => update({ songIdProvider: v as "audd" | "ai" })}
-            />
-          </SettingRow>
-          <Nested>{settings.songIdProvider === "ai" ? keyRow("songai") : keyRow("audd")}</Nested>
-        </SettingGroup>
+        {isMacDesktop() ? (
+          // Gemini names songs on Windows only: here there is one service and nothing to choose.
+          <SettingGroup>{keyRow("audd")}</SettingGroup>
+        ) : (
+          <SettingGroup>
+            <SettingRow
+              wide
+              icon={<Music size={18} strokeWidth={2} />}
+              label={t("Song ID provider")}
+              desc={t("Which service names the track when you tap Identify song in the player.")}
+            >
+              <Segmented
+                value={settings.songIdProvider}
+                options={[
+                  { value: "audd", label: t("AudD") },
+                  { value: "ai", label: t("AI (Gemini)") },
+                ]}
+                onChange={(v) => update({ songIdProvider: v as "audd" | "ai" })}
+              />
+            </SettingRow>
+            <Nested>{settings.songIdProvider === "ai" ? keyRow("songai") : keyRow("audd")}</Nested>
+          </SettingGroup>
+        )}
       </Section>
 
       <Section title={t("API budget")}>

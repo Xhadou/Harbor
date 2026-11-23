@@ -137,6 +137,13 @@ export const MAC_ABSENT_SETTINGS: ReadonlySet<string> = new Set([
   "System tray",
   // A profile's song plays through the music section, which the Mac edition is built without.
   "Profile songs",
+  // A Mac has no taskbar for a separate player window to cover.
+  "Cover the taskbar",
+  // Only one service names songs on a Mac, so there is nothing to choose.
+  "Song ID provider (AudD / Gemini)",
+  "Gemini · in-player song ID",
+  // The Mac edition is built without the eBook reader.
+  "Create folders for eBooks",
 ]);
 
 export function macDefaultBinding(id: string, binding: string, os: OsClass): string {

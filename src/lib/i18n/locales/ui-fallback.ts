@@ -3124,6 +3124,9 @@ const uiFallback: Record<string, string> = {
   "Start with": "Start with",
   "Watch again": "Watch again",
   "All films": "All films",
+  "The icon in the Dock updates right away.": "The icon in the Dock updates right away.",
+  "Re-apply to the Dock now": "Re-apply to the Dock now",
+  "In the Dock": "In the Dock",
   "Fills the screen, but the title bar, the menu bar and the Dock stay.":
     "Fills the screen, but the title bar, the menu bar and the Dock stay.",
   "Same coverage, but still a window, so switching apps stays instant.":

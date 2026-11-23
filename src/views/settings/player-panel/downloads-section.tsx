@@ -3,6 +3,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { FolderOpen, RotateCcw } from "../icons";
 import { useEffect, useState, type ReactNode } from "react";
+import { HAS_EBOOK } from "@/lib/features/edition";
 import { useSettings } from "@/lib/settings";
 import { useT } from "@/lib/i18n";
 import { SettingGroup, SettingRow } from "../kit";
@@ -82,24 +83,26 @@ export function DownloadsSection() {
           onChange={(v) => update({ downloadCreateFolders: v })}
         />
       </DownloadLocation>
-      <DownloadLocation
-        title={t("eBooks")}
-        current={settings.ebookDownloadDir || settings.downloadDir || systemDefault}
-        loading={loadingDefault}
-        custom={!!settings.ebookDownloadDir}
-        onChoose={() => void pickFolder("ebook")}
-        onReset={() => update({ ebookDownloadDir: "" })}
-        onReveal={() =>
-          void revealCurrent(settings.ebookDownloadDir || settings.downloadDir || systemDefault)
-        }
-      >
-        <ToggleRow
-          label={t("Create folders for eBooks")}
-          sub={t("Each title gets its own folder holding its EPUB or PDF.")}
-          value={settings.ebookDownloadCreateFolders}
-          onChange={(value) => update({ ebookDownloadCreateFolders: value })}
-        />
-      </DownloadLocation>
+      {HAS_EBOOK && (
+        <DownloadLocation
+          title={t("eBooks")}
+          current={settings.ebookDownloadDir || settings.downloadDir || systemDefault}
+          loading={loadingDefault}
+          custom={!!settings.ebookDownloadDir}
+          onChoose={() => void pickFolder("ebook")}
+          onReset={() => update({ ebookDownloadDir: "" })}
+          onReveal={() =>
+            void revealCurrent(settings.ebookDownloadDir || settings.downloadDir || systemDefault)
+          }
+        >
+          <ToggleRow
+            label={t("Create folders for eBooks")}
+            sub={t("Each title gets its own folder holding its EPUB or PDF.")}
+            value={settings.ebookDownloadCreateFolders}
+            onChange={(value) => update({ ebookDownloadCreateFolders: value })}
+          />
+        </DownloadLocation>
+      )}
       {error && (
         <p role="alert" className="text-[15px] text-danger">
           {error}

@@ -128,15 +128,18 @@ export function PlayerEnginePanel() {
                   value={settings.playerSeparateDisplay}
                   onChange={(playerSeparateDisplay) => update({ playerSeparateDisplay })}
                 />
-                <ToggleRow
-                  label={t("Cover the taskbar")}
-                  sub={t(
-                    "Span the whole screen including the taskbar. Turn off to keep the taskbar visible on that monitor.",
-                  )}
-                  value={settings.playerSeparateCoverTaskbar}
-                  onChange={(v) => update({ playerSeparateCoverTaskbar: v })}
-                  newId="player:cover-taskbar"
-                />
+                {/* A Mac has no taskbar: a window on another display never covers the menu bar. */}
+                {!isMacDesktop() && (
+                  <ToggleRow
+                    label={t("Cover the taskbar")}
+                    sub={t(
+                      "Span the whole screen including the taskbar. Turn off to keep the taskbar visible on that monitor.",
+                    )}
+                    value={settings.playerSeparateCoverTaskbar}
+                    onChange={(v) => update({ playerSeparateCoverTaskbar: v })}
+                    newId="player:cover-taskbar"
+                  />
+                )}
               </>
             )}
           </SettingGroup>

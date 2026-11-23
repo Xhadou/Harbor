@@ -1,4 +1,5 @@
 import { Check, ChevronDown, ImageDown, RefreshCw, Trash2, Upload } from "../icons";
+import { isMacDesktop } from "@/lib/platform";
 import { useEffect, useRef, useState } from "react";
 import { applyAppIcon } from "@/lib/app-icon";
 import { useSettings } from "@/lib/settings";
@@ -197,9 +198,13 @@ function AppIconPicker() {
       <SettingRow
         wide
         label={t("App icon")}
-        desc={t(
-          "The window and taskbar icon updates right away. The installed shortcut refreshes on the next update.",
-        )}
+        desc={
+          isMacDesktop()
+            ? t("The icon in the Dock updates right away.")
+            : t(
+                "The window and taskbar icon updates right away. The installed shortcut refreshes on the next update.",
+              )
+        }
       >
         <div className="flex w-full flex-wrap items-center gap-3">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center">
@@ -228,7 +233,11 @@ function AppIconPicker() {
             <SButton
               variant={failed ? "danger" : "secondary"}
               onClick={() => void applyNow()}
-              title={t("Re-apply to the window and taskbar now")}
+              title={
+                isMacDesktop()
+                  ? t("Re-apply to the Dock now")
+                  : t("Re-apply to the window and taskbar now")
+              }
             >
               {applied ? (
                 <Check size={18} strokeWidth={2.6} className="text-accent" />
@@ -257,7 +266,9 @@ function AppIconPicker() {
 
       {open && (
         <div className="animate-fade-in flex flex-col gap-3 pt-1">
-          <span className="harbor-settings-label">{t("On the taskbar")}</span>
+          <span className="harbor-settings-label">
+            {isMacDesktop() ? t("In the Dock") : t("On the taskbar")}
+          </span>
           <div className="w-[172px]">
             <TaskbarPreview srcs={PRESET_SRCS} active={rot} />
           </div>

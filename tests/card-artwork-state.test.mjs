@@ -207,6 +207,7 @@ test("provider warning does not retain a previous account result during a switch
     "@/lib/settings": { useSettings: () => ({ settings: { cinemetaEnabled: false } }) },
     "@/lib/auth": { useAuth: () => ({ authKey }) },
     "@/lib/i18n": { useT: () => (text) => text },
+    "@/lib/platform": { isMacDesktop: () => false },
     "./provider-keys": { useProviderKeys: () => ({ keyRow: () => null }) },
     "@/lib/meta-resource": {
       hasCustomMetaAddon: () => false,
