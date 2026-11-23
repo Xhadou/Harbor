@@ -11,6 +11,8 @@ static ALWAYS_ON_TOP: AtomicBool = AtomicBool::new(false);
 static PAUSE_MINIMIZED: AtomicBool = AtomicBool::new(true);
 static PAUSE_UNFOCUSED: AtomicBool = AtomicBool::new(false);
 
+// A Mac always puts its window away on close (`mac_native::window_close`), so nothing asks there.
+#[cfg(not(target_os = "macos"))]
 pub fn close_to_tray() -> bool {
     CLOSE_TO_TRAY.load(Ordering::Relaxed)
 }
