@@ -74,7 +74,7 @@ export function AiModelSelect({
         <button
           ref={ref}
           onClick={() => setOpen((v) => !v)}
-          className={`flex h-11 w-full items-center gap-2.5 rounded-[8px] border px-3 text-start transition-colors ${
+          className={`hset-menu-face flex h-11 w-full items-center gap-2.5 rounded-[8px] border px-3 text-start transition-colors ${
             open ? "border-edge bg-elevated" : "border-edge-soft bg-canvas hover:border-edge"
           }`}
         >
