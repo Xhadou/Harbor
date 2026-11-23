@@ -307,8 +307,10 @@ const CalendarView = lazy(() => importCalendar().then((m) => ({ default: m.Calen
 const WrappedView = lazy(() => importWrapped().then((m) => ({ default: m.WrappedView })));
 const DetailView = lazy(() => importDetail().then((m) => ({ default: m.DetailView })));
 const AddonsView = lazy(() => importAddons().then((m) => ({ default: m.AddonsView })));
-const Discover = memo(lazy(() => importDiscover().then((m) => ({ default: m.Discover }))));
-const Catalogs = memo(lazy(() => importCatalogs().then((m) => ({ default: m.Catalogs }))));
+const DiscoverLazy = lazy(() => importDiscover().then((m) => ({ default: m.Discover })));
+const Discover = memo(DiscoverLazy);
+const CatalogsLazy = lazy(() => importCatalogs().then((m) => ({ default: m.Catalogs })));
+const Catalogs = memo(CatalogsLazy);
 const PluginsView = lazy(() => importPlugins().then((m) => ({ default: m.Plugins })));
 const AwardView = lazy(() => importAward().then((m) => ({ default: m.AwardView })));
 const AnimeAwardView = lazy(() => importAnimeAward().then((m) => ({ default: m.AnimeAwardView })));
@@ -345,7 +347,8 @@ const CommunityCollectionsView = lazy(() =>
 );
 const PlayPicker = lazy(() => importPlayPicker().then((m) => ({ default: m.PlayPicker })));
 const PlayerView = lazy(() => importPlayer().then((m) => ({ default: m.PlayerView })));
-const Movies = memo(lazy(() => importMovies().then((m) => ({ default: m.Movies }))));
+const MoviesLazy = lazy(() => importMovies().then((m) => ({ default: m.Movies })));
+const Movies = memo(MoviesLazy);
 const Kids = lazy(() => importKids().then((m) => ({ default: m.Kids })));
 const KidsDetailView = lazy(() =>
   import("@/views/kids-detail").then((m) => ({ default: m.KidsDetailView })),
@@ -390,34 +393,36 @@ function useViewPreloader(tmdbKey: string) {
     const schedule = (cb: () => void) => {
       handle = idle ? win.requestIdleCallback!(cb, { timeout: 2500 }) : window.setTimeout(cb, 1200);
     };
+    // Each view's own `preload`, not a bare import: it also tells the view its module is here,
+    // so the first opening renders at once instead of suspending (see `lazyView`).
     const preloaders: Array<() => Promise<unknown>> = [
-      importDetail,
-      importPlayPicker,
-      importPlayer,
-      importSettings,
-      importDiscover,
-      importAddons,
-      importPerson,
-      importPeople,
-      importFilter,
-      importCalendar,
-      importMovies,
-      importShows,
-      importLive,
-      importAnime,
-      importQueue,
-      importAward,
-      importAnimeAward,
-      importService,
-      importOnboarding,
-      importCatalogs,
-      importPlugins,
-      importLibrary,
-      importCommunityCollections,
-      importDownloads,
-      importGrid,
-      importWrapped,
-      importKids,
+      DetailView.preload,
+      PlayPicker.preload,
+      PlayerView.preload,
+      Settings.preload,
+      DiscoverLazy.preload,
+      AddonsView.preload,
+      PersonView.preload,
+      PeopleView.preload,
+      FilterView.preload,
+      CalendarView.preload,
+      MoviesLazy.preload,
+      Shows.preload,
+      LiveView.preload,
+      AnimeView.preload,
+      QueueView.preload,
+      AwardView.preload,
+      AnimeAwardView.preload,
+      ServiceView.preload,
+      OnboardingModal.preload,
+      CatalogsLazy.preload,
+      PluginsView.preload,
+      LibraryView.preload,
+      CommunityCollectionsView.preload,
+      DownloadsView.preload,
+      GridView.preload,
+      WrappedView.preload,
+      Kids.preload,
       async () => {
         if (keyRef.current) {
           const m = await import("@/lib/feed/pool");

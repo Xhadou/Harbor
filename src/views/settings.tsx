@@ -1,12 +1,4 @@
-import {
-  lazy,
-  startTransition,
-  Suspense,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { LibraryKey } from "./settings/library-panel";
 import type { RelayMode } from "./settings/relay-section";
 import type { DebridKey } from "./settings/streaming-sources-panel";
@@ -39,6 +31,7 @@ import { useThemeLibraryOpen } from "./settings/theme-panel/library-open-store";
 import { BackToTop } from "@/components/back-to-top";
 import { resetOmdbBudget } from "@/lib/providers/omdb";
 import { useSettings } from "@/lib/settings";
+import { lazyView as lazy } from "@/lib/lazy-view";
 import { useView } from "@/lib/view";
 import { useT } from "@/lib/i18n";
 import { useMediaQuery } from "@/lib/use-media-query";
@@ -131,39 +124,39 @@ const AdvancedPanel = lazy(() =>
   import("./settings/advanced-panel").then((m) => ({ default: m.AdvancedPanel })),
 );
 
+// Each page's own `preload`: it also tells the page its module is here, so it renders at once
+// instead of suspending (see `lazyView`). Licenses and Icons are part of this module.
 const SECTION_PRELOAD: Partial<Record<SectionId, () => Promise<unknown>>> = {
-  basics: () => import("./settings/basics-panel"),
-  account: () => import("./settings/account"),
-  library: () => import("./settings/library-panel"),
-  plugins: () => import("./settings/plugins-panel"),
-  relay: () => import("./settings/relay-section"),
-  streaming: () => import("./settings/streaming-sources-panel"),
-  streamFilters: () => import("./settings/stream-filters-panel"),
-  p2p: () => import("./settings/p2p-panel"),
-  language: () => import("./settings/language-panel"),
-  subtitles: () => import("./settings/subtitles-panel"),
-  player: () => import("./settings/quality-panel"),
-  mpv: () => import("./settings/mpv-panel"),
-  anime: () => import("./settings/anime-panel"),
-  shaders: () => import("./settings/shaders-panel"),
-  playerLayout: () => import("./settings/player-layout-panel"),
-  hotkeys: () => import("./settings/hotkeys-panel"),
-  controllers: () => import("./settings/controllers-panel"),
-  theme: () => import("./settings/theme-panel"),
-  badges: () => import("./settings/stream-badges-panel"),
-  awardIcons: () => import("./settings/award-icons-panel"),
-  webhooks: () => import("./settings/webhooks-panel"),
-  bug: () => import("./settings/bug-report-panel"),
-  support: () => import("./settings/support-panel"),
-  licenses: () => import("./settings/licenses-panel"),
-  icons: () => import("./settings/icons-panel"),
-  remotes: () => import("./settings/remotes-panel"),
-  tv: () => import("./settings/tv-panel"),
-  bigPicture: () => import("./settings/big-picture-panel"),
-  storage: () => import("./settings/storage-panel"),
-  trackers: () => import("./settings/trackers-panel"),
-  updates: () => import("./settings/updates-panel"),
-  advanced: () => import("./settings/advanced-panel"),
+  basics: BasicsPanel.preload,
+  account: AccountStub.preload,
+  library: LibraryPanel.preload,
+  plugins: PluginsPanel.preload,
+  relay: RelaySection.preload,
+  streaming: StreamingSourcesPanel.preload,
+  streamFilters: StreamFiltersPanel.preload,
+  p2p: P2PPanel.preload,
+  language: LanguagePanel.preload,
+  subtitles: SubtitlesPanel.preload,
+  player: QualityPanel.preload,
+  mpv: MpvPanel.preload,
+  anime: AnimePanel.preload,
+  shaders: ShadersPanel.preload,
+  playerLayout: PlayerLayoutPanel.preload,
+  hotkeys: HotkeysPanel.preload,
+  controllers: ControllersPanel.preload,
+  theme: ThemePanel.preload,
+  badges: StreamBadgesPanel.preload,
+  awardIcons: AwardIconsPanel.preload,
+  webhooks: WebhooksPanel.preload,
+  bug: BugReportPanel.preload,
+  support: SupportPanel.preload,
+  remotes: RemotesPanel.preload,
+  tv: TvPanel.preload,
+  bigPicture: BigPicturePanel.preload,
+  storage: StoragePanel.preload,
+  trackers: TrackersPanel.preload,
+  updates: UpdatesPanel.preload,
+  advanced: AdvancedPanel.preload,
 };
 
 const preloaded = new Set<SectionId>();
@@ -171,6 +164,41 @@ export function preloadSettingsSection(id: SectionId) {
   if (preloaded.has(id)) return;
   preloaded.add(id);
   void SECTION_PRELOAD[id]?.().catch(() => preloaded.delete(id));
+}
+
+// Settings opens on Account, so its page comes with Settings itself: both are here before the
+// first opening when the app has had an idle moment since launch.
+preloadSettingsSection("account");
+
+/**
+ * Fetches the pages that are not here yet, one per idle moment, so moving between Settings pages
+ * never waits on a file. Returns a function that stops the walk.
+ */
+function preloadRemainingSections(): () => void {
+  const ids = Object.keys(SECTION_PRELOAD) as SectionId[];
+  const win = window as Window & {
+    requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+    cancelIdleCallback?: (handle: number) => void;
+  };
+  const idle = typeof win.requestIdleCallback === "function";
+  let handle = 0;
+  let next = 0;
+  const step = () => {
+    while (next < ids.length && preloaded.has(ids[next])) next++;
+    if (next >= ids.length) return;
+    preloadSettingsSection(ids[next++]);
+    schedule();
+  };
+  const schedule = () => {
+    handle = idle
+      ? win.requestIdleCallback!(step, { timeout: 2000 })
+      : window.setTimeout(step, 300);
+  };
+  schedule();
+  return () => {
+    if (idle) win.cancelIdleCallback?.(handle);
+    else window.clearTimeout(handle);
+  };
 }
 
 const SECTION_META: Record<SectionId, { label: string; sub: string }> = {
@@ -585,6 +613,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
   const wide = active === "theme" && themeLibOpen;
   const activeGroup = groupForSection(active);
   const landingGroup = landing ? (TOP_GROUPS.find((g) => g.id === landing) ?? null) : null;
+  useEffect(() => preloadRemainingSections(), []);
   useEffect(() => {
     if (!activeGroup) return;
     const run = () => activeGroup.children.forEach((child) => preloadSettingsSection(child));
