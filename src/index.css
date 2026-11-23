@@ -9733,7 +9733,10 @@ html[data-os="macos"] .mac-pv-media {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
-  inline-size: var(--mac-pv-base);
+  /* Never short of the card's own width: the card's width is rounded apart
+     from this one, and the poster showed through the sliver between them as
+     a line down the open card's far edge. */
+  inline-size: max(var(--mac-pv-base), 100%);
   overflow: hidden;
 }
 html[data-os="macos"] .mac-pv-video {
