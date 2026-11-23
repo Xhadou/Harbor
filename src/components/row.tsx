@@ -24,6 +24,7 @@ import { isMacDesktop } from "@/lib/platform";
 import { useViewActions } from "@/lib/view";
 import { resetPosterDock as resetPosterDockItems, updatePosterDock } from "@/lib/poster-dock";
 import { scrollDeltaToRevealCard } from "@/lib/poster-backdrop-expansion";
+import { flushSync } from "react-dom";
 import { RowCardExpansionProvider } from "@/components/row-card-expansion";
 import {
   PREVIEW_TRAILER_OUT_MS,
@@ -244,6 +245,37 @@ function LazyChild({
   );
 }
 
+const RESIZE_MOTION: PreviewMotion = { ms: 0, ease: "linear" };
+
+/** Said on `window` once the page's place beside the native sidebar has been written (macOS). */
+export const MAC_LAYOUT_APPLIED_EVENT = "harbor:mac-layout-applied";
+
+type RowSizer = () => (() => void) | null;
+const rowSizers = new Set<RowSizer>();
+
+// Every row is read first and then all are written in one pass, so the page is laid out
+// once for the reads and rendered once for the writes.
+function sizeRowsNow(): void {
+  const writes: Array<() => void> = [];
+  for (const read of rowSizers) {
+    const write = read();
+    if (write) writes.push(write);
+  }
+  if (writes.length === 0) return;
+  flushSync(() => {
+    for (const write of writes) write();
+  });
+}
+
+function registerRowSizer(sizer: RowSizer): () => void {
+  if (rowSizers.size === 0) window.addEventListener(MAC_LAYOUT_APPLIED_EVENT, sizeRowsNow);
+  rowSizers.add(sizer);
+  return () => {
+    rowSizers.delete(sizer);
+    if (rowSizers.size === 0) window.removeEventListener(MAC_LAYOUT_APPLIED_EVENT, sizeRowsNow);
+  };
+}
+
 let pendingWrites: Array<() => void> = [];
 
 function batchWrite(fn: () => void): void {
@@ -373,6 +405,16 @@ export function Row({
   // closes on a return of its own once no card is open.
   const cardMotion = previewCards ? previewMotion(expandedCard !== null) : undefined;
   const expandMs = cardMotion?.ms ?? 480;
+  // macOS: a row whose cards changed size (the window, or the sidebar, changed the room it has)
+  // takes the new size at once. The width's transition is for a card that opens or closes; on a
+  // resize it left the cards at their new size inside cells still easing to theirs, so the gaps
+  // between cards opened up and closed again.
+  const sizedCellWidthRef = useRef(cellWidth);
+  const resized = macRow && sizedCellWidthRef.current !== cellWidth;
+  useLayoutEffect(() => {
+    sizedCellWidthRef.current = cellWidth;
+  });
+  const cellMotion = resized ? RESIZE_MOTION : cardMotion;
   const onEndRef = useRef(onEndReached);
   useEffect(() => {
     onEndRef.current = onEndReached;
@@ -404,16 +446,17 @@ export function Row({
   // Width reported by the ResizeObserver for this row's container, so the measurement below does
   // not need a forced layout read.
   const observedWidthRef = useRef(0);
-  const measure = () => {
+  // The cell width the row should now have, or null when it already has it.
+  const sized = (): number | null => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) return null;
     const available = observedWidthRef.current;
-    if (available <= 0) return;
+    if (available <= 0) return null;
     // The ResizeObserver also fires when the track's height changes, which is posters loading, not
     // a width change. Re-deriving the cell width then wrote the same value and re-laid-out the
     // whole track for nothing.
     const previous = measuredRef.current;
-    if (Math.abs(available - previous.width) < 0.5 && effMin === previous.effMin) return;
+    if (Math.abs(available - previous.width) < 0.5 && effMin === previous.effMin) return null;
     measuredRef.current = { width: available, effMin };
     const fits = Math.max(1, Math.floor((available + gap) / (effMin + gap)));
     const raw = macRow
@@ -424,13 +467,38 @@ export function Row({
       bleedEndRef.current = bleed;
       trackRef.current?.style.setProperty("--row-bleed-end", `${bleed}px`);
     }
-    const next = (Math.ceil(raw * 64) + 1) / 64;
-    batchWrite(() => setCellWidth(next));
+    return (Math.ceil(raw * 64) + 1) / 64;
+  };
+  const measure = () => {
+    const next = sized();
+    if (next !== null) batchWrite(() => setCellWidth(next));
   };
   const measureRef = useRef(measure);
+  const sizedRef = useRef(sized);
   useLayoutEffect(() => {
     measureRef.current = measure;
+    sizedRef.current = sized;
   });
+  // macOS: while the sidebar slides, the page is laid out once at its new place and what moved
+  // is carried there (sidebar-glide.ts). That only works if a row has its new size in that one
+  // layout, not a frame or two later when its ResizeObserver reports: so the row can be asked
+  // for its size at once.
+  useEffect(() => {
+    if (!macRow) return;
+    return registerRowSizer(() => {
+      const container = containerRef.current;
+      if (!container) return null;
+      const style = getComputedStyle(container);
+      const width =
+        container.clientWidth -
+        (Number.parseFloat(style.paddingLeft) || 0) -
+        (Number.parseFloat(style.paddingRight) || 0);
+      if (width <= 0) return null;
+      observedWidthRef.current = width;
+      const next = sizedRef.current();
+      return next === null ? null : () => setCellWidth(next);
+    });
+  }, [macRow]);
 
   const lastScrollPosRef = useRef(0);
   const readPos = (el: HTMLDivElement) => {
@@ -1222,7 +1290,7 @@ export function Row({
                           room,
                           expanded,
                           previews: previewCards,
-                          motion: cardMotion,
+                          motion: cellMotion,
                           rowId,
                           onExpand: expandRowCard,
                           onCollapse: collapseRowCard,

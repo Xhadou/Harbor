@@ -64,6 +64,17 @@ function write(): void {
  * content moves beside it on the same one, over the time the layout report gives.
  */
 const SIDEBAR_SLIDE_EASE = "cubic-bezier(0.3, 0, 0.1, 1)";
+/** Said on `window` once the insets are written; `Row` listens (the same name in row.tsx). */
+const MAC_LAYOUT_APPLIED_EVENT = "harbor:mac-layout-applied";
+
+/**
+ * Writes the insets and has whatever sizes itself from its room (the rows) do so now, in
+ * the same layout, so the glide carries things to where they will stay.
+ */
+function writeAndSettle(): void {
+  write();
+  window.dispatchEvent(new Event(MAC_LAYOUT_APPLIED_EVENT));
+}
 
 function reducedMotion(): boolean {
   return (
@@ -79,7 +90,7 @@ export function applyNativeLayout(layout: NativeLayout): void {
   // The sidebar is sliding: the content beside it moves with it. At every other moment the
   // insets are written at once, so a page that loads with the sidebar open, or a view that
   // has no sidebar, never glides into place.
-  if (moved && ms > 0 && !reducedMotion()) glideLayout(write, ms, SIDEBAR_SLIDE_EASE);
+  if (moved && ms > 0 && !reducedMotion()) glideLayout(writeAndSettle, ms, SIDEBAR_SLIDE_EASE);
   else write();
 }
 
