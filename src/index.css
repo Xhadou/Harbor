@@ -9421,6 +9421,13 @@ html[data-os="macos"]
   > button {
   box-shadow: var(--mac-lift-shadow);
 }
+/* A press on a control inside a card (the trailer's sound, Play, More info) is
+   that control's alone. A poster is itself a button, and every button gives a
+   little under a press: without this the whole open card shrank and came back
+   each time the sound was turned on or off. */
+html[data-os="macos"] button.mac-lift:has([role="button"]:active) {
+  scale: none;
+}
 /* Under the keyboard a card also dims and clears as focus moves along the row,
    and that rule states its own transition; the lift keeps its place in it. */
 html[data-os="macos"]:not([data-input-modality="pointer"]) #root .mac-lift[data-media-card] {
