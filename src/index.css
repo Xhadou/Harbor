@@ -8523,9 +8523,6 @@ html[data-os="macos"] .harbor-settings-shell .harbor-settings-section > .harbor-
   min-block-size: 30px;
   padding-inline-start: var(--hset-row-pad-inline);
 }
-html[data-os="macos"] .harbor-settings-shell .harbor-settings-section + .harbor-settings-section {
-  margin-block-start: 6px;
-}
 html[data-os="macos"] .harbor-settings-shell .hset-section-title {
   font-size: 17px;
   line-height: 22px;
@@ -8535,6 +8532,135 @@ html[data-os="macos"] .harbor-settings-shell .hset-caption {
   margin-block-end: 16px;
   font-size: 13.5px;
   line-height: 19px;
+}
+
+/* ── What every Settings page shares on macOS ─────────────────────────────
+   The pages were written with three different kits over time, and each rule
+   here closes a gap between them that showed on screen. */
+
+/* A hairline stands between a row and whatever is above it in its card. The
+   shared rule draws it only between two rows that are direct neighbours, so a
+   row that follows something that is not a row (a picker, a preview, a line of
+   text), or that sits in a wrapper of its own, had none: some rows of a card
+   were ruled off and others ran together. A row directly under a heading takes
+   none: the heading is the separation. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .harbor-settings-group
+  :is(
+    .hset-row:not(:first-child),
+    :not(.harbor-settings-label, .hset-section-title, .hset-workbench-preview)
+      + :not(.hset-row)
+      > .hset-row:first-child
+  )::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--hset-row-pad-inline);
+  block-size: var(--hset-hairline);
+  background: var(--hset-mac-card-edge);
+}
+html[data-os="macos"]
+  .harbor-settings-shell
+  .harbor-settings-group
+  :is(.harbor-settings-label, .hset-section-title)
+  + .hset-row::before {
+  content: none;
+}
+
+/* The heading above a card is one thing, whichever kit wrote it: most pages
+   said it at 17 px, Playback's first tabs in small grey type set in from the
+   card's edge. A label inside a card stays small: it names a part of the card. */
+html[data-os="macos"] .harbor-settings-shell .harbor-settings-label:not(.harbor-settings-group *) {
+  min-block-size: 0;
+  padding-block-start: 0;
+  padding-inline-start: 0;
+  color: var(--color-ink);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+}
+
+/* Sections follow one another at one distance, with no rule drawn between
+   them: the cards already say where one ends and the next begins. Whatever
+   holds a page's sections spaced them by its own gap (20 px on some tabs, 32
+   with a rule on others, 36 on most), so the gap is taken from the holder and
+   given to its children as one margin. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-main
+  :has(> .harbor-settings-section):not(.harbor-settings-group, .harbor-settings-group *) {
+  row-gap: 0;
+}
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-main
+  :has(> .harbor-settings-section):not(.harbor-settings-group, .harbor-settings-group *)
+  > *
+  + * {
+  margin-block-start: 36px;
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+/* A field or a menu is as tall as the button beside it. They were written at
+   44 px for a finger; here they stand next to 30 px buttons. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  :is(
+    input:is(.h-11, .h-10),
+    select:is(.h-11, .min-h-10),
+    button:is(.h-11.w-fit, .inline-flex.min-h-11),
+    button[type="submit"].h-11
+  ) {
+  block-size: var(--hset-ctl-h);
+  min-block-size: var(--hset-ctl-h);
+  border-radius: 7px;
+  font-size: 13px;
+}
+html[data-os="macos"]
+  .harbor-settings-shell
+  :is(input:is(.h-11, .h-10), select:is(.h-11, .min-h-10)) {
+  padding-inline: 10px;
+}
+html[data-os="macos"]
+  .harbor-settings-shell
+  button:is(.h-11.w-fit, .inline-flex.min-h-11, [type="submit"].h-11) {
+  padding-inline: 12px;
+  font-weight: 500;
+}
+
+/* Two sizes of type on a Settings page: a row's title and everything said about
+   it. Rows already follow that; text written straight onto a page (an opening
+   line, a note under a preview, a value, what a field holds) kept the larger
+   sizes of the other platforms and stood taller than the titles beside it. */
+html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[15\.5px\] {
+  font-size: var(--hset-desc-size);
+  line-height: var(--hset-desc-lh);
+  letter-spacing: 0;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[16\.5px\] {
+  font-size: var(--hset-title-size);
+  line-height: var(--hset-title-lh);
+  letter-spacing: 0;
+}
+
+/* A row in a wrapper of its own (somewhere for a search result to land) is
+   still a row among rows: it takes no extra space above it, and neither does
+   the row that follows it. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .harbor-settings-group
+  > :not(.hset-row):has(> .hset-row:only-child) {
+  margin-block-start: 0;
+}
+html[data-os="macos"]
+  .harbor-settings-shell
+  .harbor-settings-group
+  > :has(> .hset-row:only-child)
+  + .hset-row {
+  margin-block-start: 0;
 }
 
 /* Switch: the accent colour when on, a white knob. */

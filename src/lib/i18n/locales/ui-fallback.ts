@@ -3124,6 +3124,14 @@ const uiFallback: Record<string, string> = {
   "Start with": "Start with",
   "Watch again": "Watch again",
   "All films": "All films",
+  "Fills the screen, but the title bar, the menu bar and the Dock stay.":
+    "Fills the screen, but the title bar, the menu bar and the Dock stay.",
+  "Same coverage, but still a window, so switching apps stays instant.":
+    "Same coverage, but still a window, so switching apps stays instant.",
+  "Covers everything. The menu bar and the Dock are hidden.":
+    "Covers everything. The menu bar and the Dock are hidden.",
+  "HTML5 plays everything the system's web view supports. mpv handles TrueHD, DTS-HD, AV1, weird containers, and HDR. Auto picks based on the source.":
+    "HTML5 plays everything the system's web view supports. mpv handles TrueHD, DTS-HD, AV1, weird containers, and HDR. Auto picks based on the source.",
   Appearance: "Appearance",
   Shortcuts: "Shortcuts",
 };
