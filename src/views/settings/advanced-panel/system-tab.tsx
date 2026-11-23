@@ -1,3 +1,4 @@
+import { HAS_EBOOK } from "@/lib/features/edition";
 import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import { Section, Segmented } from "../shared";
@@ -15,9 +16,11 @@ export function SystemTab() {
     <>
       <Section
         title={t("Downloads")}
-        subtitle={t(
-          "Choose where videos and eBooks are saved, and how their folders are organized.",
-        )}
+        subtitle={
+          HAS_EBOOK
+            ? t("Choose where videos and eBooks are saved, and how their folders are organized.")
+            : t("Choose where videos are saved, and how their folders are organized.")
+        }
       >
         {isTauri ? (
           <DownloadsSection />

@@ -3124,6 +3124,8 @@ const uiFallback: Record<string, string> = {
   "Start with": "Start with",
   "Watch again": "Watch again",
   "All films": "All films",
+  "Choose where videos are saved, and how their folders are organized.":
+    "Choose where videos are saved, and how their folders are organized.",
   "The icon in the Dock updates right away.": "The icon in the Dock updates right away.",
   "Re-apply to the Dock now": "Re-apply to the Dock now",
   "In the Dock": "In the Dock",

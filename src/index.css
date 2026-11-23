@@ -8582,6 +8582,17 @@ html[data-os="macos"] .harbor-settings-shell .harbor-settings-label:not(.harbor-
   letter-spacing: -0.2px;
 }
 
+/* A label inside a card names a part of it and starts where the card's rows
+   start. It was set in a further 16 px on the pages whose parts are sections
+   of their own (Subtitles, Look), and not on the others (Shortcuts). */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .harbor-settings-group
+  .harbor-settings-section
+  > .harbor-settings-label {
+  padding-inline-start: 0;
+}
+
 /* Sections follow one another at one distance, with no rule drawn between
    them: the cards already say where one ends and the next begins. Whatever
    holds a page's sections spaced them by its own gap (20 px on some tabs, 32
