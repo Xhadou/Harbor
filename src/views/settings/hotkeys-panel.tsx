@@ -15,6 +15,8 @@ import {
 import { isBackKey } from "@/lib/keyboard-navigation/geometry";
 import { SEEK_STEP_OPTIONS } from "@/lib/seek-step";
 import { useSettings } from "@/lib/settings";
+import { MAC_ABSENT_HOTKEYS } from "@/lib/mac-chrome";
+import { isMacDesktop } from "@/lib/platform";
 import { useT } from "@/lib/i18n";
 import { Dropdown } from "@/components/dropdown";
 import { Section, ToggleRow } from "./shared";
@@ -59,7 +61,11 @@ export function HotkeysPanel() {
 
   const grouped = useMemo(() => {
     const scopes: Record<HotkeyScope, HotkeyDef[]> = { Global: [], Player: [], Manga: [] };
-    for (const def of HOTKEYS) scopes[def.scope].push(def);
+    const mac = isMacDesktop();
+    for (const def of HOTKEYS) {
+      if (mac && MAC_ABSENT_HOTKEYS.has(def.id)) continue;
+      scopes[def.scope].push(def);
+    }
     return scopes;
   }, []);
 

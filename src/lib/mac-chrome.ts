@@ -26,6 +26,7 @@ type MacCoercible = {
   _macNavTrimV1?: boolean;
   resumeDetailScroll?: boolean;
   _macDetailTopV1?: boolean;
+  uiScale?: number;
   theme?: {
     preset: string;
     backgroundImage: string | null;
@@ -65,13 +66,17 @@ export function coerceMacSettings<T extends MacCoercible>(settings: T, os: OsCla
   // A title page opens at its top. Off once; the switch in Settings turns
   // "reopen where I left it" back on and the flag keeps it on.
   const opensAtTop = !settings._macDetailTopV1 && "resumeDetailScroll" in settings;
+  // The Mac app has no interface zoom: rows size themselves to the window instead
+  // (`macRowFit`), so a scale saved by an earlier build is put back to 100%.
+  const zoomed = "uiScale" in settings && settings.uiScale !== 1;
   if (
     settings.useNativeTitleBar &&
     !settings.hybridTitleBar &&
     !wantsFullHero &&
     theme === settings.theme &&
     !nav &&
-    !opensAtTop
+    !opensAtTop &&
+    !zoomed
   ) {
     return settings;
   }
@@ -81,6 +86,7 @@ export function coerceMacSettings<T extends MacCoercible>(settings: T, os: OsCla
     hybridTitleBar: false,
     ...(wantsFullHero ? { heroFull: true } : null),
     ...(opensAtTop ? { resumeDetailScroll: false, _macDetailTopV1: true } : null),
+    ...(zoomed ? { uiScale: 1 } : null),
     ...(theme ? { theme } : null),
     // The flag travels with the saved settings, so a destination the owner turns
     // back on afterwards is not hidden again.
@@ -112,11 +118,21 @@ export function macFullscreenMode<M extends string>(mode: M, os: OsClass): M | "
 // the Go menu, and Command+H hides the app.
 export const MAC_DEFAULT_BINDINGS: Readonly<Record<string, string>> = {
   globalSettingsOpen: "meta+,",
-  globalUiScaleUp: "meta+=",
-  globalUiScaleDown: "meta+-",
-  globalUiScaleReset: "meta+0",
   playerScreenLock: "meta+l",
 };
+
+/** Shortcuts that do nothing on a Mac and are not listed there: it has no interface zoom. */
+export const MAC_ABSENT_HOTKEYS: ReadonlySet<string> = new Set([
+  "globalUiScaleUp",
+  "globalUiScaleDown",
+  "globalUiScaleReset",
+]);
+
+/** Settings, by the label Settings search knows them by, that the Mac app does not offer. */
+export const MAC_ABSENT_SETTINGS: ReadonlySet<string> = new Set([
+  "Interface scale",
+  "Interface scale (accessibility)",
+]);
 
 export function macDefaultBinding(id: string, binding: string, os: OsClass): string {
   return os === "macos" && Object.hasOwn(MAC_DEFAULT_BINDINGS, id)

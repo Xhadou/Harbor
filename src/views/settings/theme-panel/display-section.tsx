@@ -24,6 +24,7 @@ import { useSettings } from "@/lib/settings";
 import { useInstallFeatures } from "@/lib/features/install";
 import { quickLibraryAvailable } from "@/lib/features/quick-library";
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { Section, ToggleRow } from "../shared";
 import { SettingGroup, SettingRow, Nested } from "../kit";
 import { PosterCardSection } from "./display/poster-card-section";
@@ -245,29 +246,32 @@ export function DisplaySection() {
         </SettingGroup>
       </Section>
 
-      <Section
-        title={t("Accessibility")}
-        subtitle={t(
-          "Make everything bigger and easier to read: sidebar, menus, popups, every page.",
-        )}
-      >
-        <SettingGroup>
-          <SliderRow
-            label={t("Interface scale")}
-            tip={t(
-              "Make everything bigger and easier to read: sidebar, menus, popups, every page. The whole interface scales live as you drag, so you can see the change right here. Great on 4K and ultrawide monitors, or whenever the text feels small.",
-            )}
-            icon={<ZoomIn size={18} strokeWidth={2} />}
-            value={settings.uiScale}
-            min={0.8}
-            max={1.6}
-            step={0.05}
-            readout={`${Math.round(settings.uiScale * 100)}%`}
-            resetTo={1}
-            onChange={(uiScale) => update({ uiScale })}
-          />
-        </SettingGroup>
-      </Section>
+      {/* The Mac app has no interface zoom: rows size themselves to the window. */}
+      {!isMacDesktop() && (
+        <Section
+          title={t("Accessibility")}
+          subtitle={t(
+            "Make everything bigger and easier to read: sidebar, menus, popups, every page.",
+          )}
+        >
+          <SettingGroup>
+            <SliderRow
+              label={t("Interface scale")}
+              tip={t(
+                "Make everything bigger and easier to read: sidebar, menus, popups, every page. The whole interface scales live as you drag, so you can see the change right here. Great on 4K and ultrawide monitors, or whenever the text feels small.",
+              )}
+              icon={<ZoomIn size={18} strokeWidth={2} />}
+              value={settings.uiScale}
+              min={0.8}
+              max={1.6}
+              step={0.05}
+              readout={`${Math.round(settings.uiScale * 100)}%`}
+              resetTo={1}
+              onChange={(uiScale) => update({ uiScale })}
+            />
+          </SettingGroup>
+        </Section>
+      )}
 
       <Section
         title={t("Liquid Glass")}

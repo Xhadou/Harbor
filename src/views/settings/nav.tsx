@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useSettings } from "@/lib/settings";
+import { MAC_ABSENT_SETTINGS } from "@/lib/mac-chrome";
+import { isMacDesktop } from "@/lib/platform";
 import { useT } from "@/lib/i18n";
 import { activeLayout } from "@/lib/theme";
 import { useView } from "@/lib/view";
@@ -11118,11 +11120,13 @@ export function useNavSearch(trimmed: string) {
   }, [t, trimmed]);
   const optionMatches = useMemo<SettingsOption[] | null>(() => {
     if (!trimmed) return null;
+    const mac = isMacDesktop();
     return SETTINGS_OPTIONS.filter(
       (o) =>
         (o.feature !== "games" || gamesEnabled) &&
         (o.feature !== "library" || libraryEnabled) &&
         (o.label !== "Experimental builds" || experimentalAccess) &&
+        !(mac && MAC_ABSENT_SETTINGS.has(o.label)) &&
         matchesSettingsSearch(
           trimmed,
           o.anchorTitle ? [o.label, o.anchorTitle] : [o.label],

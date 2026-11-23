@@ -1239,6 +1239,9 @@ function Shell({ onReady }: { onReady?: () => void }) {
   }, [settings.uiScale]);
 
   useEffect(() => {
+    // The Mac app has no interface zoom: its rows size themselves to the window. ⌘+, ⌘− and
+    // ⌘0, a pinch and ⌘-scroll are left alone there.
+    if (isMacDesktop()) return;
     const setUiScale = (next: number) => {
       const uiScale = clampUiScale(next);
       if (uiScale !== uiScaleRef.current) {

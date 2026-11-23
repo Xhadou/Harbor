@@ -111,10 +111,19 @@ test("coerceMacSettings pins the one dark look on macOS", () => {
   assert.equal(coerceMacSettings(out, "macos"), out);
 });
 
+test("coerceMacSettings puts a saved interface zoom back to 100% on macOS only", () => {
+  const zoomed = { useNativeTitleBar: true, hybridTitleBar: false, uiScale: 0.8 };
+  assert.equal(coerceMacSettings(zoomed, "macos").uiScale, 1);
+  assert.equal(coerceMacSettings(zoomed, "windows"), zoomed);
+  const plain = { useNativeTitleBar: true, hybridTitleBar: false, uiScale: 1 };
+  assert.equal(coerceMacSettings(plain, "macos"), plain);
+});
+
 test("macDefaultBinding gives Command defaults on macOS only", () => {
-  assert.equal(macDefaultBinding("globalUiScaleUp", "ctrl+=", "macos"), "meta+=");
   assert.equal(macDefaultBinding("globalSettingsOpen", "ctrl+s", "macos"), "meta+,");
-  assert.equal(macDefaultBinding("globalUiScaleUp", "ctrl+=", "windows"), "ctrl+=");
+  assert.equal(macDefaultBinding("globalSettingsOpen", "ctrl+s", "windows"), "ctrl+s");
+  // The Mac app has no interface zoom, so its shortcuts get no Command default.
+  assert.equal(macDefaultBinding("globalUiScaleUp", "ctrl+=", "macos"), "ctrl+=");
   // Not in the table: Command+1 belongs to the Go menu, so this one stays.
   assert.equal(macDefaultBinding("playerAnime4kOn", "ctrl+1", "macos"), "ctrl+1");
   assert.equal(macDefaultBinding("playerPlayPause", "Space", "macos"), "Space");
