@@ -60,7 +60,7 @@ export function PosterPreview({
       data-live="true"
       data-open={open ? "true" : undefined}
       data-playing={trailer.showing ? "true" : undefined}
-      className="mac-card mac-pv mac-pv-over mac-pv-poster"
+      className="mac-card mac-pv mac-pv-over mac-pv-trailer mac-pv-poster"
     >
       <span className="mac-pv-media">
         <span ref={trailer.slot} aria-hidden className="mac-pv-video" />

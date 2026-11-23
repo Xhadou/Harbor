@@ -55,7 +55,7 @@ export function CardPreviewPanel({
         data-live={preview.present ? "true" : undefined}
         data-open={preview.open ? "true" : undefined}
         data-playing={trailer.showing ? "true" : undefined}
-        className="mac-card mac-pv mac-pv-over"
+        className="mac-card mac-pv mac-pv-over mac-pv-trailer"
       >
         <div className="mac-pv-media">
           <div ref={trailer.slot} aria-hidden className="mac-pv-video" />

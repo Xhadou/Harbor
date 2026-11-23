@@ -9810,6 +9810,21 @@ html[data-os="macos"] .mac-pv-over {
   background: none;
   pointer-events: none;
 }
+/* A trailer covers the card's own picture and one pixel more all round. Two
+   layers cut to the same rounded edge do not hide one another along it: where
+   the edge crosses a pixel each covers only part of it, and the picture
+   underneath showed through as a thin bright line round the trailer. So the
+   trailer's edge stands just outside the picture's, and the preview is cut
+   there instead of at its own box. */
+html[data-os="macos"] .mac-pv-trailer {
+  overflow: visible;
+  clip-path: inset(-1px round calc(var(--mac-radius-card) + 1px));
+}
+html[data-os="macos"] .mac-pv-trailer > .mac-pv-media {
+  inset-block: -1px;
+  inset-inline-start: -1px;
+  inline-size: calc(max(var(--mac-pv-base), 100%) + 2px);
+}
 /* A wide card's actions (CardPreviewPanel): at the far end of the lines under
    the card. They come up over the tail of those lines on a strip of the
    page's own colour, so a long title dissolves under them and nothing under
@@ -10007,6 +10022,11 @@ html[data-os="macos"] .mac-pv-shade {
   opacity: 0;
   pointer-events: none;
   transition: opacity 200ms ease-out;
+}
+/* The shade reaches as far as the trailer does (`.mac-pv-trailer`). */
+html[data-os="macos"] .mac-pv-trailer > .mac-pv-shade {
+  inset-inline: -1px;
+  inset-block-end: -1px;
 }
 html[data-os="macos"] .mac-pv[data-open] .mac-pv-shade {
   opacity: 1;
