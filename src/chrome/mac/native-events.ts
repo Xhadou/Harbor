@@ -15,6 +15,8 @@ export type NativeLayout = {
   sidebarVisible: boolean;
   /** Where a control in the top-left corner can start, clear of the traffic lights. */
   controlsInset: number;
+  /** How long the sidebar takes to slide to this state, in ms; absent or 0 when it changed at once. */
+  sidebarMotionMs?: number;
 };
 
 export type NativeEventPayloads = {

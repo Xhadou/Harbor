@@ -86,6 +86,19 @@ final class SidebarTests: XCTestCase {
         XCTAssertFalse(try layout().sidebarVisible)
     }
 
+    func testASidebarNobodyCanSeeChangesAtOnce() throws {
+        // The window of a test is never on screen: nothing slides, and the page is told so.
+        let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
+        let items = [item("home", "browse")]
+        controller.setSidebar(SidebarPayload(visible: true, collapsed: false, items: items))
+        controller.setSidebar(SidebarPayload(visible: true, collapsed: true, items: items))
+        XCTAssertFalse(try layout().sidebarVisible)
+        XCTAssertEqual(try layout().sidebarMotionMs, 0)
+        controller.setSidebar(SidebarPayload(visible: true, collapsed: false, items: items))
+        XCTAssertTrue(try layout().sidebarVisible)
+        XCTAssertEqual(try layout().sidebarMotionMs, 0)
+    }
+
     func testSelectingARowReportsItWithoutMovingTheHighlight() {
         let controller = HarborNativeController(window: makeWindow(), callback: EventLog.callback)
         controller.setSidebar(

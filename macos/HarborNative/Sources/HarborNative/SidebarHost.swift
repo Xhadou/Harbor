@@ -1,4 +1,5 @@
 import AppKit
+import QuartzCore
 import SwiftUI
 
 /// The floating Liquid Glass sidebar: a full-height pane above the web view.
@@ -13,16 +14,29 @@ final class SidebarHost: NSObject {
     static let headerHeight: CGFloat = 44
     /// How far down from the window's top edge floating controls reach.
     static let topZone: CGFloat = margin + headerHeight
+    /// How long the pane takes to slide in or out when the person shows or hides it.
+    static let slideDuration: TimeInterval = 0.34
+    /// It moves off without a pause and takes most of its time to settle. The page's
+    /// content follows on the same curve (`SIDEBAR_SLIDE_EASE` in native-layout.ts).
+    static let slideCurve = CAMediaTimingFunction(controlPoints: 0.3, 0, 0.1, 1)
+    /// The pane's leading edge when it is out of the window.
+    private static let awayLeading: CGFloat = -(width + margin)
 
     let model = SidebarModel()
     let search: SearchFieldController
     private let glass = NSGlassEffectView()
     private var mount: GlassMount!
+    private weak var window: NSWindow?
+    private var leading: NSLayoutConstraint?
+    /// Counts the changes of state, so a slide that was overtaken does not finish the old one.
+    private var slideCount = 0
     private let onToggle: () -> Void
     private let layoutChanged: () -> Void
 
     var isShown: Bool { model.isShown }
     var isWanted: Bool { model.isWanted }
+    /// How long the last change of state takes on screen, in milliseconds; 0 when it was at once.
+    private(set) var motionMs: Double = 0
 
     init(
         window: NSWindow,
@@ -32,6 +46,7 @@ final class SidebarHost: NSObject {
     ) {
         self.onToggle = onToggle
         self.layoutChanged = layoutChanged
+        self.window = window
         search = SearchFieldController(window: window, emit: emit)
         super.init()
         model.onSelect = { [search] id in
@@ -87,11 +102,13 @@ final class SidebarHost: NSObject {
 
         glass.contentView = pane
         glass.cornerRadius = 18
-        mount = GlassMount(glass, in: window.contentView) { glass, content in
-            [
+        mount = GlassMount(glass, in: window.contentView) { [weak self] glass, content in
+            let leading = glass.leadingAnchor.constraint(
+                equalTo: content.leadingAnchor, constant: Self.margin)
+            self?.leading = leading
+            return [
                 glass.topAnchor.constraint(equalTo: content.topAnchor, constant: Self.margin),
-                glass.leadingAnchor.constraint(
-                    equalTo: content.leadingAnchor, constant: Self.margin),
+                leading,
                 glass.bottomAnchor.constraint(
                     equalTo: content.bottomAnchor, constant: -Self.margin),
                 glass.widthAnchor.constraint(equalToConstant: Self.width),
@@ -100,9 +117,62 @@ final class SidebarHost: NSObject {
     }
 
     func apply(_ payload: SidebarPayload) {
+        let wasWanted = model.isWanted
+        let wasShown = model.isShown
         model.apply(payload)
-        mount.setMounted(model.isShown)
+        // The pane slides only when the person shows or hides it on a view that has a
+        // sidebar. A view without one (the player) takes it away, and gives it back, at once.
+        let slides =
+            wasWanted && model.isWanted && wasShown != model.isShown && Self.canSlide(in: window)
+        setShown(model.isShown, sliding: slides)
+        motionMs = slides ? Self.slideDuration * 1000 : 0
         layoutChanged()
+        motionMs = 0
+    }
+
+    /// Nothing slides in a window nobody can see, or for someone who asked for less motion.
+    private static func canSlide(in window: NSWindow?) -> Bool {
+        guard let window, window.isVisible, window.occlusionState.contains(.visible) else {
+            return false
+        }
+        return !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+    }
+
+    private func setShown(_ shown: Bool, sliding: Bool) {
+        slideCount += 1
+        let count = slideCount
+        guard sliding else {
+            mount.setMounted(shown)
+            leading?.constant = Self.margin
+            return
+        }
+        if shown {
+            // A pane still on its way out turns round from where it is.
+            if !mount.isMounted {
+                mount.setMounted(true)
+                leading?.constant = Self.awayLeading
+                glass.superview?.layoutSubtreeIfNeeded()
+            }
+            slide(to: Self.margin) {}
+        } else {
+            guard mount.isMounted else { return }
+            slide(to: Self.awayLeading) { [weak self] in
+                guard let self, self.slideCount == count else { return }
+                self.mount.setMounted(false)
+            }
+        }
+    }
+
+    private func slide(to constant: CGFloat, then finish: @escaping @MainActor () -> Void) {
+        NSAnimationContext.runAnimationGroup(
+            { context in
+                context.duration = Self.slideDuration
+                context.timingFunction = Self.slideCurve
+                context.allowsImplicitAnimation = true
+                leading?.animator().constant = constant
+                glass.superview?.layoutSubtreeIfNeeded()
+            },
+            completionHandler: { MainActor.assumeIsolated { finish() } })
     }
 
     @objc private func toggleClicked(_ sender: Any?) {

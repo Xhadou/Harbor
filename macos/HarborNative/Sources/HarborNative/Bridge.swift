@@ -100,9 +100,14 @@ final class HarborNativeController {
             titlebarInset: Double(SidebarHost.topZone),
             sidebarWidth: sidebar.isShown ? Double(SidebarHost.width) : 0,
             sidebarVisible: sidebar.isShown,
-            controlsInset: Double(ChromeButtons.afterTrafficLights))
-        guard force || layout != lastLayout else { return }
-        lastLayout = layout
+            controlsInset: Double(ChromeButtons.afterTrafficLights),
+            sidebarMotionMs: sidebar.motionMs)
+        // The motion says how the state was reached, not what it is: it is left out of the
+        // comparison, so a repeat of the same state never follows a slide's report.
+        var state = layout
+        state.sidebarMotionMs = 0
+        guard force || state != lastLayout else { return }
+        lastLayout = state
         emit("layout", layout)
     }
 

@@ -1,4 +1,5 @@
 import type { NativeLayout } from "./native-events";
+import { glideLayout } from "./sidebar-glide";
 
 /** Gap between the floating sidebar and the content beside it, both sides. */
 const SIDEBAR_GUTTER = 16;
@@ -58,9 +59,28 @@ function write(): void {
   style.setProperty("--mac-controls-inset", insets.controls);
 }
 
+/**
+ * The curve the native sidebar slides on (`SidebarHost.slideCurve`): the page's
+ * content moves beside it on the same one, over the time the layout report gives.
+ */
+const SIDEBAR_SLIDE_EASE = "cubic-bezier(0.3, 0, 0.1, 1)";
+
+function reducedMotion(): boolean {
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export function applyNativeLayout(layout: NativeLayout): void {
+  const moved = lastLayout !== null && lastLayout.sidebarVisible !== layout.sidebarVisible;
+  const ms = layout.sidebarMotionMs ?? 0;
   lastLayout = layout;
-  write();
+  // The sidebar is sliding: the content beside it moves with it. At every other moment the
+  // insets are written at once, so a page that loads with the sidebar open, or a view that
+  // has no sidebar, never glides into place.
+  if (moved && ms > 0 && !reducedMotion()) glideLayout(write, ms, SIDEBAR_SLIDE_EASE);
+  else write();
 }
 
 /** Call whenever Harbor's interface scale setting changes. */
