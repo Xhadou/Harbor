@@ -8327,9 +8327,11 @@ html[data-os="macos"] .hset-tools [data-settings-search-field] {
   background: var(--hset-mac-well);
   box-shadow: inset 0 0 0 0.5px var(--hset-mac-card-edge);
 }
-html[data-os="macos"] .hset-tools [data-settings-search-field]:focus-within {
-  background: var(--hset-mac-well);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 45%, transparent);
+/* The field says it has focus by its caret alone. Settings' shared ring
+   otherwise outlined the text inside the field in the accent colour. */
+html[data-os="macos"] .harbor-settings-shell [data-settings-search-field] input:focus-visible,
+html[data-os="macos"] .harbor-settings-shell [data-settings-search-field]:has(input:focus-visible) {
+  outline: none;
 }
 html[data-os="macos"] .hset-tools [data-settings-search-field] input {
   font-size: 13.5px;
@@ -9726,20 +9728,6 @@ html[data-os="macos"] .harbor-expanding-card-scope .mac-pv {
   --mac-pv-base: calc(var(--row-poster-height) * 16 / 9);
   aspect-ratio: auto;
   block-size: var(--row-poster-height);
-}
-html[data-os="macos"] .mac-pv::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms var(--ease-out);
-}
-html[data-os="macos"] .mac-pv[data-open]::after {
-  opacity: 1;
 }
 html[data-os="macos"] .mac-pv-media {
   position: absolute;
