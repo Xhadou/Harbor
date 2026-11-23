@@ -10,6 +10,7 @@ import { useSettings } from "@/lib/settings";
 import { useAuth } from "@/lib/auth";
 import { hasCustomMetaAddon, hasCustomMetaAddonAsync } from "@/lib/meta-resource";
 import { useT } from "@/lib/i18n";
+import { HAS_EBOOK } from "@/lib/features/edition";
 import { isMacDesktop } from "@/lib/platform";
 import { Section, Segmented, ToggleRow } from "../shared";
 import { ROW_ACTION, SettingGroup, SettingRow, Nested } from "../kit";
@@ -62,7 +63,7 @@ export function ProvidersTab(props: ProviderKeysArgs) {
           {keyRow("fanart")}
           {keyRow("rpdb")}
           {keyRow("postersrv")}
-          {keyRow("nyt")}
+          {HAS_EBOOK && keyRow("nyt")}
         </SettingGroup>
       </Section>
 

@@ -2,6 +2,7 @@ import { useSubTabs } from "./sub-tabs";
 import { StreamCacheSection } from "./player-panel/p2p-advanced-section";
 import { Check, Database, HardDrive, Trash2 } from "./icons";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { HAS_MANGA } from "@/lib/features/edition";
 import { useT } from "@/lib/i18n";
 import { clearPickerCache, pickerCacheCount } from "@/lib/picker-cache";
 import { clearThumbCache, getThumbCacheSize, type ThumbCacheSize } from "@/lib/remote-image-proxy";
@@ -402,15 +403,17 @@ export function StoragePanel() {
                 refresh();
               }}
             />
-            <ClearRow
-              title={t("Manga browse cache")}
-              sub={t("Cached chapter lists and browse pages. Downloads stay untouched.")}
-              usage={fmtBytes(cacheUsage.manga)}
-              onClear={() => {
-                clearMangaCache();
-                refresh();
-              }}
-            />
+            {HAS_MANGA && (
+              <ClearRow
+                title={t("Manga browse cache")}
+                sub={t("Cached chapter lists and browse pages. Downloads stay untouched.")}
+                usage={fmtBytes(cacheUsage.manga)}
+                onClear={() => {
+                  clearMangaCache();
+                  refresh();
+                }}
+              />
+            )}
             <ClearRow
               title={t("Poster thumbnails")}
               sub={t(
@@ -471,9 +474,11 @@ export function StoragePanel() {
           </SettingGroup>
 
           <p className={`max-w-[70ch] ${ROW_DESC}`}>
-            {t(
-              "Downloaded themes are managed in Theme & appearance. Video and manga downloads are managed on the Downloads page.",
-            )}
+            {HAS_MANGA
+              ? t(
+                  "Downloaded themes are managed in Theme & appearance. Video and manga downloads are managed on the Downloads page.",
+                )
+              : t("Video downloads are managed on the Downloads page.")}
           </p>
         </Section>
       )}

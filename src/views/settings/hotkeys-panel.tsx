@@ -15,6 +15,7 @@ import {
 import { isBackKey } from "@/lib/keyboard-navigation/geometry";
 import { SEEK_STEP_OPTIONS } from "@/lib/seek-step";
 import { useSettings } from "@/lib/settings";
+import { HAS_MANGA } from "@/lib/features/edition";
 import { MAC_ABSENT_HOTKEYS } from "@/lib/mac-chrome";
 import { isMacDesktop } from "@/lib/platform";
 import { useT } from "@/lib/i18n";
@@ -64,6 +65,8 @@ export function HotkeysPanel() {
     const mac = isMacDesktop();
     for (const def of HOTKEYS) {
       if (mac && MAC_ABSENT_HOTKEYS.has(def.id)) continue;
+      // A build without the manga reader has nowhere for its shortcuts to act.
+      if (def.scope === "Manga" && !HAS_MANGA) continue;
       scopes[def.scope].push(def);
     }
     return scopes;

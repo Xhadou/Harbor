@@ -2,6 +2,7 @@ import { Check, ChevronDown, ImageDown, RefreshCw, Trash2, Upload } from "../ico
 import { isMacDesktop } from "@/lib/platform";
 import { useEffect, useRef, useState } from "react";
 import { applyAppIcon } from "@/lib/app-icon";
+import { HAS_MUSIC } from "@/lib/features/edition";
 import { useSettings } from "@/lib/settings";
 import { useT } from "@/lib/i18n";
 import { SettingRow } from "../kit";
@@ -350,14 +351,16 @@ function AppIconPicker() {
           </button>
         </div>
       )}
-      <ToggleRow
-        label={t("Use the album art as the app icon while music plays")}
-        sub={t(
-          "The taskbar button becomes the cover of the track you are listening to, and goes back to your Harbor icon when music stops. The thumbnail preview always shows the cover either way.",
-        )}
-        value={settings.musicArtworkAppIcon}
-        onChange={(v) => update({ musicArtworkAppIcon: v })}
-      />
+      {HAS_MUSIC && (
+        <ToggleRow
+          label={t("Use the album art as the app icon while music plays")}
+          sub={t(
+            "The taskbar button becomes the cover of the track you are listening to, and goes back to your Harbor icon when music stops. The thumbnail preview always shows the cover either way.",
+          )}
+          value={settings.musicArtworkAppIcon}
+          onChange={(v) => update({ musicArtworkAppIcon: v })}
+        />
+      )}
       <input
         ref={inputRef}
         type="file"

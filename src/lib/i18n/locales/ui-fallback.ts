@@ -3139,6 +3139,8 @@ const uiFallback: Record<string, string> = {
     "HTML5 plays everything the system's web view supports. mpv handles TrueHD, DTS-HD, AV1, weird containers, and HDR. Auto picks based on the source.",
   Appearance: "Appearance",
   Shortcuts: "Shortcuts",
+  "Video downloads are managed on the Downloads page.":
+    "Video downloads are managed on the Downloads page.",
 };
 
 export default uiFallback;
