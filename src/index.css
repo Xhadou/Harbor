@@ -8545,14 +8545,15 @@ html[data-os="macos"] .harbor-settings-shell .hset-caption {
    row that follows something that is not a row (a picker, a preview, a line of
    text), or that sits in a wrapper of its own, had none: some rows of a card
    were ruled off and others ran together. A row directly under a heading takes
-   none: the heading is the separation. */
+   none: the heading is the separation. Nor does a card's own first row: the
+   card is not a wrapper inside itself, and a line there doubled its top edge. */
 html[data-os="macos"]
   .harbor-settings-shell
   .harbor-settings-group
   :is(
     .hset-row:not(:first-child),
     :not(.harbor-settings-label, .hset-section-title, .hset-workbench-preview)
-      + :not(.hset-row)
+      + :not(.hset-row, .harbor-settings-group)
       > .hset-row:first-child
   )::before {
   content: "";
@@ -8642,6 +8643,88 @@ html[data-os="macos"]
   button:is(.h-11.w-fit, .inline-flex.min-h-11, [type="submit"].h-11) {
   padding-inline: 12px;
   font-weight: 500;
+}
+
+/* A Settings button is one size wherever it stands. The compact size reached
+   only the buttons in a row's control column; one beside a note, or under a
+   list, kept the larger type and padding of the other platforms. */
+html[data-os="macos"] .harbor-settings-shell .hset-main .hset-btn:not(.hset-btn-icon) {
+  block-size: var(--hset-ctl-h);
+  min-block-size: var(--hset-ctl-h);
+  padding-inline: 12px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* A field drawn as a well round its input (a service's key with its logo, a
+   profile's name) is a field like any other: as tall as a button, with the
+   field's corner and type. It was a 56 px block with a 36 px logo. */
+html[data-os="macos"] .harbor-settings-shell .hset-field-well {
+  gap: 8px;
+  block-size: var(--hset-ctl-h);
+  min-block-size: var(--hset-ctl-h);
+  padding-inline: 8px 3px;
+  border-radius: 7px;
+}
+/* The ring goes round the whole field, not round the words inside it. */
+html[data-os="macos"] .harbor-settings-shell .hset-field-well:has(> input:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 0;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > input:focus-visible {
+  outline: none;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > input {
+  block-size: 100%;
+  min-block-size: 0;
+  padding-inline: 0;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > :is(img, span):first-child {
+  inline-size: 18px;
+  block-size: 18px;
+  padding: 0;
+  border-radius: 4px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > :first-child svg {
+  inline-size: 12px;
+  block-size: 12px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well button {
+  block-size: 24px;
+  min-block-size: 24px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > button {
+  inline-size: 24px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > button svg {
+  inline-size: 15px;
+  block-size: 15px;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-field-well > div > button {
+  padding-inline: 9px;
+}
+
+/* A menu shows the Mac's pop-up face: the choice, and the pair of chevrons at
+   its far end. The menu it opens is the system's own. */
+html[data-os="macos"] .harbor-settings-shell .hset-main select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-inline: 10px 26px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12' fill='none' stroke='%239a9aa2' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.2 4.4 4 1.6l2.8 2.8M1.2 7.6 4 10.4l2.8-2.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  background-size: 8px 12px;
+}
+html[dir="rtl"][data-os="macos"] .harbor-settings-shell .hset-main select {
+  background-position: left 9px center;
 }
 
 /* Two sizes of type on a Settings page: a row's title and everything said about
@@ -8739,8 +8822,11 @@ html[data-os="macos"] .harbor-settings-shell .hset-segmented {
   border-radius: 8px;
   background: var(--hset-mac-well);
 }
-html[data-os="macos"] .harbor-settings-shell .hset-segmented > button {
+/* `.hset-main` puts this ahead of the rule for buttons in a row's control column. */
+html[data-os="macos"] .harbor-settings-shell .hset-main .hset-segmented > button {
+  /* With the track's 2 px either side, as tall as the button beside it. */
   block-size: 26px;
+  min-block-size: 0;
   min-inline-size: 0;
   padding-inline: 12px;
   border-radius: 6px;

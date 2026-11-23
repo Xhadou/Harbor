@@ -391,7 +391,7 @@ export function KeyField({
       </div>
       <div
         data-settings-row
-        className={`flex min-h-[56px] w-full items-center gap-2.5 rounded-[10px] border px-3 transition-colors ${
+        className={`hset-field-well flex min-h-[56px] w-full items-center gap-2.5 rounded-[10px] border px-3 transition-colors ${
           focused ? "border-edge bg-raised" : "border-edge-soft bg-elevated"
         }`}
       >

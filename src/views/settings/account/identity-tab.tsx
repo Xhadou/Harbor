@@ -187,7 +187,7 @@ export function IdentityTab() {
             <div className="flex items-end gap-3">
               <label className="flex min-w-0 max-w-[420px] flex-1 flex-col gap-2 text-[15.5px] leading-[22px] text-ink-muted">
                 <span>{isNuvio ? t("Profile name") : t("Display name")}</span>
-                <span className="flex h-12 w-full min-w-0 items-center gap-3 rounded-[10px] border border-edge-soft bg-elevated px-3 transition-colors hover:border-edge focus-within:border-ink-muted">
+                <span className="hset-field-well flex h-12 w-full min-w-0 items-center gap-3 rounded-[10px] border border-edge-soft bg-elevated px-3 transition-colors hover:border-edge focus-within:border-ink-muted">
                   <input
                     value={nameDraft}
                     maxLength={32}
