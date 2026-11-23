@@ -16,14 +16,12 @@ import {
   previewOpenDelay,
 } from "@/lib/card-preview/policy";
 import { markPreviewOpen, sinceLastPreviewMs } from "@/lib/card-preview/store";
-import { previewTakeover } from "@/lib/card-preview/takeover";
+import { previewRowFocus } from "@/lib/card-preview/row-focus";
 
 const READY_RETRY_MS = 100;
 const READY_RETRIES = 30;
 // A closing card keeps what it showed until its width is back, whichever return it is on.
 const CLOSING_MS = PREVIEW_OPEN_MS + 120;
-// How soon after a waiting card was due to open the open card looks again.
-const TAKEOVER_GRACE_MS = 80;
 
 /**
  * Whether the pointer left a card through its side, toward the next card in the
@@ -92,6 +90,8 @@ export function useCardPreview(measure: () => number, allowed = true) {
     if (!enabled || reducedMotion()) return;
     inside.current = true;
     clear("leave");
+    // The card of this row that is open, if it is another one, closes now.
+    previewRowFocus.movedOn(rowId);
     if (rowRef.current?.expanded) return;
     clear("lookup");
     timers.current.lookup = window.setTimeout(() => {
@@ -107,67 +107,45 @@ export function useCardPreview(measure: () => number, allowed = true) {
       if (!inside.current) return;
       const width = measureRef.current();
       if (width > 0) {
-        previewTakeover.cancel();
         rowRef.current?.expand(width);
       } else if (triesLeft > 0) {
-        // Still about to open: the card that is open now goes on waiting for this one.
-        previewTakeover.announce(rowId, READY_RETRY_MS);
         timers.current.open = window.setTimeout(() => tryOpen(triesLeft - 1), READY_RETRY_MS);
-      } else {
-        previewTakeover.cancel();
       }
     };
-    const delay = previewOpenDelay(sinceLastPreviewMs());
-    // The card of this row that is open now waits for this one, and the two change places at once.
-    previewTakeover.announce(rowId, delay);
-    timers.current.open = window.setTimeout(() => tryOpen(READY_RETRIES), delay);
+    timers.current.open = window.setTimeout(
+      () => tryOpen(READY_RETRIES),
+      previewOpenDelay(sinceLastPreviewMs()),
+    );
   }, [clear, enabled, rowId]);
 
-  // `towardNext` is false when the pointer left the row itself: nothing is about to take the
-  // preview over, so the card need not wait for a neighbour before it starts to close.
-  const closeAfter = useCallback(
-    (ms: number) => {
-      clear("leave");
-      const close = () => {
-        timers.current.leave = null;
-        if (inside.current) return;
-        // The pointer rests on another card of the row: stay open until that card takes over,
-        // so the row does not move under it. Looked at again just after it was due.
-        const wait = previewTakeover.waitMs(rowId);
-        if (wait > 0 && rowRef.current?.expanded) {
-          timers.current.leave = window.setTimeout(close, wait + TAKEOVER_GRACE_MS);
-          return;
-        }
-        rowRef.current?.collapse();
-        setWanted(false);
-      };
-      timers.current.leave = window.setTimeout(close, ms);
-    },
-    [clear, rowId],
-  );
+  const close = useCallback(() => {
+    clear("leave");
+    if (inside.current) return;
+    rowRef.current?.collapse();
+    setWanted(false);
+  }, [clear]);
 
+  // `towardNext` is false when the pointer left the row itself: it is not about to come back
+  // over the card's edge, so the card need not wait before it starts to close.
   const leave = useCallback(
     (towardNext = true) => {
       inside.current = false;
-      // This card was waiting to open: it no longer is.
-      if (timers.current.open !== null) previewTakeover.cancel();
       clear("open");
       clear("lookup");
-      // Out of the row altogether: no card will take over, and a card left open is told so.
-      if (!towardNext) previewTakeover.leftRow(rowId);
-      closeAfter(towardNext ? PREVIEW_LEAVE_MS : PREVIEW_LEAVE_AWAY_MS);
+      clear("leave");
+      timers.current.leave = window.setTimeout(
+        close,
+        towardNext ? PREVIEW_LEAVE_MS : PREVIEW_LEAVE_AWAY_MS,
+      );
     },
-    [clear, closeAfter, rowId],
+    [clear, close],
   );
 
-  // An open card the pointer left for a neighbour closes at once when the pointer then leaves
-  // the row from that neighbour.
+  // Focus moved to another card of the row: this one, if it is open, closes without waiting.
   useEffect(() => {
     if (!open) return;
-    return previewTakeover.onLeftRow(rowId, () => {
-      if (!inside.current) closeAfter(PREVIEW_LEAVE_AWAY_MS);
-    });
-  }, [closeAfter, open, rowId]);
+    return previewRowFocus.onMovedOn(rowId, close);
+  }, [close, open, rowId]);
 
   useEffect(() => {
     if (!closing) return;
@@ -188,7 +166,6 @@ export function useCardPreview(measure: () => number, allowed = true) {
   useEffect(
     () => () => {
       inside.current = false;
-      if (timers.current.open !== null) previewTakeover.cancel();
       clear("open");
       clear("lookup");
       clear("leave");

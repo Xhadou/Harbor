@@ -4,8 +4,8 @@
  * that time to be found before the card opens. While a preview is open, or has
  * only just closed, the person is plainly looking at previews: the next card
  * they rest on waits less, though still long enough that passing over it opens
- * nothing. The open card stays open through that wait, so the two swap in one
- * movement and the row under the pointer does not shift twice.
+ * nothing. The card that was open closes the moment another card takes the
+ * pointer or the keyboard's focus: one card at a time is more than a poster.
  */
 
 /** How long the pointer rests on a card before the first preview opens. */
@@ -22,13 +22,17 @@ export const PREVIEW_CLOSE_EASE = "cubic-bezier(0.3, 0, 0.1, 1)";
 export const PREVIEW_TRAILER_OUT_MS = 280;
 /** How long it rests on the next card while a preview is, or has just been, open. */
 export const PREVIEW_HANDOFF_MS = 1000;
-/** How long after a preview closes the next card still counts as "the next card". */
-export const PREVIEW_WARM_MS = 400;
+/**
+ * How long after a preview closes the next card still counts as "the next card". It
+ * outlasts the close itself: while a card closes the row moves, and the card that ends
+ * up under the pointer is reached only when it has stopped.
+ */
+export const PREVIEW_WARM_MS = 1200;
 /**
  * How long a preview stays open after the pointer leaves it for another card: long enough
  * to cross the gap between two cards and come back without the card starting to close.
- * If the pointer then rests on a card of the same row, the open card waits on for that
- * card to take over (takeover.ts), and the two change places in one movement.
+ * If the pointer comes onto another card of the row, the open card closes at once
+ * (row-focus.ts).
  */
 export const PREVIEW_LEAVE_MS = 160;
 /** The same wait when the pointer left the row altogether: no card is about to take over. */

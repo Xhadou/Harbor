@@ -32,13 +32,15 @@ function useCollectionDetails(wanted: boolean, collectionId: number): Collection
   return current;
 }
 
-/** "8 films · 2001–2015", as far as it is known. */
-function useCollectionFacts(count: number | null, details: CollectionPreview | null): string {
+/** "8 films", and "8 films · 2001–2015" once the years are known. */
+function useCollectionFacts(
+  count: number | null,
+  details: CollectionPreview | null,
+): { films: string; full: string } {
   const t = useT();
-  const films = details?.count ?? count;
-  return [films != null ? t("{count} films", { count: films }) : t("Collection"), details?.years]
-    .filter(Boolean)
-    .join(" · ");
+  const number = details?.count ?? count;
+  const films = number != null ? t("{count} films", { count: number }) : t("Collection");
+  return { films, full: [films, details?.years].filter(Boolean).join(" · ") };
 }
 
 /**
@@ -84,7 +86,8 @@ export function MacCollectionPoster({
   const preview = useCardPreview(measure, collectionId > 0);
   if (preview.wanted && !wideAsked) setWideAsked(true);
   const details = useCollectionDetails(preview.wanted, collectionId);
-  const facts = useCollectionFacts(count, details);
+  // At rest every card says the same thing; the years belong to the open card.
+  const { films, full: facts } = useCollectionFacts(count, details);
   const film = details?.film ?? null;
   const play = film ? () => openPicker(film, smartPlayEpisode(film)) : undefined;
   const allFilms = t("All films");
@@ -150,7 +153,7 @@ export function MacCollectionPoster({
             {name}
           </p>
           <div className="mac-under-second">
-            <p className="mac-card-caption">{facts}</p>
+            <p className="mac-card-caption">{films}</p>
             {preview.present && (
               <span
                 className="mac-card-caption mac-under-facts"
@@ -203,7 +206,7 @@ export function MacCollectionCard({
   const { openPicker } = useView();
   const [wanted, setWanted] = useState(false);
   const current = useCollectionDetails(wanted, collectionId);
-  const facts = useCollectionFacts(count, current);
+  const { full: facts } = useCollectionFacts(count, current);
   const art = backdrop?.replace("/t/p/original/", "/t/p/w780/");
   const film = current?.film;
 

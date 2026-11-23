@@ -18,7 +18,7 @@ import {
   previewOpenDelay,
 } from "../src/lib/card-preview/policy.ts";
 import { collectionYears, pickCollectionFilm } from "../src/lib/card-preview/collection-pick.ts";
-import { createTakeover } from "../src/lib/card-preview/takeover.ts";
+import { createRowFocus } from "../src/lib/card-preview/row-focus.ts";
 
 const TODAY = "2026-11-22";
 const saga = [
@@ -53,48 +53,27 @@ test("no card opens under a pointer that is only passing", () => {
   assert.ok(PREVIEW_LOOKUP_MS < PREVIEW_HANDOFF_MS);
 });
 
-test("an open card waits for the card the pointer rests on, and no longer than that", () => {
-  let clock = 1000;
-  const takeover = createTakeover(() => clock);
-  assert.equal(takeover.waitMs("row"), 0);
-  takeover.announce("row", PREVIEW_HANDOFF_MS);
-  // The open card looks when its own short wait is over: the neighbour is still counting.
-  clock += PREVIEW_LEAVE_MS;
-  assert.equal(takeover.waitMs("row"), PREVIEW_HANDOFF_MS - PREVIEW_LEAVE_MS);
-  // The pointer moved on before the neighbour opened: nothing is waiting, the card may close.
-  takeover.cancel();
-  assert.equal(takeover.waitMs("row"), 0);
-  // A card that never opens (its picture did not come) does not hold the open one for ever.
-  takeover.announce("row", PREVIEW_HANDOFF_MS);
-  clock += PREVIEW_HANDOFF_MS + 1;
-  assert.equal(takeover.waitMs("row"), 0);
-});
-
-test("a card waiting in another row holds nothing open in this one", () => {
-  const takeover = createTakeover(() => 0);
-  takeover.announce("row above", PREVIEW_HANDOFF_MS);
-  assert.equal(takeover.waitMs("row"), 0);
-  assert.equal(takeover.waitMs("row above"), PREVIEW_HANDOFF_MS);
-});
-
-test("leaving the row ends the wait and tells the card still open in that row", () => {
-  const takeover = createTakeover(() => 0);
+test("the open card of a row is told when focus moves to another card of that row", () => {
+  const focus = createRowFocus();
   let told = 0;
   let toldElsewhere = 0;
-  const stop = takeover.onLeftRow("row", () => {
+  const stop = focus.onMovedOn("row", () => {
     told += 1;
   });
-  takeover.onLeftRow("row above", () => {
+  focus.onMovedOn("row above", () => {
     toldElsewhere += 1;
   });
-  takeover.announce("row", PREVIEW_HANDOFF_MS);
-  takeover.leftRow("row");
-  assert.equal(takeover.waitMs("row"), 0);
+  focus.movedOn("row");
   assert.equal(told, 1);
+  // A card in another row is no business of this one.
   assert.equal(toldElsewhere, 0);
   stop();
-  takeover.leftRow("row");
+  focus.movedOn("row");
   assert.equal(told, 1);
+});
+
+test("the next card still counts as the next one once the closing card has come to rest", () => {
+  assert.ok(PREVIEW_WARM_MS > PREVIEW_LEAVE_MS + PREVIEW_CLOSE_MS);
 });
 
 test("while a card is open every card moves on the opening curve, so two cards swap evenly", () => {
