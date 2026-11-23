@@ -6,6 +6,7 @@
 //! re-emits to the web app as `mac-native://<kind>` events.
 
 pub mod menu;
+pub mod window_close;
 
 use std::ffi::{c_char, c_void, CStr, CString};
 use std::sync::OnceLock;
@@ -46,6 +47,9 @@ extern "C" fn on_native_event(kind: *const c_char, json: *const c_char) {
     let (Some((name, payload)), Some(app)) = (event, APP.get()) else {
         return;
     };
+    if name == "mac-native://fullscreen" {
+        window_close::note_full_screen_report(&payload);
+    }
     if let Err(e) = app.emit(&name, payload) {
         eprintln!("[harbor::mac-native] emit {name} failed: {e}");
     }

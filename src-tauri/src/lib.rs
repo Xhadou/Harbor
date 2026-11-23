@@ -214,6 +214,8 @@ pub(crate) fn shutdown_services(app: &tauri::AppHandle) {
 pub static CLOSE_FLUSH_DONE: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 #[cfg(desktop)]
+// A Mac puts its window away on close instead of ending the app (`mac_native::window_close`).
+#[cfg(not(target_os = "macos"))]
 static CLOSE_IN_PROGRESS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 // Maximised windows are clamped to the work area so they never cover the taskbar.
 // Fullscreen must cover it, so the clamp is lifted while fullscreen is active.
@@ -1284,6 +1286,12 @@ pub fn run() {
                 _ => {}
             }
             match event {
+                #[cfg(target_os = "macos")]
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    api.prevent_close();
+                    mac_native::window_close::put_away(window);
+                }
+                #[cfg(not(target_os = "macos"))]
                 tauri::WindowEvent::CloseRequested { api, .. } => {
                     if tray::close_to_tray() {
                         api.prevent_close();
@@ -2313,6 +2321,15 @@ pub fn run() {
         .build(context)
         .expect("error while building tauri application")
         .run(|app_handle, event| {
+            // A click on the Dock icon while the main window is put away.
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen {
+                has_visible_windows: false,
+                ..
+            } = event
+            {
+                mac_native::window_close::bring_back(app_handle);
+            }
             if matches!(event, tauri::RunEvent::Exit) {
                 shutdown_services(app_handle);
             }

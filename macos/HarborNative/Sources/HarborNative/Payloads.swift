@@ -79,6 +79,8 @@ struct SearchKeyPayload: Codable, Equatable, Sendable {
 /// Whether the window is in (or on its way into) macOS full screen.
 struct FullScreenPayload: Codable, Equatable, Sendable {
     var on: Bool
+    /// False while the system is still animating into or out of full screen.
+    var settled: Bool
 }
 
 /// How much of the window the native chrome covers, in points.

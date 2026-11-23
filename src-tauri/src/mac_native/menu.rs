@@ -204,6 +204,8 @@ pub fn install_menu(app: &AppHandle) -> tauri::Result<()> {
         if !ids.contains(&id) {
             return;
         }
+        // A command chosen while the window is put away is meant for it.
+        super::window_close::bring_back(app);
         if let Err(e) = app.emit("mac-native://menu", json!({ "action": id })) {
             eprintln!("[harbor::mac-native] emit menu {id} failed: {e}");
         }

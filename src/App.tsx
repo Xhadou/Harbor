@@ -63,6 +63,7 @@ import { useOverlayPinned } from "@/lib/overlay-pin";
 import { isMacDesktop, isMobileWeb, isRemoteRoute, osClass } from "@/lib/platform";
 import { macLayout } from "@/lib/mac-chrome";
 import { NativeMenuBridge } from "@/chrome/mac/native-menu-bridge";
+import { WindowClosedBridge } from "@/chrome/mac/window-closed-bridge";
 import { NativeSidebarBridge } from "@/chrome/mac/native-sidebar-bridge";
 import { NativeToolbarBridge } from "@/chrome/mac/native-toolbar-bridge";
 import { sidebarVisible } from "@/chrome/mac/sidebar-items";
@@ -1899,6 +1900,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
             <>
               <NativeToolbarBridge playerActive={playerActive} immersive={immersive} />
               <NativeMenuBridge playerActive={playerActive} />
+              <WindowClosedBridge />
               <NativeSidebarBridge
                 visible={sidebarVisible({
                   playerActive,

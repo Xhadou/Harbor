@@ -19,6 +19,7 @@ final class HarborNativeController {
     /// said anything. Its style mask is no substitute while a transition runs:
     /// it still reads full screen all the way through leaving.
     private var fullScreenReported: Bool?
+    private var fullScreenSettled = true
     private(set) var chrome: ChromeButtons!
     private(set) var sidebar: SidebarHost!
     private var lastLayout: LayoutPayload?
@@ -45,7 +46,7 @@ final class HarborNativeController {
         // keeps a state of its own. The "will" notices come first so the page
         // lays itself out for the new state while the animation runs.
         let center = NotificationCenter.default
-        let watch: (Notification.Name, Bool) -> Void = { [weak self] name, on in
+        let watch: (Notification.Name, Bool, Bool) -> Void = { [weak self] name, on, settled in
             guard let self else { return }
             let observer = center.addObserver(forName: name, object: window, queue: .main) {
                 [weak self] _ in
@@ -54,20 +55,21 @@ final class HarborNativeController {
                     // Leaving full screen restores a saved style mask; make sure the
                     // web content still extends under the title bar afterwards.
                     if name == NSWindow.didExitFullScreenNotification { self.applyWindowFrame() }
-                    self.emitFullScreen(on)
+                    self.emitFullScreen(on, settled: settled)
                 }
             }
             self.fullScreenObservers.append(observer)
         }
-        watch(NSWindow.willEnterFullScreenNotification, true)
-        watch(NSWindow.didEnterFullScreenNotification, true)
-        watch(NSWindow.willExitFullScreenNotification, false)
-        watch(NSWindow.didExitFullScreenNotification, false)
+        watch(NSWindow.willEnterFullScreenNotification, true, false)
+        watch(NSWindow.didEnterFullScreenNotification, true, true)
+        watch(NSWindow.willExitFullScreenNotification, false, false)
+        watch(NSWindow.didExitFullScreenNotification, false, true)
     }
 
-    private func emitFullScreen(_ on: Bool) {
+    private func emitFullScreen(_ on: Bool, settled: Bool) {
         fullScreenReported = on
-        emit("fullscreen", FullScreenPayload(on: on))
+        fullScreenSettled = settled
+        emit("fullscreen", FullScreenPayload(on: on, settled: settled))
     }
 
     /// System frame with traffic lights, web content running under a clear title bar.
@@ -124,7 +126,8 @@ final class HarborNativeController {
         sidebar.search.isHidden = !payload.searchVisible
         // The web app sends this on mount, when it may have missed earlier events.
         emitLayout(force: true)
-        emitFullScreen(fullScreenReported ?? window.styleMask.contains(.fullScreen))
+        emitFullScreen(
+            fullScreenReported ?? window.styleMask.contains(.fullScreen), settled: fullScreenSettled)
     }
 
     func setSearch(_ payload: SearchPayload) {
