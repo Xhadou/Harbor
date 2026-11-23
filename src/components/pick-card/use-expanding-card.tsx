@@ -15,6 +15,15 @@ type ArtworkState = {
   ready?: boolean;
 };
 
+/**
+ * An element's height as laid out. Its on-screen box is larger while the card is lifted
+ * (`.mac-lift` scales it), and the width a card opens to is a layout length.
+ */
+function layoutHeight(el: HTMLElement): number {
+  const height = Number.parseFloat(getComputedStyle(el).height);
+  return Number.isFinite(height) ? height : el.offsetHeight;
+}
+
 export function useExpandingCard({
   cardRef,
   meta,
@@ -86,7 +95,7 @@ export function useExpandingCard({
       if (!focusIntentRef.current) return;
       const anchor = cardRef.current?.querySelector<HTMLElement>("[data-preview-anchor]");
       if (!anchor) return;
-      row.expand(expandedCardWidth(anchor.getBoundingClientRect().height));
+      row.expand(expandedCardWidth(layoutHeight(anchor)));
     },
     [cardRef, enabled, row],
   );
@@ -161,7 +170,7 @@ export function useExpandingCard({
   const previewWidth = useCallback(() => {
     if (!artworkRef.current || !artworkReadyRef.current) return 0;
     const anchor = cardRef.current?.querySelector<HTMLElement>("[data-preview-anchor]");
-    return anchor ? expandedCardWidth(anchor.getBoundingClientRect().height) : 0;
+    return anchor ? expandedCardWidth(layoutHeight(anchor)) : 0;
   }, [cardRef]);
 
   useEffect(() => {

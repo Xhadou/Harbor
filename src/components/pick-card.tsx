@@ -591,7 +591,10 @@ const PosterCard = memo(function PosterCard({
       data-row-card-expanded={expandingCard.expanded ? "true" : undefined}
       data-focused-card={expandingCard.focusEnabled ? "" : undefined}
       data-no-card-ring={inCardHover !== "none" || activeCustom ? "" : undefined}
-      className="group relative z-0 flex w-full min-w-0 flex-col gap-2.5 text-start hover:z-[2]"
+      data-pv-closing={preview.closing ? "" : undefined}
+      className={`group relative z-0 flex w-full min-w-0 flex-col gap-2.5 text-start hover:z-[2] ${
+        mac ? "mac-lift" : ""
+      }`}
     >
       <div
         data-preview-anchor
@@ -610,7 +613,7 @@ const PosterCard = memo(function PosterCard({
           tiltable
             ? ""
             : mac
-              ? // macOS: the poster stays where it is; the hairline says it is under the pointer.
+              ? // macOS: the whole card lifts (`.mac-lift`), so the poster has no movement of its own.
                 ""
               : "transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] motion-safe:group-hover:[transform:translate3d(0,-0.5rem,0)_scale(1.03)] motion-safe:group-hover:will-change-transform"
         } ${expandingCard.enabled ? "expanding-card-poster-frame" : ""} ${
@@ -777,11 +780,11 @@ const PosterCard = memo(function PosterCard({
       {!settings.hidePosterTitles && (
         <div className="mac-card-under min-h-9">
           <p
-            style={{ fontSize: `${(kids ? 15 : 13) * settings.cardTitleScale}px` }}
+            style={{ fontSize: `${(kids || mac ? 15 : 13) * settings.cardTitleScale}px` }}
             className={
               kids
                 ? "line-clamp-2 text-[15px] font-bold leading-snug text-[#0e3a43]"
-                : `${(reason && !kids) || scoreUnderTitle ? "line-clamp-1" : "line-clamp-2"} text-[13px] font-medium leading-snug text-ink`
+                : `${(reason && !kids) || scoreUnderTitle ? "line-clamp-1" : "line-clamp-2"} mac-card-title text-[13px] font-medium leading-snug text-ink`
             }
           >
             {preferredTitle || translatedTitle || meta.name}

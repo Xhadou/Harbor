@@ -7,6 +7,7 @@ import type { Meta } from "@/lib/cinemeta";
 import { useT } from "@/lib/i18n";
 import { layoutHasGlobalBack } from "@/lib/theme";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
 import { useScrollMemory, useView, type GridSpec } from "@/lib/view";
 
 const PAGE_CAP = 40;
@@ -69,8 +70,9 @@ export function GridView({ grid }: { grid: GridSpec }) {
       <div
         className="grid gap-x-4 gap-y-8"
         style={{
+          // macOS: posters here are the size they are in the row this grid was opened from.
           gridTemplateColumns: `repeat(auto-fill, minmax(${
-            settings.rowCardStyle === "tv" && !hero ? TV_CARD_MIN : 150
+            settings.rowCardStyle === "tv" && !hero ? TV_CARD_MIN : isMacDesktop() ? 168 : 150
           }px, 1fr))`,
         }}
       >

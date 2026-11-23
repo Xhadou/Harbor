@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type FocusEvent,
@@ -196,6 +197,8 @@ export function useCardPreview(measure: () => number, allowed = true) {
     wanted: wanted || open,
     /** The card shows, or is still putting away, what its preview adds: keep it mounted. */
     present: wanted || open || closing,
+    /** The card is on its way back from open: what it wears while open settles in step. */
+    closing,
     arrive,
     leave,
     handlers: { onPointerEnter, onPointerLeave, onFocus, onBlur },
@@ -209,7 +212,14 @@ export function useCardPreview(measure: () => number, allowed = true) {
  */
 export function useCardPreviewOn(host: HTMLElement | null, measure: () => number) {
   const preview = useCardPreview(measure);
-  const { enabled, arrive, leave } = preview;
+  const { enabled, arrive, leave, closing } = preview;
+
+  // The host is the card: it settles from its lift in step with the closing (`.mac-lift`).
+  useLayoutEffect(() => {
+    if (!host) return;
+    host.toggleAttribute("data-pv-closing", closing);
+    return () => host.removeAttribute("data-pv-closing");
+  }, [closing, host]);
 
   useEffect(() => {
     if (!enabled || !host) return;

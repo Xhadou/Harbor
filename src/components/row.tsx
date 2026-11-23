@@ -18,6 +18,8 @@ import { ThreeLiquidGlassSurface } from "@/components/ThreeLiquidGlassSurface";
 import { NavChevron } from "./nav-arrow";
 import { useT, useUiLanguage, isRtl as checkRtl } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
+import { MAC_ROW_GAP, macRowFit } from "@/lib/mac-row-fit";
+import { isMacDesktop } from "@/lib/platform";
 import { useViewActions } from "@/lib/view";
 import { resetPosterDock as resetPosterDockItems, updatePosterDock } from "@/lib/poster-dock";
 import { scrollDeltaToRevealCard } from "@/lib/poster-backdrop-expansion";
@@ -27,6 +29,9 @@ import {
   easeProgress,
   previewMotion,
   type PreviewMotion,
+  liftRoom,
+  liftScale,
+  openWidthWithin,
 } from "@/lib/card-preview/policy";
 import { cardPreviewsOn } from "@/lib/card-preview/store";
 
@@ -71,6 +76,22 @@ function pageScrollerOf(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
+/**
+ * macOS: how far a row's scroller may run past the row to the edge of its page, so the last
+ * card in view is cut by the window and not by the page's padding. Only a row that ends exactly
+ * at its page's padding gets it; one inside a narrower column keeps its own edge.
+ */
+function macEndBleed(container: HTMLElement, rtl: boolean): number {
+  const page = container.closest<HTMLElement>(".mac-pad");
+  if (!page) return 0;
+  const padding = Number.parseFloat(getComputedStyle(page).paddingInlineEnd);
+  if (!Number.isFinite(padding) || padding <= 0) return 0;
+  const pageBox = page.getBoundingClientRect();
+  const rowBox = container.getBoundingClientRect();
+  const room = rtl ? rowBox.left - pageBox.left : pageBox.right - rowBox.right;
+  return Math.abs(room - padding) < 2 ? Math.round(room) : 0;
+}
+
 export function usePosterRow(min = 144, kids = false): { min: number; shape: RowShape } {
   const { settings } = useSettings();
   return settings.rowCardStyle === "tv" && !kids
@@ -97,7 +118,10 @@ function LazyChild({
   expansion?: {
     index: number;
     baseWidth: number;
+    /** The cell's width while its card is open, `room` on both sides included. */
     expandedWidth?: number;
+    /** Space kept either side of an open card inside its cell (a lifted card on macOS). */
+    room: number;
     expanded: boolean;
     previews: boolean;
     /** How long the cell takes to change width, and its curve, when not the default. */
@@ -170,7 +194,7 @@ function LazyChild({
       data-tv-nav-base-width={expansion?.baseWidth}
       className={
         expansion
-          ? "relative min-w-0 transition-[flex-basis] duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+          ? "relative box-border min-w-0 transition-[flex-basis,padding] duration-[480ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
           : undefined
       }
       style={
@@ -178,6 +202,9 @@ function LazyChild({
           ? {
               flex: "0 0 auto",
               flexBasis: `${expansion.expandedWidth ?? expansion.baseWidth}px`,
+              // Changes with the width, on the same curve, so the card itself follows the
+              // width it was asked for.
+              paddingInline: `${expansion.room}px`,
               ...(expansion.motion
                 ? {
                     transitionDuration: `${expansion.motion.ms}ms`,
@@ -313,6 +340,9 @@ export function Row({
     shape === "portrait" && settings.rowCardStyle === "tv" && holdsPosterCards(children);
   const effShape: RowShape = tvCards ? "landscape" : shape;
   const effMin = Math.max(72, Math.round((tvCards ? TV_CARD_MIN : min) * settings.posterScale));
+  // macOS sizes a row from the window (`macRowFit`): tighter gaps, and the next card in view.
+  const macRow = isMacDesktop();
+  const gap = macRow ? MAC_ROW_GAP : GAP;
   const previewCards =
     cardPreviewsOn(settings) &&
     (previews || (effShape === "portrait" && holdsPosterCards(children)));
@@ -355,6 +385,17 @@ export function Row({
       : observeWithin(el, "1600px 0px", onNear);
   }, [pageScrollRoot]);
   const measuredRef = useRef({ width: 0, effMin: 0 });
+  // macOS: how far the track runs past the row's own edge, to the edge of the page.
+  const bleedEndRef = useRef(0);
+  // The part of the track a card is brought into when it opens: the row's own width, not the
+  // run-off beyond it.
+  const revealBounds = (track: HTMLDivElement) => {
+    const box = track.getBoundingClientRect();
+    const bleed = bleedEndRef.current;
+    return rtl
+      ? { left: box.left + bleed, right: box.right }
+      : { left: box.left, right: box.right - bleed };
+  };
   // Width reported by the ResizeObserver for this row's container, so the measurement below does
   // not need a forced layout read.
   const observedWidthRef = useRef(0);
@@ -369,8 +410,15 @@ export function Row({
     const previous = measuredRef.current;
     if (Math.abs(available - previous.width) < 0.5 && effMin === previous.effMin) return;
     measuredRef.current = { width: available, effMin };
-    const fits = Math.max(1, Math.floor((available + GAP) / (effMin + GAP)));
-    const raw = (available - (fits - 1) * GAP) / fits;
+    const fits = Math.max(1, Math.floor((available + gap) / (effMin + gap)));
+    const raw = macRow
+      ? macRowFit(available, effMin, window.innerWidth).cell
+      : (available - (fits - 1) * gap) / fits;
+    if (macRow) {
+      const bleed = macEndBleed(container, rtl);
+      bleedEndRef.current = bleed;
+      trackRef.current?.style.setProperty("--row-bleed-end", `${bleed}px`);
+    }
     const next = (Math.ceil(raw * 64) + 1) / 64;
     batchWrite(() => setCellWidth(next));
   };
@@ -441,11 +489,7 @@ export function Row({
   const revealExpanded = (track: HTMLDivElement, index: number) => {
     const cell = track.querySelector<HTMLElement>(`[data-row-card-index="${index}"]`);
     if (!cell) return;
-    const delta = scrollDeltaToRevealCard(
-      cell.getBoundingClientRect(),
-      track.getBoundingClientRect(),
-      GAP,
-    );
+    const delta = scrollDeltaToRevealCard(cell.getBoundingClientRect(), revealBounds(track), gap);
     if (Math.abs(delta) > 0.5) track.scrollLeft += delta;
     if (scrollHomeRef.current) scrollHomeRef.current.placed = track.scrollLeft;
   };
@@ -465,11 +509,7 @@ export function Row({
     }
     const box = cell.getBoundingClientRect();
     const left = rtl ? box.right + surplus - width : box.left - surplus;
-    return scrollDeltaToRevealCard(
-      { left, right: left + width },
-      track.getBoundingClientRect(),
-      GAP,
-    );
+    return scrollDeltaToRevealCard({ left, right: left + width }, revealBounds(track), gap);
   };
   // How far a card is through its change of width, to be asked each frame. It is read from the
   // card itself, so the row's scroll keeps exact step with the transition whichever frame the
@@ -831,8 +871,8 @@ export function Row({
   };
 
   const rafId = useRef<number | null>(null);
-  const strideRef = useRef(effMin + GAP);
-  strideRef.current = (cellWidth ?? effMin) + GAP;
+  const strideRef = useRef(effMin + gap);
+  strideRef.current = (cellWidth ?? effMin) + gap;
 
   const dockFrameRef = useRef<number | null>(null);
   const dockPointerXRef = useRef<number | null>(null);
@@ -852,7 +892,7 @@ export function Row({
       track,
       pointerX,
       cellWidth: cellWidth ?? effMin,
-      gap: GAP,
+      gap: gap,
       scrollPosition: rtl ? -track.scrollLeft : track.scrollLeft,
       rtl,
       transitionMs: settings.posterDockTransitionMs,
@@ -1002,7 +1042,7 @@ export function Row({
     const projection = -((v * Math.abs(v)) / (2 * friction));
     const projectedRaw = el.scrollLeft + projection;
     const projected = rtl ? -projectedRaw : projectedRaw;
-    const stride = (cellWidth ?? effMin) + GAP;
+    const stride = (cellWidth ?? effMin) + gap;
     const max = el.scrollWidth - el.clientWidth;
     const targetIdx = Math.round(projected / stride);
     const target = Math.max(0, Math.min(targetIdx * stride, max));
@@ -1021,6 +1061,8 @@ export function Row({
   };
 
   const trackPad = dockEnabled ? "pb-8 pt-14 -mb-8 -mt-14" : "py-5 -my-5 px-2 -mx-2 scroll-px-2";
+  // macOS: how much this row's cards grow when they lift (`.mac-lift`).
+  const rowLift = macRow ? liftScale(cellWidth ?? effMin) : 1;
   const hasHeader = !!(title || onViewAll || headerRight);
   const shellRoom = hasHeader ? "" : dockEnabled ? "py-14 -my-14" : "py-5 -my-5";
 
@@ -1102,7 +1144,7 @@ export function Row({
             onDragStart={(e) => e.preventDefault()}
             data-far={near ? undefined : ""}
             data-card-previews={previewCards ? "" : undefined}
-            className={`harbor-row-track items-start gap-5 overflow-x-auto overflow-y-hidden ${trackPad} [scroll-snap-type:x_mandatory] [&>*]:[scroll-snap-align:start] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [overflow-anchor:none] [overscroll-behavior-x:contain] [&_img]:select-none [&_img]:[-webkit-user-drag:none] ${
+            className={`harbor-row-track items-start ${macRow ? "gap-3" : "gap-5"} overflow-x-auto overflow-y-hidden ${trackPad} [scroll-snap-type:x_mandatory] [&>*]:[scroll-snap-align:start] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [overflow-anchor:none] [overscroll-behavior-x:contain] [&_img]:select-none [&_img]:[-webkit-user-drag:none] ${
               expandingCards
                 ? "harbor-expanding-card-scope harbor-expanding-row flex flex-nowrap"
                 : "grid grid-flow-col"
@@ -1110,6 +1152,7 @@ export function Row({
             style={
               {
                 "--row-poster-height": `${(cellWidth ?? effMin) * posterHeightRatio}px`,
+                ...(macRow ? { "--mac-lift-scale": rowLift } : {}),
                 // How long the width change now under way takes: a card's layers keep time by it.
                 "--row-expand-ms": `${expandMs}ms`,
                 ...(previewCards ? { "--pv-trailer-out-ms": `${PREVIEW_TRAILER_OUT_MS}ms` } : {}),
@@ -1126,7 +1169,7 @@ export function Row({
                 ? (child.props as { style?: { gridColumn?: string } }).style?.gridColumn
                 : undefined;
               const spanCount = columnSpan(span);
-              const baseWidth = (cellWidth ?? effMin) * spanCount + GAP * (spanCount - 1);
+              const baseWidth = (cellWidth ?? effMin) * spanCount + gap * (spanCount - 1);
               const expanded = expandedCard?.index === i;
               const desiredExpandedWidth =
                 expanded && expandedCard
@@ -1134,12 +1177,22 @@ export function Row({
                   : undefined;
               const viewportLimit = Math.max(
                 baseWidth,
-                (observedWidthRef.current || measuredRef.current.width || baseWidth) - GAP * 2,
+                (observedWidthRef.current || measuredRef.current.width || baseWidth) - gap * 2,
               );
-              const expandedWidth =
+              const fittedWidth =
                 desiredExpandedWidth === undefined
                   ? undefined
                   : Math.max(baseWidth, Math.min(desiredExpandedWidth, viewportLimit));
+              // macOS: an open card is also lifted, so its cell keeps room either side of it
+              // and the cards beside it stay as far off as they are from a lifted poster.
+              const liftedRow = macRow && previewCards;
+              const openWidth =
+                fittedWidth !== undefined && liftedRow
+                  ? openWidthWithin(fittedWidth, baseWidth, viewportLimit, rowLift)
+                  : fittedWidth;
+              const room =
+                openWidth !== undefined && liftedRow ? liftRoom(openWidth, baseWidth, rowLift) : 0;
+              const expandedWidth = openWidth === undefined ? undefined : openWidth + 2 * room;
               return (
                 <LazyChild
                   eager={alwaysActive || i < EAGER_COUNT}
@@ -1152,6 +1205,7 @@ export function Row({
                           index: i,
                           baseWidth,
                           expandedWidth,
+                          room,
                           expanded,
                           previews: previewCards,
                           motion: cardMotion,

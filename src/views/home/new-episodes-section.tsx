@@ -40,7 +40,7 @@ const EpisodeCard = memo(function EpisodeCard({
     openMeta(series, { episodeHint: { season: ep.season, episode: ep.episode } });
 
   return (
-    <div className={`group relative shrink-0 ${mac ? "mac-ep-root" : ""}`}>
+    <div className={`group relative shrink-0 ${mac ? "mac-ep-root mac-lift" : ""}`}>
       <button
         type="button"
         onClick={openEpisode}
@@ -78,7 +78,9 @@ const EpisodeCard = memo(function EpisodeCard({
       {mac && (
         // macOS: the artwork stays clear for the trailer; the card is named under it.
         <>
-          <p className="mt-2.5 truncate text-[13px] font-medium text-ink">{ep.seriesName}</p>
+          <p className="mac-card-title mt-2.5 truncate text-[13px] font-medium text-ink">
+            {ep.seriesName}
+          </p>
           <p className="mac-cw-caption">
             <span className="truncate">
               {ep.title ? `S${ep.season} E${ep.episode} \u00b7 ${ep.title}` : label(ep)}

@@ -272,6 +272,14 @@ html[data-os="macos"] [data-mac-bleed] .harbor-row-track {
   padding-inline-start: var(--mac-content-start);
   scroll-padding-inline-start: var(--mac-content-start);
 }
+/* At the other end a row runs on to the edge of its page (`--row-bleed-end`,
+   measured in row.tsx), so the card that is only partly in view is cut by the
+   window. Half a rem is the room every track keeps for a card's focus ring. */
+html[data-os="macos"] .harbor-row-track {
+  margin-inline-end: calc(-1 * max(var(--row-bleed-end, 0px), 0.5rem));
+  padding-inline-end: max(var(--row-bleed-end, 0px), 0.5rem);
+  scroll-padding-inline-end: max(var(--row-bleed-end, 0px), 0.5rem);
+}
 
 :root {
   color-scheme: dark;
@@ -9301,15 +9309,64 @@ html[data-os="macos"] .mac-card {
   border-radius: var(--mac-radius-card);
 }
 
-/* Poster card. Under the pointer the poster lifts and takes a light hairline.
-   The accent ring belongs to the keyboard, so the two never look alike. */
+/* A card under the pointer, or holding keyboard focus, lifts: the whole card,
+   its title with it, grows a little towards the viewer. Nothing is drawn
+   around it. It stays lifted while its preview is open, so a card rises first
+   and then opens within the lift.
+
+   The way back is as considered as the way in. A card the pointer only passed
+   over settles quickly. A card that was open settles over the same time as it
+   closes (`--row-expand-ms`, the row's movement under way), so its size and its
+   width come to rest together. `data-pv-closing` marks that card from the
+   render in which it stops being open. */
+html[data-os="macos"] {
+  /* A poster in a grid; also `CARD_LIFT_SCALE` in src/lib/card-preview/policy.ts.
+     A row sets its own, so each of its cards grows by the same eight pixels of
+     width whatever its shape (row.tsx). */
+  --mac-lift-scale: 1.045;
+}
+html[data-os="macos"] .mac-lift {
+  --lift-ms: 300ms;
+  --lift-ease: cubic-bezier(0.3, 0, 0.1, 1);
+  transform-origin: center;
+  transition: transform var(--lift-ms) var(--lift-ease);
+}
+html[data-os="macos"] .mac-lift[data-pv-closing] {
+  --lift-ms: var(--row-expand-ms, 560ms);
+}
+html[data-os="macos"]
+  .mac-lift:not([data-no-card-ring]):is(
+    :hover,
+    :focus-visible,
+    :has(:focus-visible),
+    :has(.mac-pv[data-open])
+  ) {
+  --lift-ms: 240ms;
+  --lift-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 2;
+  transform: scale(var(--mac-lift-scale));
+}
+/* Under the keyboard a card also dims and clears as focus moves along the row,
+   and that rule states its own transition; the lift keeps its place in it. */
+html[data-os="macos"]:not([data-input-modality="pointer"]) #root .mac-lift[data-media-card] {
+  transition:
+    transform var(--lift-ms) var(--lift-ease),
+    opacity 220ms ease,
+    filter 220ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-os="macos"] .mac-lift {
+    transition: none;
+  }
+}
+/* Other platforms ring a poster under the pointer; here the lift says it. */
 html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-ring::after {
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  box-shadow: none;
 }
 /* The lifted poster's shadow stays short, so it does not fall across the
    title of the very card the pointer is on. */
 html[data-os="macos"] button.group:not([data-no-card-ring]):hover .harbor-card-ring {
-  box-shadow: 0 6px 14px -8px rgb(0 0 0 / 0.55);
+  box-shadow: 0 10px 22px -10px rgb(0 0 0 / 0.6);
 }
 
 /* A label on a poster (New, In cinema, Dub): one quiet chip, in ordinary
@@ -9334,12 +9391,19 @@ html[data-os="macos"] .card-status-chip {
 html[data-os="macos"] .card-status-chip svg {
   display: none;
 }
+/* A card's title, under its artwork: large enough to read across a row of
+   posters a sixth of the window wide. */
+html[data-os="macos"] .mac-card-title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+}
 /* The line under a card's title: a score, or what is left to watch. */
 html[data-os="macos"] :is(.mac-card-caption, .mac-cw-caption) {
   overflow: hidden;
   color: var(--color-ink-subtle);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -9353,19 +9417,6 @@ html[data-os="macos"] .mac-cw-caption {
 /* Continue Watching card. The art stays whole: Play is one small cue in its
    corner (the same cue an episode row has), progress is a thin bar inside the
    lower edge, and what is left to watch is the line under the title. */
-html[data-os="macos"] .mac-cw-art::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 120ms var(--ease-out);
-}
-html[data-os="macos"] .group:hover .mac-cw-art::after {
-  opacity: 1;
-}
 html[data-os="macos"] .mac-cw-play {
   position: absolute;
   inset-block-end: 20px;
@@ -9701,9 +9752,6 @@ html[data-os="macos"]
   :is(.mac-cw-play, .mac-cw-progress) {
   opacity: 0;
   transition: opacity 160ms var(--ease-out);
-}
-html[data-os="macos"] .mac-cw-root:has(> .mac-pv-over[data-open]) .mac-cw-art::after {
-  opacity: 0;
 }
 
 /* A poster's wide picture fades in over the poster as the card opens, and

@@ -63,6 +63,7 @@ function fixture(grid: any) {
     "@/components/pick-card": { PickCard: "card" },
     "@/components/row": { TV_CARD_MIN: 250 },
     "@/lib/i18n": { useT: () => (s: string) => s },
+    "@/lib/platform": { isMacDesktop: () => false },
     "@/lib/theme": { layoutHasGlobalBack: () => false },
     "@/lib/settings": { useSettings: () => ({ settings: {} }) },
     "@/lib/view": { useView: () => ({ goBack() {} }), useScrollMemory() {} },

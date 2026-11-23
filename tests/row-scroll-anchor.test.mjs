@@ -47,6 +47,7 @@ test("row resets its horizontal position when its anchored head changes", async 
       observeWithin: () => () => {},
     },
     "@/lib/card-preview/store": { cardPreviewsOn: () => false },
+    "@/lib/platform": { isMacDesktop: () => false },
     "@/lib/settings": { useSettings: () => ({ settings }) },
     "@/lib/i18n": { useT: () => (s) => s, useUiLanguage: () => "en", isRtl: () => false },
     "@/lib/view": {

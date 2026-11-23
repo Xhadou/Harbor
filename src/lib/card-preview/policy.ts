@@ -82,3 +82,42 @@ export function easeProgress(ease: string, t: number): number {
   }
   return along(y1, y2, (low + high) / 2);
 }
+
+/**
+ * How much a card grows when it lifts under the pointer (macOS), where nothing says
+ * otherwise: a poster in a grid. The same number is `--mac-lift-scale` in index.css;
+ * `tests/mac-card-lift.test.ts` holds the two together.
+ */
+export const CARD_LIFT_SCALE = 1.045;
+/** How many pixels wider a lifted card in a row is, whatever its shape. */
+export const CARD_LIFT_PX = 8;
+
+/**
+ * The lift for a row whose cards are `restWidth` wide. Every card grows by the same
+ * width, so a wide card and a poster end up equally far from the cards beside them.
+ */
+export function liftScale(restWidth: number): number {
+  return restWidth > 0 ? 1 + CARD_LIFT_PX / restWidth : CARD_LIFT_SCALE;
+}
+
+/**
+ * The room an open, lifted card needs on each side so it stays as far from its neighbours
+ * as a lifted card at rest does: the lift's share of the width the card gained by opening.
+ */
+export function liftRoom(openWidth: number, restWidth: number, scale: number): number {
+  return Math.max(0, ((openWidth - restWidth) * (scale - 1)) / 2);
+}
+
+/**
+ * The widest a lifted card may open inside `limit`, its room included: `openWidth` when
+ * that fits, otherwise the width whose room brings it exactly to the limit.
+ */
+export function openWidthWithin(
+  openWidth: number,
+  restWidth: number,
+  limit: number,
+  scale: number,
+): number {
+  if (openWidth + 2 * liftRoom(openWidth, restWidth, scale) <= limit) return openWidth;
+  return Math.max(restWidth, (limit + restWidth * (scale - 1)) / scale);
+}

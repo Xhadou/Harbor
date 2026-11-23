@@ -60,7 +60,11 @@ export function MacCollectionCard({
   const film = current?.film;
 
   return (
-    <div ref={cardRef} onContextMenu={onContextMenu} className="group relative w-full min-w-0">
+    <div
+      ref={cardRef}
+      onContextMenu={onContextMenu}
+      className="mac-lift group relative w-full min-w-0"
+    >
       <button
         type="button"
         onClick={onOpen}
@@ -79,7 +83,7 @@ export function MacCollectionCard({
           />
         )}
       </button>
-      <p className="mt-2.5 truncate text-[13px] font-medium text-ink">{name}</p>
+      <p className="mac-card-title mt-2.5 truncate text-[13px] font-medium text-ink">{name}</p>
       <p className="mac-cw-caption">
         <span className="truncate">{facts}</span>
       </p>

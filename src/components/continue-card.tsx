@@ -853,7 +853,7 @@ export const ContinueCard = memo(function ContinueCard({
 
   return (
     <div
-      className={`group relative w-full min-w-0 animate-in fade-in-50 zoom-in-[0.98] duration-300 ease-out ${mac ? "mac-cw-root" : ""}`}
+      className={`group relative w-full min-w-0 animate-in fade-in-50 zoom-in-[0.98] duration-300 ease-out ${mac ? "mac-cw-root mac-lift" : ""}`}
       onContextMenu={onCardContext}
     >
       <button
@@ -1060,7 +1060,7 @@ export const ContinueCard = memo(function ContinueCard({
         data-tv-skip="true"
         onClick={onOpenDetails}
         aria-label={`${t("Open details")}: ${displayTitle}`}
-        className="mt-2.5 block w-full truncate rounded-sm text-start text-[13px] font-medium text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="mac-card-title mt-2.5 block w-full truncate rounded-sm text-start text-[13px] font-medium text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {displayTitle}
       </button>
