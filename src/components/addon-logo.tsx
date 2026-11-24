@@ -114,6 +114,12 @@ const SIZES: Record<AddonLogoSize, number> = {
   "4xl": 220,
 };
 
+// A logo is drawn in a square. A picture much wider or taller than that (a
+// wordmark) is shown whole where there is room for it, and below this size the
+// lettered tile stands in: a square cut from its middle is a few stray letters.
+const WORDMARK_MIN_PX = 56;
+const SQUARE_ENOUGH = 1.5;
+
 function radiusFor(px: number): number {
   return Math.max(4, Math.round(px * 0.22));
 }
@@ -185,8 +191,13 @@ export function AddonLogo({
   const preferBundled = PREFER_BUNDLED(addonId, addonName) && !!bundled;
   const primary = preferBundled ? bundled : manifestLogo || bundled || null;
   const fallback = preferBundled ? null : manifestLogo && bundled ? bundled : null;
-  const [remoteFailed, setRemoteFailed] = useState(false);
-  const src = remoteFailed && fallback ? fallback : primary;
+  // Remembered by address, so a logo that arrives later is tried afresh. When
+  // every candidate is out the lettered tile below stands in: a broken image
+  // would show its alt text instead.
+  const [unusable, setUnusable] = useState<readonly string[]>([]);
+  const src = [primary, fallback].find((s) => s && !unusable.includes(s)) ?? null;
+  const giveUpOn = (bad: string) =>
+    setUnusable((seen) => (seen.includes(bad) ? seen : [...seen, bad]));
   const initial = (addonName || "?").trim().charAt(0).toUpperCase();
   const [from, to] = paletteFor(addonId || addonName || "?");
 
@@ -204,14 +215,17 @@ export function AddonLogo({
         decoding="async"
         referrerPolicy="no-referrer"
         className="harbor-addon-logo"
-        onError={() => {
-          if (!remoteFailed && fallback) setRemoteFailed(true);
+        onError={() => giveUpOn(src)}
+        onLoad={(e) => {
+          const { naturalWidth: w, naturalHeight: h } = e.currentTarget;
+          if (px >= WORDMARK_MIN_PX || !w || !h) return;
+          if (Math.max(w / h, h / w) > SQUARE_ENOUGH) giveUpOn(src);
         }}
         style={{
           height: px,
           width: px,
           borderRadius: r,
-          objectFit: "cover",
+          objectFit: "contain",
           background: "rgba(255,255,255,0.06)",
           boxShadow: "0 0 0 1px rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.4)",
           flexShrink: 0,
