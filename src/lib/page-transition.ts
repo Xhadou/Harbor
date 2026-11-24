@@ -1,4 +1,5 @@
 import { flushSync } from "react-dom";
+import { PAGE_CHANGING } from "./one-frame-changes";
 import { isMacDesktop } from "./platform";
 
 /**
@@ -102,6 +103,10 @@ export function commitWithPageTransition(
   };
   // If the picture never comes (the window went behind another), go without it.
   const withoutPicture = window.setTimeout(run, 250);
+  // What mounts and unmounts while one page becomes another is this change's to animate.
+  const root = document.documentElement;
+  root.setAttribute(PAGE_CHANGING, "");
+  const settled = () => root.removeAttribute(PAGE_CHANGING);
   try {
     carried?.leave();
     const transition = document.startViewTransition(async () => {
@@ -115,12 +120,16 @@ export function commitWithPageTransition(
     });
     // A skipped transition rejects these; that is not an error here.
     transition.ready.catch(() => {});
-    const over = () => carried?.done();
+    const over = () => {
+      carried?.done();
+      settled();
+    };
     transition.finished.then(over, over);
     transition.updateCallbackDone.catch(() => {});
   } catch {
     window.clearTimeout(withoutPicture);
     carried?.done();
+    settled();
     run();
   }
 }
