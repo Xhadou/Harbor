@@ -1,5 +1,8 @@
 // Newly introduced UI copy remains usable until each locale provides an override.
 const uiFallback: Record<string, string> = {
+  "Harbor checks its releases on GitHub for new versions. Nothing downloads until you choose to, and a dismissed update never nags you again.":
+    "Harbor checks its releases on GitHub for new versions. Nothing downloads until you choose to, and a dismissed update never nags you again.",
+  "Checking GitHub for a newer build.": "Checking GitHub for a newer build.",
   "Episode information is unavailable": "Episode information is unavailable",
   "This PDF is shown as page images. Text search, translation, and narration are not available.":
     "This PDF is shown as page images. Text search, translation, and narration are not available.",

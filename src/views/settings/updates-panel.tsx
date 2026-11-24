@@ -1,6 +1,6 @@
 import { useT } from "@/lib/i18n";
 import { ExperimentalChangelog } from "@/components/update/experimental-changelog";
-import { isLinuxDesktop } from "@/lib/platform";
+import { isLinuxDesktop, isMacDesktop } from "@/lib/platform";
 import { Section } from "./shared";
 import { BetaChannelRow, ModifyInstallationRow, UpdatesRow } from "./advanced-panel";
 import { RollbackRow } from "./rollback-row";
@@ -25,9 +25,15 @@ export function UpdatesPanel() {
       {supportsInAppUpdates && (
         <Section
           title={t("Updates")}
-          subtitle={t(
-            "Harbor checks harborcommunity.site for new versions and installs them in place. Nothing installs until you choose to, and a dismissed update never nags you again.",
-          )}
+          subtitle={
+            isMacDesktop()
+              ? t(
+                  "Harbor checks its releases on GitHub for new versions. Nothing downloads until you choose to, and a dismissed update never nags you again.",
+                )
+              : t(
+                  "Harbor checks harborcommunity.site for new versions and installs them in place. Nothing installs until you choose to, and a dismissed update never nags you again.",
+                )
+          }
         >
           <UpdatesRow />
           <BetaChannelRow />

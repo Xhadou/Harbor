@@ -4,8 +4,8 @@ import { payloadVersionFor } from "./installer-plan";
 import type { HandoffPlan, HandoffProbe } from "./handoff";
 import type { NormalUpdateChannel } from "./channel";
 
-const API = "https://api.github.com/repos/Harborofficial/Harbor/releases";
-const RELEASES = "https://github.com/Harborofficial/Harbor/releases";
+const API = "https://api.github.com/repos/Xhadou/Harbor/releases";
+const RELEASES = "https://github.com/Xhadou/Harbor/releases";
 
 export function compareReleaseVersions(a: string, b: string): number {
   const left = a

@@ -665,7 +665,7 @@ export async function openManualDownload(): Promise<void> {
   }
   if (import.meta.env.DEV) return;
   const { openUrl } = await import("@/lib/window");
-  openUrl(releaseDownloadUrl || "https://github.com/Harborofficial/Harbor/releases");
+  openUrl(releaseDownloadUrl || "https://github.com/Xhadou/Harbor/releases");
 }
 
 export async function openHandoffDownload(): Promise<void> {

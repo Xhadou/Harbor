@@ -20,6 +20,7 @@ import {
   useUpdate,
 } from "@/lib/updater/use-update";
 import { IS_BETA_BUILD } from "@/lib/build-info";
+import { isMacDesktop } from "@/lib/platform";
 import { useT } from "@/lib/i18n";
 import { ToggleRow } from "../shared";
 import { ROW_ACTION, ROW_ACTION_PRIMARY, SettingRow } from "../kit";
@@ -93,7 +94,9 @@ export function UpdatesRow() {
     u.intent === "return-beta"
       ? t("Continue the return to beta in Experimental builds below.")
       : u.status === "checking"
-        ? t("Checking harborcommunity.site for a newer build.")
+        ? isMacDesktop()
+          ? t("Checking GitHub for a newer build.")
+          : t("Checking harborcommunity.site for a newer build.")
         : u.status === "downloading"
           ? t("Downloading {pct}%", { pct: Math.round(u.progress * 100) })
           : u.status === "downloaded"

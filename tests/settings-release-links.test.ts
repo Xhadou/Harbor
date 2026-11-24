@@ -12,7 +12,7 @@ test("changelog downloads use the in-app installer controls", () => {
 });
 
 test("rollback release actions open the official repository", () => {
-  assert.equal(RELEASES_URL, "https://github.com/Harborofficial/Harbor/releases");
+  assert.equal(RELEASES_URL, "https://github.com/Xhadou/Harbor/releases");
 
   for (const path of [
     "rollback-row.tsx",

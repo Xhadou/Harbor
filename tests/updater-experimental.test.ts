@@ -267,7 +267,7 @@ function harness(
   };
   const githubPlatform = options.platform ?? "windows-x86_64";
   const githubAssets = (tag: string, version: string) => {
-    const base = `https://github.com/Harborofficial/Harbor/releases/download/${tag}/`;
+    const base = `https://github.com/Xhadou/Harbor/releases/download/${tag}/`;
     if (githubPlatform.startsWith("windows")) {
       const name = `harbor-shipyard-${tag}.exe`;
       return [
@@ -856,7 +856,7 @@ test("manual downloads open GitHub without guessing another platform's asset", a
   for (const platform of ["darwin-x86_64", "darwin-aarch64", "windows-aarch64", "linux-x86_64"]) {
     const h = harness({ platform });
     await h.updater.openManualDownload();
-    assert.deepEqual(h.calls.manualUrls, ["https://github.com/Harborofficial/Harbor/releases"]);
+    assert.deepEqual(h.calls.manualUrls, ["https://github.com/Xhadou/Harbor/releases"]);
     assert.equal(h.calls.download + h.calls.install + h.calls.launch, 0);
   }
 });
@@ -866,7 +866,7 @@ test("a discovered release opens its exact GitHub asset", async () => {
   await h.updater.checkForUpdate();
   await h.updater.downloadUpdate();
   assert.deepEqual(h.calls.manualUrls, [
-    "https://github.com/Harborofficial/Harbor/releases/download/v0.9.123/harbor-shipyard-v0.9.123.exe",
+    "https://github.com/Xhadou/Harbor/releases/download/v0.9.123/harbor-shipyard-v0.9.123.exe",
   ]);
 });
 
@@ -1149,7 +1149,7 @@ test("failed GitHub checks report an error instead of claiming up to date", asyn
 
 test("GitHub uses the exact signed Shipyard asset only on managed Windows x64", async () => {
   for (const tag of ["v1.0.1-beta", "v1.0.0-stable"]) {
-    const base = `https://github.com/Harborofficial/Harbor/releases/download/${tag}/`;
+    const base = `https://github.com/Xhadou/Harbor/releases/download/${tag}/`;
     const asset = {
       name: `harbor-shipyard-${tag}.exe`,
       browser_download_url: `${base}harbor-shipyard-${tag}.exe`,
@@ -1250,7 +1250,7 @@ test("the GitHub installer signature is fetched only when staging", async () => 
 });
 
 test("GitHub discovery skips releases without usable assets", async () => {
-  const base = "https://github.com/Harborofficial/Harbor/releases/download/";
+  const base = "https://github.com/Xhadou/Harbor/releases/download/";
   const asset = (tag: string, suffix = ".exe") => {
     const name = `harbor-shipyard-${tag}${suffix}`;
     return { name, browser_download_url: `${base}${tag}/${name}`, size: 1 };
@@ -1295,7 +1295,7 @@ test("GitHub discovery skips releases without usable assets", async () => {
 
 test("platform-suffixed Shipyard assets remain updater-compatible", () => {
   const { githubUpdate } = harness();
-  const base = "https://github.com/Harborofficial/Harbor/releases/download/v1.0.2/";
+  const base = "https://github.com/Xhadou/Harbor/releases/download/v1.0.2/";
   const name = "harbor-shipyard-v1.0.2-beta-windows-x64.exe";
   const assets = [name, `${name}.sig`].map((asset) => ({
     name: asset,
@@ -1335,7 +1335,7 @@ test("platform-suffixed Shipyard assets remain updater-compatible", () => {
 
 test("channel-prefixed macOS artifacts keep architecture detection", () => {
   const { githubUpdate } = harness();
-  const base = "https://github.com/Harborofficial/Harbor/releases/download/v1.2.3-beta/";
+  const base = "https://github.com/Xhadou/Harbor/releases/download/v1.2.3-beta/";
   const names = [
     "Harbor_1.2.3_beta_macos-apple-silicon-aarch64.dmg",
     "Harbor_1.2.3_beta_macos-intel-x64.dmg",
@@ -1361,7 +1361,7 @@ test("GitHub downloads match native OS and architecture, independent of asset or
   const raw = {
     assets: names.map((name) => ({
       name,
-      browser_download_url: `https://github.com/Harborofficial/Harbor/releases/download/v1.0.2/${name}`,
+      browser_download_url: `https://github.com/Xhadou/Harbor/releases/download/v1.0.2/${name}`,
     })),
   };
   for (const assets of [raw.assets, [...raw.assets].reverse()]) {

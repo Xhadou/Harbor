@@ -9,7 +9,7 @@ import {
   type ParsedRelease,
 } from "./github-release-format";
 
-const API_URL = "https://api.github.com/repos/Harborofficial/Harbor/releases?per_page=30";
+const API_URL = "https://api.github.com/repos/Xhadou/Harbor/releases?per_page=30";
 const CACHE_KEY = "harbor.github.releases.v1";
 const FRESH_MS = 30 * 60 * 1000;
 
