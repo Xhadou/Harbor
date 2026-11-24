@@ -77,6 +77,7 @@ export const TopRankCard = memo(function TopRankCard({ meta, rank }: { meta: Met
       onBlur={(e) => hoverPreviewBlur(e.currentTarget)}
       className="group relative w-full min-w-0"
       data-no-card-ring
+      data-opens-page
       style={{ aspectRatio: "228 / 246", containerType: "inline-size" }}
     >
       <span
@@ -165,6 +166,7 @@ export const AnimeRankCard = memo(function AnimeRankCard({
       onBlur={(e) => hoverPreviewBlur(e.currentTarget)}
       className="group relative w-full min-w-0"
       data-no-card-ring
+      data-opens-page
       style={{ aspectRatio: "228 / 246", containerType: "inline-size" }}
     >
       <span

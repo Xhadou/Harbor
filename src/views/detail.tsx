@@ -2711,7 +2711,6 @@ export function DetailView({
         <div
           data-tauri-drag-region
           data-tv-hero-zone
-          data-title-hero
           className="harbor-bleed-stremio relative h-[78vh] min-h-[640px] overflow-hidden"
         >
           {mac && meta.poster && <TitleHeroWash src={meta.poster} covered={heroArtDrawn} />}

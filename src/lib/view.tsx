@@ -33,7 +33,7 @@ import { useTogether } from "./together/provider";
 import { beginMarathonAdvance } from "./fullscreen-state";
 import { consumeBack } from "./back-intercept";
 import { commitWithPageTransition, pageTransitionsSupported } from "./page-transition";
-import { titlePagePicture, watchCardPresses } from "./title-opening";
+import { pageOpening, watchOpeningPresses } from "./page-opening";
 import { useSectionBackActive } from "./section-back";
 import type { SubtitleLoadMetadata } from "./subtitles/types";
 import type { SourceFolder } from "./custom-sources";
@@ -577,11 +577,6 @@ function transitionPageKey(stack: Frame[]): string | null {
   return syncFrameKey(top);
 }
 
-/** A title's own page, the one a card opens into. */
-function isTitlePage(stack: Frame[]): boolean {
-  return stack[stack.length - 1]?.kind === "meta";
-}
-
 function lastOfKind<K extends Frame["kind"]>(
   frames: Frame[],
   kind: K,
@@ -786,16 +781,13 @@ export function ViewProvider({ children }: { children: ReactNode }) {
         const after = transitionPageKey(stackRef.current);
         return after !== null && after !== before;
       },
-      titlePagePicture({ key: before, title: isTitlePage(from) }, () => ({
-        key: transitionPageKey(stackRef.current),
-        title: isTitlePage(stackRef.current),
-      })),
+      pageOpening(before, () => transitionPageKey(stackRef.current)),
     );
   }, []);
   useEffect(() => {
     if (!pageTransitionsSupported()) return;
     document.documentElement.classList.add("mac-page-vt");
-    watchCardPresses();
+    watchOpeningPresses();
   }, []);
 
   const pop = useCallback(() => {

@@ -9024,77 +9024,81 @@ html.mac-page-vt::view-transition-new(root) {
   animation-duration: 220ms;
   animation-timing-function: var(--ease-out);
 }
-/* A title page opening out of the card that was pressed, and closing back
-   into it (see src/lib/title-opening.ts). The card's picture and the page's
-   top section share one name, so the web view draws one growing into the
-   other; the rest of the page cross-fades underneath for the same length.
-   The two directions are one motion played each way: opening, the card's
-   picture is gone before the frame is large enough to show it blown up, and
-   closing, it only appears once the frame is nearly the card's size again. */
-html.mac-title-vt {
-  --mac-title-open-ms: 560ms;
-  --mac-title-open-ease: cubic-bezier(0.45, 0, 0.15, 1);
-}
-html.mac-title-vt::view-transition-group(mac-title-open) {
-  animation-duration: var(--mac-title-open-ms);
-  animation-timing-function: var(--mac-title-open-ease);
-}
-/* The frame keeps the card's corners while it is small and squares them off
-   as it reaches the window's edges. */
-html.mac-title-vt::view-transition-image-pair(mac-title-open) {
+/* A page opening out of the card that was pressed, and closing back into it.
+   One frame changes shape between the card and the window while the card's
+   picture and the page dissolve into each other inside it. The motion itself
+   is written by src/lib/page-opening.ts for each opening, step by step, as
+   three sets of keyframes of scale, position and opacity (`mac-open-frame`,
+   `mac-open-page`, `mac-open-card`); what is here is how the parts are laid
+   out and which of them runs which.
+
+   The frame is a box the size of the window, clipped, which the script scales
+   and moves. The page fills it. The card's picture sits in its middle at the
+   card's own size. The script scales each back by the frame's scale, so neither
+   is ever stretched. */
+html.mac-open-vt::view-transition-group(mac-page-open) {
+  inline-size: var(--mac-open-w);
+  block-size: var(--mac-open-h);
+  transform-origin: 0 0;
   overflow: clip;
-  animation: mac-title-open-corners var(--mac-title-open-ms) var(--mac-title-open-ease) both;
+  animation: mac-open-frame var(--mac-open-ms) linear both;
 }
-/* Its own keyframes, not the same ones run in reverse: the web view hands a
-   reversed direction on to the two pictures inside, which then fade the wrong
-   way round. */
-html.mac-title-vt[data-title-vt="close"]::view-transition-image-pair(mac-title-open) {
-  animation-name: mac-title-close-corners;
+html.mac-open-vt::view-transition-image-pair(mac-page-open),
+html.mac-open-vt::view-transition-image-pair(root) {
+  isolation: auto;
 }
-@keyframes mac-title-open-corners {
-  from {
-    border-radius: var(--poster-radius, 12px);
-  }
-  to {
-    border-radius: 0;
-  }
+html.mac-open-vt::view-transition-old(mac-page-open),
+html.mac-open-vt::view-transition-new(mac-page-open),
+html.mac-open-vt::view-transition-old(root),
+html.mac-open-vt::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation: none;
 }
-@keyframes mac-title-close-corners {
-  from {
-    border-radius: 0;
-  }
-  to {
-    border-radius: var(--poster-radius, 12px);
-  }
+html.mac-open-vt::view-transition-old(mac-page-open),
+html.mac-open-vt::view-transition-new(mac-page-open) {
+  transform-origin: center;
 }
-/* Both pictures fill the moving frame and keep their own proportions; left to
-   themselves a tall poster and a wide backdrop are each stretched to fit. */
-html.mac-title-vt::view-transition-old(mac-title-open),
-html.mac-title-vt::view-transition-new(mac-title-open) {
-  block-size: 100%;
+/* The page. */
+html.mac-open-vt[data-open-vt="open"]::view-transition-new(mac-page-open),
+html.mac-open-vt[data-open-vt="close"]::view-transition-old(mac-page-open) {
+  inset: 0;
   inline-size: 100%;
+  block-size: 100%;
+  /* A plain page's element has no background of its own; without one the page
+     behind shows through its picture. */
+  background-color: var(--color-canvas);
+  animation: mac-open-page var(--mac-open-ms) linear both;
+}
+/* The card's picture. */
+html.mac-open-vt[data-open-vt="open"]::view-transition-old(mac-page-open),
+html.mac-open-vt[data-open-vt="close"]::view-transition-new(mac-page-open) {
+  inset-block-start: calc(50% - var(--mac-open-card-h) / 2);
+  inset-inline-start: calc(50% - var(--mac-open-card-w) / 2);
+  inline-size: var(--mac-open-card-w);
+  block-size: var(--mac-open-card-h);
   object-fit: cover;
-  animation-timing-function: ease-in-out;
-  animation-fill-mode: both;
+  animation: mac-open-card var(--mac-open-ms) linear both;
 }
-html.mac-title-vt[data-title-vt="open"]::view-transition-old(mac-title-open) {
-  animation-duration: calc(var(--mac-title-open-ms) * 0.45);
+/* Opening, the whole new page is inside the frame, so the new picture of the
+   rest of the window is only the background and must not cover the page being
+   left. */
+html.mac-open-vt[data-open-vt="open"]::view-transition-new(root) {
+  opacity: 0;
 }
-html.mac-title-vt[data-title-vt="open"]::view-transition-new(mac-title-open) {
-  animation-duration: calc(var(--mac-title-open-ms) * 0.55);
+/* Closing, what the frame did not take (a title page's rows under its top
+   section) is drawn over the page coming back and fades off it. */
+html.mac-open-vt[data-open-vt="close"]::view-transition-old(root) {
+  z-index: 1;
+  animation: mac-open-rest-out 260ms ease-out both;
 }
-html.mac-title-vt[data-title-vt="close"]::view-transition-old(mac-title-open) {
-  animation-duration: calc(var(--mac-title-open-ms) * 0.55);
-  animation-delay: calc(var(--mac-title-open-ms) * 0.45);
+@keyframes mac-open-rest-out {
+  to {
+    opacity: 0;
+  }
 }
-html.mac-title-vt[data-title-vt="close"]::view-transition-new(mac-title-open) {
-  animation-duration: calc(var(--mac-title-open-ms) * 0.45);
-  animation-delay: calc(var(--mac-title-open-ms) * 0.55);
-}
-html.mac-title-vt::view-transition-old(root),
-html.mac-title-vt::view-transition-new(root) {
-  animation-duration: var(--mac-title-open-ms);
-  animation-timing-function: ease-in-out;
+/* The frame is the title page's entrance; its own fade would run inside it. */
+html.mac-page-vt[data-os="macos"] .harbor-detail-enter {
+  animation: none;
 }
 
 /* The poster as a wash of colour behind a title page's top section until the
