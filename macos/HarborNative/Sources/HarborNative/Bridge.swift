@@ -22,6 +22,7 @@ final class HarborNativeController {
     private var fullScreenSettled = true
     private(set) var chrome: ChromeButtons!
     private(set) var sidebar: SidebarHost!
+    private(set) var trafficLights: TrafficLights!
     private var lastLayout: LayoutPayload?
     private var webConnected = false
     private var sidebarConnected = false
@@ -39,6 +40,7 @@ final class HarborNativeController {
             onToggle: { emit("toolbar-toggle-sidebar", EmptyPayload()) },
             layoutChanged: { [weak self] in self?.sidebarChanged() })
         chrome = ChromeButtons(window: window, emit: emit)
+        trafficLights = TrafficLights(window: window)
         emitLayout(force: true)
         // The window is the only thing that knows whether it is full screen:
         // the green button, the View menu and Mission Control all change it
