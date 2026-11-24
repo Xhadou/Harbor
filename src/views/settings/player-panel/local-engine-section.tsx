@@ -187,7 +187,7 @@ export function LocalEngineSection() {
         </SettingRow>
       </SettingGroup>
 
-      <SettingGroup label={t("Behaviour")}>
+      <SettingGroup label={t("Behavior")}>
         <ToggleRow
           label={t("Show P2P status chip")}
           sub={t(

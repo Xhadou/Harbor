@@ -132,7 +132,7 @@ export function HotkeysPanel() {
   useSubTabs(
     [
       { id: "keys", label: t("Shortcuts"), count: overrideCount },
-      { id: "behaviour", label: t("Behaviour") },
+      { id: "behaviour", label: t("Behavior") },
     ],
     tab,
     (id) => setTab(id as Tab),

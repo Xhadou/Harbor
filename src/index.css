@@ -8245,6 +8245,8 @@ html[data-os="macos"] .harbor-settings-shell {
      them is set in by this much. A percentage here is of the Settings grid. */
   --hset-column-inset: max(var(--hset-pad-inline), calc((100% - var(--hset-content-max)) / 2));
   --hset-group-gap: 14px;
+  /* The pair of chevrons at the far end of every menu. */
+  --hset-mac-menu-pair: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12' fill='none' stroke='%239a9aa2' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.2 4.4 4 1.6l2.8 2.8M1.2 7.6 4 10.4l2.8-2.8'/%3E%3C/svg%3E");
 
   --hset-row-min-h: 50px;
   --hset-row-pad-block: 10px;
@@ -8616,6 +8618,19 @@ html[data-os="macos"]
   padding-inline-start: 0;
 }
 
+/* A part of a card that follows another part stands off from it, under a
+   hairline. With no room above it, a part's label sat nearer the last row of
+   the part before than its own first row, and read as that part's caption. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .harbor-settings-group
+  > .harbor-settings-section
+  + .harbor-settings-section {
+  margin-block-start: 12px;
+  padding-block-start: 14px;
+  border-block-start: var(--hset-hairline) solid var(--hset-mac-card-edge);
+}
+
 /* Sections follow one another at one distance, with no rule drawn between
    them: the cards already say where one ends and the next begins. Whatever
    holds a page's sections spaced them by its own gap (20 px on some tabs, 32
@@ -8766,7 +8781,7 @@ html[data-os="macos"] .harbor-settings-shell .hset-main select {
   -webkit-appearance: none;
   appearance: none;
   padding-inline: 10px 26px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12' fill='none' stroke='%239a9aa2' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.2 4.4 4 1.6l2.8 2.8M1.2 7.6 4 10.4l2.8-2.8'/%3E%3C/svg%3E");
+  background-image: var(--hset-mac-menu-pair);
   background-repeat: no-repeat;
   background-position: right 9px center;
   background-size: 8px 12px;
@@ -8793,21 +8808,62 @@ html[data-os="macos"] .harbor-settings-shell .hset-main .hset-menu-face > :first
   inline-size: 18px;
   block-size: 18px;
 }
-html[data-os="macos"] .harbor-settings-shell .hset-main .hset-menu-face > svg:last-child {
-  inline-size: 14px;
-  block-size: 14px;
+/* A menu the app draws wears the same pair as one the system draws: the
+   single chevron, and its turn when the menu opens, belong to other platforms. */
+html[data-os="macos"] .harbor-settings-shell .hset-main .hset-menu-face > svg:last-child,
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-main
+  button[aria-haspopup="listbox"]
+  > span[aria-hidden]:last-child
+  > svg {
+  display: none;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-main .hset-menu-face::after,
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-main
+  button[aria-haspopup="listbox"]
+  > span[aria-hidden]:last-child {
+  content: "";
+  flex: none;
+  inline-size: 8px;
+  block-size: 12px;
+  background: var(--hset-mac-menu-pair) center / 8px 12px no-repeat;
+  /* Ahead of the inline turn and the script that animates it. */
+  transform: none !important;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-main button[aria-haspopup="listbox"] {
+  padding-inline: 10px 9px;
+}
+
+/* A control that stands above its preview: the label keeps to the top of the
+   row, level with the control, and the control ends where the preview ends. */
+html[data-os="macos"] .harbor-settings-shell .hset-row:has(> .hset-row-control > .flex-col) {
+  align-items: start;
+}
+html[data-os="macos"] .harbor-settings-shell .hset-row > .hset-row-control > .flex-col {
+  align-items: flex-end;
+}
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-row:has(> .hset-row-control > .flex-col)
+  > .hset-row-text {
+  padding-block-start: 4px;
 }
 
 /* Two sizes of type on a Settings page: a row's title and everything said about
    it. Rows already follow that; text written straight onto a page (an opening
    line, a note under a preview, a value, what a field holds) kept the larger
    sizes of the other platforms and stood taller than the titles beside it. */
-html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[15\.5px\] {
+html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[15\.5px\],
+html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[15px\] {
   font-size: var(--hset-desc-size);
   line-height: var(--hset-desc-lh);
   letter-spacing: 0;
 }
-html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[16\.5px\] {
+html[data-os="macos"] .harbor-settings-shell .hset-main .text-\[16\.5px\],
+html[data-os="macos"] .harbor-settings-shell .hset-main .hset-source-option .text-\[16px\] {
   font-size: var(--hset-title-size);
   line-height: var(--hset-title-lh);
   letter-spacing: 0;

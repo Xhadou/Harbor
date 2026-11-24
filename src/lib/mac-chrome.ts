@@ -121,11 +121,16 @@ export const MAC_DEFAULT_BINDINGS: Readonly<Record<string, string>> = {
   playerScreenLock: "meta+l",
 };
 
-/** Shortcuts that do nothing on a Mac and are not listed there: it has no interface zoom. */
+/**
+ * Shortcuts that do nothing on a Mac and are not listed there: it has no interface zoom, and
+ * RTX Video is a feature of NVIDIA's Windows driver.
+ */
 export const MAC_ABSENT_HOTKEYS: ReadonlySet<string> = new Set([
   "globalUiScaleUp",
   "globalUiScaleDown",
   "globalUiScaleReset",
+  "playerRtxHdrToggle",
+  "playerRtxVsrToggle",
 ]);
 
 /** Settings, by the label Settings search knows them by, that the Mac app does not offer. */

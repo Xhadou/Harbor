@@ -104,7 +104,7 @@ export const SECTION_TABS: Partial<Record<SectionId, TabEntry[]>> = {
   ],
   hotkeys: [
     { id: "keys", label: "Shortcuts", icon: "Keyboard" },
-    { id: "behaviour", label: "Behaviour", icon: "KeyboardBehavior" },
+    { id: "behaviour", label: "Behavior", icon: "KeyboardBehavior" },
   ],
   controllers: [
     { id: "setup", label: "Setup", icon: "Gamepad2" },

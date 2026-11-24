@@ -1,4 +1,5 @@
 import { useT } from "@/lib/i18n";
+import { isMacDesktop } from "@/lib/platform";
 import { markSettingSeen, useSettingNew } from "./settings-new";
 
 export function NewBadge({ id }: { id: string }) {
@@ -11,7 +12,7 @@ export function NewBadge({ id }: { id: string }) {
       onFocus={() => markSettingSeen(id)}
       className="inline-flex h-[22px] shrink-0 items-center rounded-[6px] bg-accent-soft px-2 text-[13px] font-bold uppercase leading-[17px] tracking-[0.72px] text-accent"
     >
-      {t("NEW")}
+      {isMacDesktop() ? t("New") : t("NEW")}
     </span>
   );
 }
