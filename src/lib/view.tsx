@@ -33,6 +33,7 @@ import { useTogether } from "./together/provider";
 import { beginMarathonAdvance } from "./fullscreen-state";
 import { consumeBack } from "./back-intercept";
 import { commitWithPageTransition, pageTransitionsSupported } from "./page-transition";
+import { titlePagePicture, watchCardPresses } from "./title-opening";
 import { useSectionBackActive } from "./section-back";
 import type { SubtitleLoadMetadata } from "./subtitles/types";
 import type { SourceFolder } from "./custom-sources";
@@ -576,6 +577,11 @@ function transitionPageKey(stack: Frame[]): string | null {
   return syncFrameKey(top);
 }
 
+/** A title's own page, the one a card opens into. */
+function isTitlePage(stack: Frame[]): boolean {
+  return stack[stack.length - 1]?.kind === "meta";
+}
+
 function lastOfKind<K extends Frame["kind"]>(
   frames: Frame[],
   kind: K,
@@ -773,13 +779,23 @@ export function ViewProvider({ children }: { children: ReactNode }) {
   // `from` is the stack being left, for callers that have already moved the ref on.
   const commitStack = useCallback((commit: () => void, from: Frame[] = stackRef.current) => {
     const before = transitionPageKey(from);
-    commitWithPageTransition(commit, before !== null, () => {
-      const after = transitionPageKey(stackRef.current);
-      return after !== null && after !== before;
-    });
+    commitWithPageTransition(
+      commit,
+      before !== null,
+      () => {
+        const after = transitionPageKey(stackRef.current);
+        return after !== null && after !== before;
+      },
+      titlePagePicture({ key: before, title: isTitlePage(from) }, () => ({
+        key: transitionPageKey(stackRef.current),
+        title: isTitlePage(stackRef.current),
+      })),
+    );
   }, []);
   useEffect(() => {
-    if (pageTransitionsSupported()) document.documentElement.classList.add("mac-page-vt");
+    if (!pageTransitionsSupported()) return;
+    document.documentElement.classList.add("mac-page-vt");
+    watchCardPresses();
   }, []);
 
   const pop = useCallback(() => {

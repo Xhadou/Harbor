@@ -92,11 +92,14 @@ export function HeroBackdrop({
   fallbacks = [],
   fullQuality = false,
   objectPosition,
+  onDrawn,
 }: {
   url: string;
   fallbacks?: string[];
   fullQuality?: boolean;
   objectPosition?: string;
+  /** Called when a backdrop has loaded and starts to fade in. */
+  onDrawn?: () => void;
 }) {
   const candidates = useMemo(() => {
     const seen = new Set<string>();
@@ -151,7 +154,10 @@ export function HeroBackdrop({
           url={layer.url}
           first={layer.id === 0}
           fullQuality={fullQuality}
-          onReady={() => settle(layer.id)}
+          onReady={() => {
+            settle(layer.id);
+            onDrawn?.();
+          }}
           onMeasured={(suitable) => {
             if (!suitable) advance(layer.url);
           }}

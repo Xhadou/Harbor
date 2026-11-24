@@ -17,6 +17,19 @@ import { isMacDesktop } from "./platform";
 
 type Commit = () => void;
 
+/**
+ * One element of the page being left that the web view draws turning into one
+ * element of the new page, instead of fading each on its own.
+ */
+export type CarriedPicture = {
+  /** Before the picture of the page being left is taken: names what is carried. */
+  leave: () => void;
+  /** Once the new page is laid out: names what it becomes, if anything. */
+  arrive: () => void;
+  /** When the change is over, however it ended. */
+  done: () => void;
+};
+
 type Batch = { commits: Commit[]; ran: boolean };
 let held: Batch | null = null;
 
@@ -60,11 +73,13 @@ async function frontPageLaidOut(): Promise<void> {
  * `eligible`: the page being left can be pictured (not the player, not the
  * picker). `changedPage` is asked after the change has rendered and says
  * whether a different page is now in front; when it is not, nothing animates.
+ * `carried` is only used by a change that starts its own cross-fade.
  */
 export function commitWithPageTransition(
   commit: Commit,
   eligible: boolean,
   changedPage: () => boolean,
+  carried?: CarriedPicture,
 ): void {
   if (held && !held.ran) {
     held.commits.push(commit);
@@ -88,6 +103,7 @@ export function commitWithPageTransition(
   // If the picture never comes (the window went behind another), go without it.
   const withoutPicture = window.setTimeout(run, 250);
   try {
+    carried?.leave();
     const transition = document.startViewTransition(async () => {
       window.clearTimeout(withoutPicture);
       if (!run() || !changedPage()) {
@@ -95,13 +111,16 @@ export function commitWithPageTransition(
         return;
       }
       await frontPageLaidOut();
+      carried?.arrive();
     });
     // A skipped transition rejects these; that is not an error here.
     transition.ready.catch(() => {});
-    transition.finished.catch(() => {});
+    const over = () => carried?.done();
+    transition.finished.then(over, over);
     transition.updateCallbackDone.catch(() => {});
   } catch {
     window.clearTimeout(withoutPicture);
+    carried?.done();
     run();
   }
 }

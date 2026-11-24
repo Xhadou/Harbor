@@ -197,6 +197,7 @@ import { UiIcon } from "@/components/ui-icon";
 import { HeroActionOverflow, useHeroActionOverflow } from "./detail/hero-action-overflow";
 import { MacTitleButton } from "./detail/mac-title-button";
 import { isMacDesktop } from "@/lib/platform";
+import { TitleHeroWash } from "./detail/title-hero-wash";
 import { useTvdbCastFallback } from "./detail/use-tvdb-cast-fallback";
 import { HeroRatings } from "./detail/hero-ratings";
 import { TrailerOverlay } from "./detail/trailer-overlay";
@@ -2462,6 +2463,8 @@ export function DetailView({
       ? animePlayEpisode(animeEpisodes, lastPlay, idAnime, animeCanonicalId)
       : undefined;
   const mac = isMacDesktop();
+  const [heroArtDrawn, setHeroArtDrawn] = useState(false);
+  const markHeroArtDrawn = useCallback(() => setHeroArtDrawn(true), []);
   const toggleTitleWatchlist = () =>
     toggleWatchlist({
       id: meta.id,
@@ -2708,8 +2711,10 @@ export function DetailView({
         <div
           data-tauri-drag-region
           data-tv-hero-zone
+          data-title-hero
           className="harbor-bleed-stremio relative h-[78vh] min-h-[640px] overflow-hidden"
         >
+          {mac && meta.poster && <TitleHeroWash src={meta.poster} covered={heroArtDrawn} />}
           {carouselOn ? (
             backdropPool.map((b, i) => (
               <img
@@ -2719,6 +2724,7 @@ export function DetailView({
                 decoding="async"
                 fetchPriority={i === 0 ? "high" : "low"}
                 loading={i < 3 ? "eager" : "lazy"}
+                onLoad={i === backdropIdx ? markHeroArtDrawn : undefined}
                 className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1200ms] ${i === backdropIdx ? "opacity-100" : "opacity-0"}`}
               />
             ))
@@ -2727,6 +2733,7 @@ export function DetailView({
               url={backdrop}
               fallbacks={backdropPool}
               fullQuality={settings.heroFullQuality}
+              onDrawn={markHeroArtDrawn}
             />
           ) : (
             <div className="absolute inset-0 animate-pulse bg-white/[0.02]" />

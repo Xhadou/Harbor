@@ -9024,6 +9024,101 @@ html.mac-page-vt::view-transition-new(root) {
   animation-duration: 220ms;
   animation-timing-function: var(--ease-out);
 }
+/* A title page opening out of the card that was pressed, and closing back
+   into it (see src/lib/title-opening.ts). The card's picture and the page's
+   top section share one name, so the web view draws one growing into the
+   other; the rest of the page cross-fades underneath for the same length.
+   The two directions are one motion played each way: opening, the card's
+   picture is gone before the frame is large enough to show it blown up, and
+   closing, it only appears once the frame is nearly the card's size again. */
+html.mac-title-vt {
+  --mac-title-open-ms: 560ms;
+  --mac-title-open-ease: cubic-bezier(0.45, 0, 0.15, 1);
+}
+html.mac-title-vt::view-transition-group(mac-title-open) {
+  animation-duration: var(--mac-title-open-ms);
+  animation-timing-function: var(--mac-title-open-ease);
+}
+/* The frame keeps the card's corners while it is small and squares them off
+   as it reaches the window's edges. */
+html.mac-title-vt::view-transition-image-pair(mac-title-open) {
+  overflow: clip;
+  animation: mac-title-open-corners var(--mac-title-open-ms) var(--mac-title-open-ease) both;
+}
+/* Its own keyframes, not the same ones run in reverse: the web view hands a
+   reversed direction on to the two pictures inside, which then fade the wrong
+   way round. */
+html.mac-title-vt[data-title-vt="close"]::view-transition-image-pair(mac-title-open) {
+  animation-name: mac-title-close-corners;
+}
+@keyframes mac-title-open-corners {
+  from {
+    border-radius: var(--poster-radius, 12px);
+  }
+  to {
+    border-radius: 0;
+  }
+}
+@keyframes mac-title-close-corners {
+  from {
+    border-radius: 0;
+  }
+  to {
+    border-radius: var(--poster-radius, 12px);
+  }
+}
+/* Both pictures fill the moving frame and keep their own proportions; left to
+   themselves a tall poster and a wide backdrop are each stretched to fit. */
+html.mac-title-vt::view-transition-old(mac-title-open),
+html.mac-title-vt::view-transition-new(mac-title-open) {
+  block-size: 100%;
+  inline-size: 100%;
+  object-fit: cover;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+html.mac-title-vt[data-title-vt="open"]::view-transition-old(mac-title-open) {
+  animation-duration: calc(var(--mac-title-open-ms) * 0.45);
+}
+html.mac-title-vt[data-title-vt="open"]::view-transition-new(mac-title-open) {
+  animation-duration: calc(var(--mac-title-open-ms) * 0.55);
+}
+html.mac-title-vt[data-title-vt="close"]::view-transition-old(mac-title-open) {
+  animation-duration: calc(var(--mac-title-open-ms) * 0.55);
+  animation-delay: calc(var(--mac-title-open-ms) * 0.45);
+}
+html.mac-title-vt[data-title-vt="close"]::view-transition-new(mac-title-open) {
+  animation-duration: calc(var(--mac-title-open-ms) * 0.45);
+  animation-delay: calc(var(--mac-title-open-ms) * 0.55);
+}
+html.mac-title-vt::view-transition-old(root),
+html.mac-title-vt::view-transition-new(root) {
+  animation-duration: var(--mac-title-open-ms);
+  animation-timing-function: ease-in-out;
+}
+
+/* The poster as a wash of colour behind a title page's top section until the
+   backdrop is there (src/views/detail/title-hero-wash.tsx). Scaled up so the
+   blur's soft edge falls outside the section. */
+.mac-title-wash {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  filter: blur(48px) saturate(1.15);
+  transform: scale(1.2);
+  opacity: 0;
+  transition: opacity 320ms ease-out;
+}
+.mac-title-wash[data-drawn] {
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mac-title-wash {
+    transition: none;
+  }
+}
 
 /* The hero's slide markers on macOS: a bar that fills while its slide is on
    show. The button is the click target; the bar inside it is what is seen. */

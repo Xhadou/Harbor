@@ -55,6 +55,10 @@ function harness() {
       commitWithPageTransition: (commit: () => void) => commit(),
       pageTransitionsSupported: () => false,
     },
+    "./title-opening": {
+      titlePagePicture: () => undefined,
+      watchCardPresses: () => {},
+    },
     "@/lib/big-picture": { useBigPicture: () => ({ active: false }) },
     "@/lib/profiles": { useProfiles: () => ({ activeProfile: { id: "fixture-profile" } }) },
     "./picker-return": pickerReturn,
