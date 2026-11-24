@@ -8240,6 +8240,10 @@ html[data-os="macos"] .harbor-settings-shell {
   --hset-toolbar-h: calc(var(--mac-titlebar-inset) + 50px);
   --hset-content-max: 900px;
   --hset-pad-inline: var(--mac-gutter);
+  /* The column sits in the middle of the room beside the sidebar. The title,
+     the search field and its results keep to the column's edges, so each of
+     them is set in by this much. A percentage here is of the Settings grid. */
+  --hset-column-inset: max(var(--hset-pad-inline), calc((100% - var(--hset-content-max)) / 2));
   --hset-group-gap: 14px;
 
   --hset-row-min-h: 50px;
@@ -8282,13 +8286,21 @@ html[data-os="macos"] .hset-grid > .hset-heading {
   grid-row: 1;
   align-items: flex-end;
   padding-block-end: 12px;
+  padding-inline-start: var(--hset-column-inset);
   /* Leaves room for the search field at the end of the same row. */
-  padding-inline-end: calc(var(--hset-pad-inline) + 280px);
+  padding-inline-end: calc(var(--hset-column-inset) + 280px);
 }
 html[data-os="macos"] .hset-grid > .hset-main {
   grid-column: 1;
   grid-row: 2;
   padding-block-start: 4px;
+}
+html[data-os="macos"] .hset-main > .hset-content {
+  margin-inline: auto;
+}
+/* A page that asks for the wide column has its title and search follow it. */
+html[data-os="macos"] .harbor-settings-shell:has(.hset-main[data-hset-wide]) {
+  --hset-content-max: 1500px;
 }
 html[data-os="macos"] .hset-title,
 html[data-os="macos"] .hset-heading > h1 {
@@ -8310,10 +8322,11 @@ html[data-os="macos"] .hset-grid > .hset-tools {
   z-index: 3;
   justify-self: end;
   align-self: end;
-  inline-size: 280px;
+  inline-size: calc(280px - var(--hset-pad-inline) + var(--hset-column-inset));
   block-size: auto;
   align-items: flex-end;
-  padding: 0 var(--hset-pad-inline) 13px 0;
+  padding-block: 0 13px;
+  padding-inline: 0 var(--hset-column-inset);
   background: transparent;
 }
 /* The line under the field is a hint for remote-control text entry. */
@@ -8355,7 +8368,7 @@ html[data-os="macos"] .hset-grid > .hset-rail:has(.hset-rail-results) {
   position: absolute;
   z-index: 40;
   inset-block-start: calc(var(--hset-toolbar-h) - 4px);
-  inset-inline-end: var(--hset-pad-inline);
+  inset-inline-end: var(--hset-column-inset);
   inline-size: 360px;
   max-block-size: min(60vh, 520px);
   padding: 6px;
