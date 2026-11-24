@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 export function PreviewShell({ note, children }: { note?: ReactNode; children: ReactNode }) {
   return (
-    <div className="flex w-fit max-w-full flex-col gap-2.5 rounded-md bg-canvas/40 p-3.5 ring-1 ring-edge-soft">
+    <div className="hset-preview-shell flex w-fit max-w-full flex-col gap-2.5 rounded-md bg-canvas/40 p-3.5 ring-1 ring-edge-soft">
       {children}
       {note && (
         <span className="max-w-[66ch] text-[15.5px] leading-[22px] text-ink-subtle">{note}</span>

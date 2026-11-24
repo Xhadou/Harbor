@@ -33,7 +33,7 @@ export function TrailerQualityPreview({ quality }: { quality: string }) {
                 backgroundColor: on
                   ? "color-mix(in oklch, var(--color-accent) 22%, transparent)"
                   : "transparent",
-                boxShadow: `inset 0 0 0 1px ${on ? "var(--color-accent)" : "var(--color-edge-soft)"}`,
+                boxShadow: `inset 0 0 0 1px ${on ? "var(--color-accent)" : "var(--hset-preview-line, var(--color-edge-soft))"}`,
                 transition: "background-color 300ms ease-in-out, box-shadow 300ms ease-in-out",
               }}
             />

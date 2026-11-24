@@ -1,5 +1,7 @@
 // Newly introduced UI copy remains usable until each locale provides an override.
 const uiFallback: Record<string, string> = {
+  "Choose what happens when you press Play on a title. Pick a source gives you full control over quality and source.":
+    "Choose what happens when you press Play on a title. Pick a source gives you full control over quality and source.",
   "Harbor checks its releases on GitHub for new versions. Nothing downloads until you choose to, and a dismissed update never nags you again.":
     "Harbor checks its releases on GitHub for new versions. Nothing downloads until you choose to, and a dismissed update never nags you again.",
   "Checking GitHub for a newer build.": "Checking GitHub for a newer build.",

@@ -8245,6 +8245,8 @@ html[data-os="macos"] .harbor-settings-shell {
      them is set in by this much. A percentage here is of the Settings grid. */
   --hset-column-inset: max(var(--hset-pad-inline), calc((100% - var(--hset-content-max)) / 2));
   --hset-group-gap: 14px;
+  /* The outlines a preview draws to show sizes: soft edges vanish on its black. */
+  --hset-preview-line: color-mix(in srgb, var(--color-ink) 30%, transparent);
   /* The pair of chevrons at the far end of every menu. */
   --hset-mac-menu-pair: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='12' viewBox='0 0 8 12' fill='none' stroke='%239a9aa2' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1.2 4.4 4 1.6l2.8 2.8M1.2 7.6 4 10.4l2.8-2.8'/%3E%3C/svg%3E");
 
@@ -8713,8 +8715,9 @@ html[data-os="macos"] .mac-organize-row button:not(.cursor-grab) svg {
 }
 
 /* A row's icon is drawn plain. One row (beta updates) set its own in a
-   filled square, which no other row has. */
-html[data-os="macos"] .harbor-settings-shell .hset-row-lead > span.rounded-md {
+   filled square, which no other row has. A switch row wraps its icon once
+   more than a plain row does, so the square is looked for at any depth. */
+html[data-os="macos"] .harbor-settings-shell .hset-row-lead span.rounded-md {
   inline-size: auto;
   block-size: auto;
   background: none;
@@ -8835,6 +8838,22 @@ html[data-os="macos"]
 }
 html[data-os="macos"] .harbor-settings-shell .hset-main button[aria-haspopup="listbox"] {
   padding-inline: 10px 9px;
+}
+
+/* A page's opening line stands off from the first heading under it. It sat
+   as near that heading as a caption sits to its own card. */
+html[data-os="macos"]
+  .harbor-settings-shell
+  .hset-main
+  p:first-child:not(.harbor-settings-group *)
+  + div:has(.harbor-settings-section) {
+  margin-block-start: 11px;
+}
+
+/* A preview's picture is as wide as the tile its note has made. It kept to
+   260 px at the tile's start, with the room left over all on one side. */
+html[data-os="macos"] .harbor-settings-shell .hset-preview-shell > :first-child {
+  inline-size: 100%;
 }
 
 /* A control that stands above its preview: the label keeps to the top of the
