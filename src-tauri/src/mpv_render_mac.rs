@@ -1,4 +1,8 @@
 #![cfg(target_os = "macos")]
+// libmpv's render API draws only through OpenGL (or in software), so the video
+// lives in AppKit's OpenGL view. Apple deprecated those classes with no Metal
+// counterpart libmpv can draw into; the deprecation is expected in this file.
+#![allow(deprecated)]
 
 use std::ffi::{c_char, c_void, CString};
 use std::ptr::NonNull;
@@ -141,13 +145,11 @@ fn refresh_compositing(embed: &Embed) {
             (embed.ns_window.contentView(), embed.web_view.as_deref())
         {
             let view_as_view: &NSView = embed.view.as_super();
-            unsafe {
-                parent.addSubview_positioned_relativeTo(
-                    view_as_view,
-                    NSWindowOrderingMode::Below,
-                    Some(web_view),
-                );
-            }
+            parent.addSubview_positioned_relativeTo(
+                view_as_view,
+                NSWindowOrderingMode::Below,
+                Some(web_view),
+            );
         }
     }
 }

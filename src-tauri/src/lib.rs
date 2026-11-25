@@ -138,8 +138,13 @@ mod roku;
 mod shaders;
 #[cfg(desktop)]
 mod song_id;
-#[cfg(desktop)]
+#[cfg(any(windows, target_os = "linux"))]
 mod song_id_gemini;
+
+// Release builds register the single-instance plugin (see `run`); dev builds
+// leave it out so they can run beside the installed app, and only name it here.
+#[cfg(all(debug_assertions, not(any(target_os = "android", target_os = "ios"))))]
+use tauri_plugin_single_instance as _;
 #[cfg(desktop)]
 mod indexed_mkv_subtitles;
 #[cfg(desktop)]

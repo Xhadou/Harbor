@@ -59,6 +59,7 @@ pub struct ResolvedMonitor {
 }
 
 /// The platform identity string stored as `MonitorInfo.id`.
+#[cfg(windows)]
 fn monitor_id(device_id: &str, device_name: &str) -> String {
     if device_id.is_empty() {
         device_name.to_string()
@@ -445,16 +446,16 @@ pub fn resolve_or_default(saved: Option<&MonitorInfo>) -> Option<ResolvedMonitor
 /// Move the main window onto the chosen monitor and size it to fill that monitor,
 /// so a following fullscreen/framing lands on the right screen.
 ///
-/// Windows-only; a no-op elsewhere. Idempotent when the monitor is gone (the
-/// event is simply not applied). Leaves fullscreen before moving; Big Picture
+/// Windows only. Idempotent when the monitor is gone (the event is simply not
+/// applied). Leaves fullscreen before moving; Big Picture
 /// enters fullscreen on the selected display immediately afterwards.
+#[cfg(windows)]
 pub fn move_window_to_monitor(
     window: &tauri::WebviewWindow,
     resolved: &ResolvedMonitorTarget,
 ) -> Result<(), String> {
     // Moving for playback/display selection is temporary; don't persist its
     // full-display dimensions as the user's normal window placement.
-    #[cfg(windows)]
     {
         use tauri::Manager;
         crate::window_placement::pause_for_transition(window.app_handle(), true);
@@ -471,8 +472,8 @@ pub fn move_window_to_monitor(
     Ok(())
 }
 
-/// Geometry a move needs, kept platform-neutral so the command compiles
-/// everywhere.
+/// Geometry a move needs.
+#[cfg(windows)]
 #[derive(Debug, Clone, Copy)]
 pub struct ResolvedMonitorTarget {
     pub x: i32,

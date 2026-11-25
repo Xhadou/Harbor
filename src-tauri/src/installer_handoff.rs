@@ -11,7 +11,9 @@ const MARKER: &str = "harbor-install.json";
 const STAGE_PREFIX: &str = "harbor-update-";
 const SETUP_NAME: &str = "harbor-shipyard.exe";
 const LOG_NAME: &str = "harbor-shipyard.log";
+#[cfg(windows)]
 const GRACE_MS: u64 = 2_000;
+#[cfg(windows)]
 const POLL_MS: u64 = 100;
 const FLUSH_STEPS: u32 = 16;
 const FLUSH_STEP_MS: u64 = 50;

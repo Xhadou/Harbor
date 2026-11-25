@@ -21,6 +21,7 @@ const MAX_STORE_BYTES: usize = 4 * 1024 * 1024;
 const PLAN_TTL: Duration = Duration::from_secs(15 * 60);
 const ENGINE_FILE_LIMIT: u64 = 8 * 1024 * 1024;
 const ENGINE_PLAN_LIMIT: u64 = 64 * 1024 * 1024;
+#[cfg(windows)]
 const ACTIVITY_INTERVAL: Duration = Duration::from_secs(2);
 const FILE_ACTIVITY_INTERVAL: Duration = Duration::from_secs(10);
 

@@ -25,6 +25,7 @@ fn unsupported_reason() -> Option<String> {
     }
     #[cfg(not(any(windows, target_os = "linux")))]
     return Some("SVP integration is currently supported on Windows and Linux".to_string());
+    #[cfg(any(windows, target_os = "linux"))]
     None
 }
 
@@ -89,6 +90,7 @@ fn svp_root() -> Option<PathBuf> {
     None
 }
 
+#[cfg(any(windows, target_os = "linux"))]
 fn find_file(root: &Path, names: &[&str], depth: u32) -> Option<PathBuf> {
     if depth == 0 {
         return None;
@@ -289,6 +291,7 @@ fn crt_set_vsscript_path(value: &str) {
     }
 }
 
+#[cfg(any(windows, target_os = "linux"))]
 pub fn prime_svp_env() {
     if unsupported_reason().is_some() {
         return;

@@ -56,6 +56,7 @@ pub struct CustomThemeEntry {
     pub name: String,
 }
 
+#[cfg(windows)]
 pub(crate) fn current_prefs() -> TrayPrefs {
     TrayPrefs {
         close_to_tray: CLOSE_TO_TRAY.load(Ordering::Relaxed),

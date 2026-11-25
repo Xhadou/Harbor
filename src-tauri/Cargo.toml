@@ -269,7 +269,6 @@ objc2-app-kit = { version = "0.3", features = [
 ] }
 objc2-web-kit = { version = "0.3", features = ["WKWebView"] }
 core-foundation = "0.10"
-core-video = "0.4"
 # Sign-ins and keys live in the login keychain (secret_vault.rs).
 security-framework = "3"
 
