@@ -129,6 +129,8 @@ function loadHub() {
     "@/lib/collection-publication": { deleteCollectionAcknowledged: unexpected },
     "./community-collection-card": { CommunityCollectionCard: empty },
     "./community-editor": { CommunityCollectionEditor: empty },
+    "@/lib/page-transition": { commitWithPageTransition: (commit: () => void) => commit() },
+    "@/lib/page-opening": { pageOpening: () => undefined },
     "./community-collection-page": { CommunityCollectionPage: empty },
     "@/components/context-menu/meta-context-button": {
       MetaContextButton: ({ children }) => children,

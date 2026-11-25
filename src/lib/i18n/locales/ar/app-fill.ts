@@ -889,6 +889,8 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "المكتبة هي كل شيء من Stremio وTrakt وهذا الجهاز؛ ويُبقي «إخفاء ما شوهد» العناوين التي لم تشاهدها بعد فقط. السجل هو ما شاهدته. المحلي هو الملفات الموجودة على حاسوبك.",
   "Hide watched": "إخفاء ما شوهد",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "لم تُحفظ تغييراتك على هذه المجموعة بعد. ستضيع إذا غادرت الآن.",
   "You have reached {max} collections. Remove one to make room.":
     "لقد وصلت إلى {max} مجموعة. احذف واحدة لإفساح المجال.",
   "A short note about this collection": "ملاحظة قصيرة عن هذه المجموعة",

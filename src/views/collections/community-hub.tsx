@@ -24,7 +24,6 @@ import { collectionAuthorHandle } from "@/lib/collection-author";
 import type { MetaType } from "@/lib/cinemeta";
 import {
   MAX_COLLECTIONS,
-  createCollection,
   readCollections,
   saveCommunityCollectionWithResult,
   useCollections,
@@ -37,6 +36,8 @@ import { CommunityCollectionCard } from "./community-collection-card";
 import { CommunityCollectionEditor } from "./community-editor";
 import { CommunityCollectionPage } from "./community-collection-page";
 import { useCommunityCollections } from "./use-community-collections";
+import { commitWithPageTransition } from "@/lib/page-transition";
+import { pageOpening } from "@/lib/page-opening";
 import { MetaContextButton } from "@/components/context-menu/meta-context-button";
 import { useContextTarget } from "@/lib/context-menu";
 import { captureMembershipProfile, isMembershipProfileCurrent } from "@/lib/membership-operations";
@@ -45,20 +46,36 @@ import { membershipFailureMessage } from "@/lib/membership-actions";
 
 type Screen =
   | { kind: "grid" }
-  | { kind: "editor"; id: string }
+  | { kind: "editor"; id: string | null }
   | { kind: "page"; id: string }
   | { kind: "community"; collection: CommunityCollection };
+
+function screenKey(screen: Screen): string {
+  if (screen.kind === "grid") return "collections-hub";
+  if (screen.kind === "community")
+    return `collections-hub:community:${screen.collection.handle}:${screen.collection.id}`;
+  return `collections-hub:${screen.kind}:${screen.id ?? "new"}`;
+}
 
 export function CommunityCollectionsView({ active }: { active: boolean }) {
   const [screen, setScreen] = useState<Screen>({ kind: "grid" });
   const returnFocus = useRef<HTMLElement | null>(null);
+  // Each screen changes like a page: out of the card or button pressed, and
+  // back into it (page-opening.ts), else a cross-fade.
+  const go = (next: Screen) =>
+    commitWithPageTransition(
+      () => setScreen(next),
+      true,
+      () => true,
+      pageOpening(screenKey(screen), () => screenKey(next)),
+    );
   const open = (next: Screen) => {
     if (screen.kind === "grid")
       returnFocus.current =
         document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setScreen(next);
+    go(next);
   };
-  const back = () => setScreen({ kind: "grid" });
+  const back = () => go({ kind: "grid" });
   useEffect(() => {
     if (!active || screen.kind !== "grid" || !returnFocus.current) return;
     const frame = requestAnimationFrame(() => {
@@ -79,16 +96,18 @@ export function CommunityCollectionsView({ active }: { active: boolean }) {
       <NativeBackScope front={active}>
         {screen.kind === "editor" && (
           <CommunityCollectionEditor
+            key={screen.id ?? "new"}
             id={screen.id}
             onBack={back}
-            onViewPage={(id) => setScreen({ kind: "page", id })}
+            onSaved={(id) => go({ kind: "page", id })}
+            onViewPage={(id) => go({ kind: "page", id })}
           />
         )}
         {screen.kind === "page" && (
           <CommunityCollectionPage
             id={screen.id}
             onBack={back}
-            onEdit={(id) => setScreen({ kind: "editor", id })}
+            onEdit={(id) => go({ kind: "editor", id })}
           />
         )}
         {screen.kind === "community" && (
@@ -107,7 +126,7 @@ function HubGrid({
 }: {
   active: boolean;
   onOpen: (id: string) => void;
-  onEdit: (id: string) => void;
+  onEdit: (id: string | null) => void;
   onOpenCommunity: (collection: CommunityCollection) => void;
 }) {
   const t = useT();
@@ -139,10 +158,10 @@ function HubGrid({
 
   const atMax = collections.length >= MAX_COLLECTIONS;
 
+  // Nothing is made until the editor saves it.
   const create = () => {
     if (atMax) return;
-    const id = createCollection(t("Untitled collection"));
-    if (id) onEdit(id);
+    onEdit(null);
   };
 
   const remove: React.ComponentProps<typeof CommunityCollectionCard>["onDelete"] = (
@@ -179,6 +198,7 @@ function HubGrid({
           </div>
           <button
             type="button"
+            data-opens-page
             onClick={create}
             disabled={atMax}
             className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-[13px] font-semibold text-canvas transition-opacity duration-200 ease-out hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -389,6 +409,7 @@ function CommunityCard({
       <button
         ref={contextRef}
         type="button"
+        data-opens-page
         onClick={() => onOpen(collection)}
         className="relative block aspect-[16/9] w-full overflow-hidden rounded-2xl border border-edge-soft text-start shadow-[0_6px_22px_-14px_rgba(0,0,0,0.6)] transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-edge"
         style={cover ? undefined : { background: posterPlate(collection.id + collection.name) }}

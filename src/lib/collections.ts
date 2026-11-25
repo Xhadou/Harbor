@@ -444,6 +444,47 @@ export function createCollection(name: string): string | null {
   return id;
 }
 
+/** What the collection editor edits; written only when the user saves. */
+export type CollectionDraft = {
+  name: string;
+  description?: string;
+  items: CollectionItem[];
+  tags?: string[];
+  numbered?: boolean;
+  coverImage?: string;
+  bgImage?: string;
+};
+
+/**
+ * Writes an edited collection in one step: `id` is created with these fields
+ * if it does not exist yet, else its fields are replaced. False when a new one
+ * would pass the limit or the name is empty.
+ */
+export function saveCollectionDraft(id: string, draft: CollectionDraft): boolean {
+  const name = draft.name.trim().slice(0, MAX_COLLECTION_NAME);
+  if (!name) return false;
+  const collections = read();
+  const now = Date.now();
+  const fields = {
+    name,
+    description: draft.description?.trim().slice(0, MAX_COLLECTION_DESCRIPTION) || undefined,
+    items: draft.items.slice(0, MAX_COLLECTION_ITEMS),
+    tags: draft.tags?.length ? draft.tags.slice(0, MAX_COLLECTION_TAGS) : undefined,
+    numbered: draft.numbered ? true : undefined,
+    coverImage: draft.coverImage || undefined,
+    bgImage: draft.bgImage || undefined,
+    updatedAt: now,
+  };
+  const existing = collections.find((c) => c.id === id);
+  if (existing) Object.assign(existing, fields);
+  else {
+    if (collections.length >= MAX_COLLECTIONS) return false;
+    collections.push({ id, createdAt: now, ...fields });
+  }
+  write(collections);
+  return true;
+}
+
 /** A new collection holding `items`, made in one step (saving a list someone shared, "New collection" from a menu). */
 export function createCollectionWithItems(
   name: string,

@@ -1154,6 +1154,8 @@ const catalog04: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "La Libreria include tutto ciò che proviene da Stremio, Trakt e da questo dispositivo; «Nascondi visti» lascia solo i titoli che non hai ancora visto. La Cronologia mostra ciò che hai guardato. La sezione Locale contiene i file del tuo computer.",
   "Hide watched": "Nascondi visti",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "Le modifiche a questa collezione non sono ancora salvate. Andranno perse se esci ora.",
   "You have reached {max} collections. Remove one to make room.":
     "Hai raggiunto {max} collezioni. Rimuovine una per fare spazio.",
   "A short note about this collection": "Una breve nota su questa collezione",

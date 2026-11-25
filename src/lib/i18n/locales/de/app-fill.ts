@@ -442,6 +442,8 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Die Mediathek enthält alles aus Stremio, Trakt und von diesem Gerät; mit „Gesehenes ausblenden“ bleiben nur Titel, die du noch nicht angesehen hast. Im Verlauf siehst du, was du angesehen hast. Unter „Lokal“ findest du Dateien auf deinem Computer.",
   "Hide watched": "Gesehenes ausblenden",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "Deine Änderungen an dieser Sammlung sind noch nicht gespeichert. Sie gehen verloren, wenn du jetzt gehst.",
   "You have reached {max} collections. Remove one to make room.":
     "Du hast {max} Sammlungen erreicht. Entferne eine, um Platz zu schaffen.",
   "A short note about this collection": "Eine kurze Notiz zu dieser Sammlung",

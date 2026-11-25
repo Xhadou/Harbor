@@ -495,6 +495,8 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Thư viện gồm mọi nội dung từ Stremio, Trakt và thiết bị này; “Ẩn đã xem” chỉ giữ lại các tựa bạn chưa xem. Lịch sử là nội dung bạn đã xem. Nội bộ là các tệp trên máy tính.",
   "Hide watched": "Ẩn đã xem",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "Các thay đổi cho bộ sưu tập này chưa được lưu. Chúng sẽ mất nếu bạn rời đi bây giờ.",
   "You have reached {max} collections. Remove one to make room.":
     "Bạn đã đạt {max} bộ sưu tập. Hãy xóa một bộ để có chỗ.",
   "A short note about this collection": "Ghi chú ngắn về bộ sưu tập này",

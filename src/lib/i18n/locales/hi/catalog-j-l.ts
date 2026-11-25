@@ -258,6 +258,8 @@ const catalogJL: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "लाइब्रेरी में Stremio, Trakt और इस डिवाइस का सारा कंटेंट होता है; “देखे गए छिपाएँ” से केवल वे शीर्षक बचते हैं जिन्हें आपने अभी तक नहीं देखा है। हिस्ट्री में वह होता है जो आपने देखा है। लोकल में आपके कंप्यूटर की फ़ाइलें होती हैं।",
   "Hide watched": "देखे गए छिपाएँ",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "इस कलेक्शन में आपके बदलाव अभी सेव नहीं हुए हैं। अभी छोड़ने पर वे खो जाएँगे।",
   "You have reached {max} collections. Remove one to make room.":
     "आप {max} कलेक्शन तक पहुँच गए हैं। जगह बनाने के लिए एक हटाएँ।",
   "A short note about this collection": "इस कलेक्शन के बारे में एक छोटा नोट",

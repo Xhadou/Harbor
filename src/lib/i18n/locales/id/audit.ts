@@ -664,6 +664,8 @@ const audit: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Perpustakaan mencakup semua dari Stremio, Trakt, dan perangkat ini; “Sembunyikan yang ditonton” hanya menyisakan judul yang belum Anda tonton. Riwayat berisi yang sudah Anda tonton. Lokal berisi file di komputer Anda.",
   "Hide watched": "Sembunyikan yang ditonton",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "Perubahan pada koleksi ini belum disimpan. Perubahan akan hilang jika Anda keluar sekarang.",
   "You have reached {max} collections. Remove one to make room.":
     "Anda sudah mencapai {max} koleksi. Hapus satu untuk memberi ruang.",
   "A short note about this collection": "Catatan singkat tentang koleksi ini",

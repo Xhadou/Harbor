@@ -689,6 +689,8 @@ const catalog05: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "라이브러리에는 Stremio, Trakt 및 이 기기의 모든 항목이 포함되며, '시청한 항목 숨기기'를 켜면 아직 보지 않은 작품만 남습니다. 기록에는 시청한 작품이 표시됩니다. 로컬에는 컴퓨터의 파일이 표시됩니다.",
   "Hide watched": "시청한 항목 숨기기",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "이 컬렉션의 변경 사항이 아직 저장되지 않았습니다. 지금 나가면 사라집니다.",
   "You have reached {max} collections. Remove one to make room.":
     "컬렉션이 {max}개에 도달했습니다. 하나를 삭제해 공간을 만드세요.",
   "A short note about this collection": "이 컬렉션에 대한 짧은 메모",

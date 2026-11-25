@@ -1609,6 +1609,8 @@ const settings: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Kütüphane; Stremio, Trakt ve bu cihazdaki her şeyi içerir. “İzlenenleri gizle” yalnızca henüz izlemediğiniz yapımları bırakır. Geçmiş, izlediklerinizi gösterir. Yerel, bilgisayarınızdaki dosyalardır.",
   "Hide watched": "İzlenenleri gizle",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "Bu koleksiyondaki değişiklikleriniz henüz kaydedilmedi. Şimdi çıkarsanız kaybolacak.",
   "You have reached {max} collections. Remove one to make room.":
     "{max} koleksiyona ulaştınız. Yer açmak için birini kaldırın.",
   "A short note about this collection": "Bu koleksiyon hakkında kısa bir not",

@@ -20,32 +20,32 @@ import { MetaContextButton } from "@/components/context-menu/meta-context-button
 import { ResultPoster } from "@/components/search/result-poster";
 import { BackToTop } from "@/components/back-to-top";
 import { searchAll } from "@/lib/search";
+import { searchAddonCatalogs } from "@/lib/search-addons";
+import { gatherCatalogAddons } from "@/lib/addons";
+import { useAuth } from "@/lib/auth";
 import { searchManga } from "@/lib/manga/api";
 import { searchAnilistMangaEntries } from "@/lib/manga/tracking-anilist";
 import { searchMalMangaEntries } from "@/lib/manga/tracking-mal";
 import type { MangaCandidate } from "@/lib/manga/sync";
 import type { MangaSummary } from "@/lib/manga/model";
 import {
+  MAX_COLLECTIONS,
   MAX_COLLECTION_DESCRIPTION,
   MAX_COLLECTION_ITEMS,
   MAX_COLLECTION_NAME,
   MAX_COLLECTION_TAGS,
   MAX_TAG_LENGTH,
-  addCollectionTag,
-  clearCollectionItems,
   normalizeTag,
-  removeCollectionTag,
-  removeFromCollection,
-  renameCollection,
-  reorderCollectionItems,
+  saveCollectionDraft,
   setCollectionBackground,
   setCollectionCover,
-  setCollectionDescription,
-  setCollectionNumbered,
-  toggleInCollection,
   useCollection,
+  type Collection,
+  type CollectionDraft,
+  type CollectionItem,
   type CollectionItemType,
 } from "@/lib/collections";
+import { randomUuid } from "@/lib/uuid";
 import {
   fileToCollectionBackground,
   fileToCollectionCover,
@@ -56,6 +56,7 @@ import {
   uploadCollectionCover,
 } from "@/lib/social/collections-sync";
 import { alertDialog } from "@/lib/dialog";
+import { createPortal } from "react-dom";
 import { useNativeBack } from "@/chrome/mac/native-back";
 import { authToken } from "@/lib/theme-auth";
 
@@ -67,34 +68,59 @@ const TYPE_DOT: Record<CollectionItemType, string> = {
   manga: "bg-violet-400",
 };
 
-function syncSoon() {
-  if (!authToken()) return;
-  void publishCollections().catch((error) =>
-    alertDialog(error instanceof Error ? error.message : String(error)),
-  );
+function draftOf(collection: Collection | null): CollectionDraft {
+  return {
+    name: collection?.name ?? "",
+    description: collection?.description ?? "",
+    items: collection?.items ?? [],
+    tags: collection?.tags ?? [],
+    numbered: !!collection?.numbered,
+    coverImage: collection?.coverImage,
+    bgImage: collection?.bgImage,
+  };
 }
 
+/** A new image waiting for Save, or `null` for one removed. */
+type PendingImages = { cover?: File | null; bg?: File | null };
+
+/**
+ * Edits a collection as a draft: nothing is written until Save, which writes
+ * it in one step (and then, when signed in, uploads its images and publishes).
+ * `id` null is a new collection, made only when it is saved. Leaving with
+ * changes asks first.
+ */
 export function CommunityCollectionEditor({
   id,
   onBack,
+  onSaved,
   onViewPage,
 }: {
-  id: string;
+  id: string | null;
   onBack: () => void;
+  onSaved: (id: string) => void;
   onViewPage: (id: string) => void;
 }) {
   const t = useT();
   const { settings } = useSettings();
+  const { authKey } = useAuth();
   const { open: openContextMenu } = useContextMenu();
   const collection = useCollection(id);
-  const nativeBack = useNativeBack(() => {
-    syncSoon();
-    onBack();
-  });
+  const [draftId] = useState(() => id ?? randomUuid());
+  const [initial] = useState(() => draftOf(collection));
+  const [draft, setDraft] = useState<CollectionDraft>(initial);
+  const pending = useRef<PendingImages>({});
+  const [saving, setSaving] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(initial);
+  const edit = (patch: Partial<CollectionDraft>) => setDraft((d) => ({ ...d, ...patch }));
+  const requestLeave = () => {
+    if (saving) return;
+    if (dirty) setConfirmLeave(true);
+    else onBack();
+  };
+  const nativeBack = useNativeBack(requestLeave);
   const scrollRef = useRef<HTMLElement>(null);
 
-  const [name, setName] = useState(collection?.name ?? "");
-  const [desc, setDesc] = useState(collection?.description ?? "");
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [searching, setSearching] = useState(false);
@@ -105,13 +131,6 @@ export function CommunityCollectionEditor({
   const itemElsRef = useRef<Map<string, HTMLDivElement>>(new Map());
   const dragCleanupRef = useRef<(() => void) | null>(null);
   useEffect(() => () => dragCleanupRef.current?.(), []);
-  const [order, setOrder] = useState<string[]>(() => collection?.items.map((it) => it.id) ?? []);
-
-  const itemIds = collection?.items.map((it) => it.id).join(",") ?? "";
-  useEffect(() => {
-    if (dragCleanupRef.current) return; // don't yank the list out from under an active drag
-    setOrder(itemIds ? itemIds.split(",") : []);
-  }, [itemIds]);
 
   useEffect(() => {
     const q = query.trim();
@@ -127,20 +146,23 @@ export function CommunityCollectionEditor({
       // source; the tracker searches below are source-free metadata databases, so
       // manga hits appear either way. AniList is primary (richer synonyms + malId
       // cross-ref), MAL fills gaps, deduped by malId then title.
-      const [av, manga, aniList, mal] = await Promise.all([
+      // Films and shows come from TMDB when there is a key and from the installed
+      // addons' catalogs either way, as in the app's own search.
+      const [av, fromAddons, manga, aniList, mal] = await Promise.all([
         searchAll(settings.tmdbKey, q).catch(() => null),
+        gatherCatalogAddons(authKey)
+          .then((addons) => searchAddonCatalogs(addons, q))
+          .catch(() => ({ movies: [], series: [] })),
         Promise.resolve(searchManga(q)).catch(() => [] as MangaSummary[]),
         searchAnilistMangaEntries(q).catch(() => [] as MangaCandidate[]),
         searchMalMangaEntries(q).catch(() => [] as MangaCandidate[]),
       ]);
       if (!alive) return;
       const out: Hit[] = [];
-      if (av) {
-        for (const m of av.movies)
-          out.push({ id: m.id, type: "movie", name: m.name, poster: m.poster });
-        for (const s of av.series)
-          out.push({ id: s.id, type: "series", name: s.name, poster: s.poster });
-      }
+      for (const m of [...(av?.movies ?? []), ...fromAddons.movies])
+        out.push({ id: m.id, type: "movie", name: m.name, poster: m.poster });
+      for (const s of [...(av?.series ?? []), ...fromAddons.series])
+        out.push({ id: s.id, type: "series", name: s.name, poster: s.poster });
       const mangaHits: Hit[] = [];
       const seenMangaTitle = new Set<string>();
       for (const mg of (manga ?? []).slice(0, 8)) {
@@ -180,7 +202,7 @@ export function CommunityCollectionEditor({
       alive = false;
       window.clearTimeout(timer);
     };
-  }, [query, settings.tmdbKey]);
+  }, [query, settings.tmdbKey, authKey]);
 
   useEffect(() => {
     return () => {
@@ -197,14 +219,7 @@ export function CommunityCollectionEditor({
     () => (typeFilter === "all" ? hits : hits.filter((h) => h.type === typeFilter)),
     [hits, typeFilter],
   );
-  const orderedItems = useMemo(() => {
-    const source = collection?.items ?? [];
-    const byId = new Map(source.map((it) => [it.id, it] as const));
-    const seq = order.length ? order : source.map((it) => it.id);
-    const out = seq.map((oid) => byId.get(oid)).filter((x): x is (typeof source)[number] => !!x);
-    for (const it of source) if (!out.includes(it)) out.push(it);
-    return out;
-  }, [collection, order]);
+  const orderedItems = draft.items;
   const hitFilters: { id: "all" | CollectionItemType; label: string; count: number }[] = [
     { id: "all", label: t("All"), count: hits.length },
     { id: "movie", label: t("Movies"), count: hitCounts.movie },
@@ -212,7 +227,7 @@ export function CommunityCollectionEditor({
     { id: "manga", label: t("Manga"), count: hitCounts.manga },
   ];
 
-  if (!collection) {
+  if (id && !collection) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
         <p className="text-[15px] text-ink-muted">{t("This collection is no longer here.")}</p>
@@ -227,35 +242,70 @@ export function CommunityCollectionEditor({
     );
   }
 
-  const memberIds = new Set(collection.items.map((it) => it.id));
-  const atItemMax = collection.items.length >= MAX_COLLECTION_ITEMS;
-  const tags = collection.tags ?? [];
+  const memberIds = new Set(draft.items.map((it) => it.id));
+  const atItemMax = draft.items.length >= MAX_COLLECTION_ITEMS;
+  const tags = draft.tags ?? [];
   const tagsFull = tags.length >= MAX_COLLECTION_TAGS;
 
   const typeLabel = (ty: CollectionItemType) =>
     ty === "movie" ? t("Movie") : ty === "series" ? t("Series") : t("Manga");
 
-  const back = () => {
-    syncSoon();
-    onBack();
-  };
-  const viewPage = () => {
-    syncSoon();
-    onViewPage(id);
+  const save = async () => {
+    if (saving) return;
+    const name = draft.name.trim() || t("Untitled collection");
+    if (!saveCollectionDraft(draftId, { ...draft, name })) {
+      await alertDialog(
+        t("You have reached {max} collections. Remove one to make room.", { max: MAX_COLLECTIONS }),
+      );
+      return;
+    }
+    setSaving(true);
+    const images = pending.current;
+    pending.current = {};
+    try {
+      if (authToken()) {
+        await publishCollections();
+        if (images.cover) {
+          const { url } = await uploadCollectionCover(draftId, images.cover);
+          if (url) setCollectionCover(draftId, url);
+        } else if (images.cover === null) await removeCollectionCover(draftId).catch(() => {});
+        if (images.bg) {
+          const { url } = await uploadCollectionBackground(draftId, images.bg);
+          if (url) setCollectionBackground(draftId, url);
+        } else if (images.bg === null) await removeCollectionBackground(draftId).catch(() => {});
+        if (images.cover || images.bg) await publishCollections();
+      }
+    } catch {
+      await alertDialog(
+        t("Saved on your device, but it couldn't be uploaded for others to see. Try again."),
+      );
+    } finally {
+      setSaving(false);
+    }
+    onSaved(draftId);
   };
 
-  const toggleHit = (hit: Hit) => {
-    if (!memberIds.has(hit.id) && atItemMax) return;
-    toggleInCollection(id, hit);
-  };
+  // From the latest draft, so quick successive presses each count.
+  const toggleHit = (hit: Hit) =>
+    setDraft((d) => {
+      if (d.items.some((it) => it.id === hit.id))
+        return { ...d, items: d.items.filter((it) => it.id !== hit.id) };
+      if (d.items.length >= MAX_COLLECTION_ITEMS) return d;
+      const item: CollectionItem = {
+        id: hit.id,
+        type: hit.type,
+        name: hit.name,
+        poster: hit.poster,
+      };
+      return { ...d, items: [...d.items, item] };
+    });
 
   const clearAll = () => {
     if (confirmClear) {
       if (clearTimerRef.current) window.clearTimeout(clearTimerRef.current);
       clearTimerRef.current = null;
       setConfirmClear(false);
-      clearCollectionItems(collection.id);
-      syncSoon();
+      edit({ items: [] });
       return;
     }
     setConfirmClear(true);
@@ -264,16 +314,22 @@ export function CommunityCollectionEditor({
   };
 
   const addTag = () => {
-    if (!normalizeTag(tagInput)) return;
-    addCollectionTag(collection.id, tagInput);
-    syncSoon();
+    const tag = normalizeTag(tagInput);
+    if (!tag) return;
+    setDraft((d) => {
+      const current = d.tags ?? [];
+      if (current.length >= MAX_COLLECTION_TAGS) return d;
+      if (current.some((x) => x.toLowerCase() === tag.toLowerCase())) return d;
+      return { ...d, tags: [...current, tag] };
+    });
     setTagInput("");
   };
 
-  const removeTag = (tag: string) => {
-    removeCollectionTag(collection.id, tag);
-    syncSoon();
-  };
+  const removeTag = (tag: string) =>
+    setDraft((d) => ({
+      ...d,
+      tags: (d.tags ?? []).filter((x) => x.toLowerCase() !== tag.toLowerCase()),
+    }));
 
   // Pointer-based sortable. The Tauri webview does not reliably fire native HTML5
   // drag, so we drive it with pointer events: the grabbed card follows the finger
@@ -361,7 +417,11 @@ export function CommunityCollectionEditor({
       cleanup();
       const changed = moved && curOrder.join("") !== ids.join("");
       flushSync(() => {
-        if (changed) setOrder(curOrder);
+        if (changed)
+          setDraft((d) => {
+            const byId = new Map(d.items.map((it) => [it.id, it] as const));
+            return { ...d, items: curOrder.flatMap((iid) => byId.get(iid) ?? []) };
+          });
       });
       for (const iid of ids) {
         const el = itemElsRef.current.get(iid);
@@ -372,10 +432,6 @@ export function CommunityCollectionEditor({
         el.style.boxShadow = "";
         el.style.willChange = "";
       }
-      if (changed) {
-        reorderCollectionItems(id, curOrder);
-        syncSoon();
-      }
     }
 
     dragCleanupRef.current = cleanup;
@@ -384,430 +440,514 @@ export function CommunityCollectionEditor({
     window.addEventListener("pointercancel", onUp);
   };
 
-  const toggleNumbered = () => {
-    setCollectionNumbered(id, !collection.numbered);
-    syncSoon();
-  };
+  const toggleNumbered = () => setDraft((d) => ({ ...d, numbered: !d.numbered }));
 
   return (
     <main
       ref={scrollRef}
-      className="flex-1 overflow-y-auto px-5 pt-24 pb-24 sm:px-8 lg:px-12 lg:pt-28"
+      data-mac-bleed
+      className="mac-pad mac-page-top flex-1 overflow-y-auto px-5 pt-24 pb-24 sm:px-8 lg:px-12 lg:pt-28"
     >
-      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-9">
-        <div
-          className={`flex flex-wrap items-center gap-3 ${nativeBack ? "justify-end" : "justify-between"}`}
-        >
-          {!nativeBack && (
-            <button
-              type="button"
-              onClick={back}
-              className="inline-flex h-11 items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink transition-colors hover:bg-raised"
-            >
-              <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
-              {t("Collections")}
-            </button>
-          )}
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-10">
+        {!nativeBack && (
           <button
             type="button"
-            onClick={viewPage}
-            className="inline-flex h-11 items-center gap-2 rounded-full border border-edge bg-canvas/80 px-5 text-[14px] font-semibold text-ink transition-colors hover:border-ink-subtle hover:bg-canvas/95"
+            onClick={requestLeave}
+            className="inline-flex h-11 w-fit items-center gap-2 rounded-full border border-edge-soft bg-elevated/60 ps-3.5 pe-5 text-[14px] font-semibold text-ink transition-colors hover:bg-raised"
           >
-            <Eye size={16} strokeWidth={2} />
-            {t("View collection page")}
+            <ArrowLeft size={17} strokeWidth={2.2} className="dir-icon" />
+            {t("Collections")}
           </button>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
-            {t("Edit collection")}
-          </span>
-          <input
-            value={name}
-            maxLength={MAX_COLLECTION_NAME}
-            onChange={(e) => {
-              setName(e.target.value);
-              renameCollection(id, e.target.value);
-            }}
-            placeholder={t("Name this collection")}
-            spellCheck={false}
-            className="w-full border-0 border-b border-edge-soft bg-transparent pb-2 font-display text-[34px] font-medium leading-tight tracking-tight text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
-          />
-        </div>
-
-        <section className="grid gap-6 lg:grid-cols-2">
-          <ImageField
-            label={t("Cover image")}
-            hint={t("Shown on the card and at the top of the page.")}
-            url={collection.coverImage}
-            canUpload
-            onUpload={async (file) => {
-              const local = await fileToCollectionCover(file);
-              setCollectionCover(id, local);
-              await publishCollections();
-              try {
-                const { url } = await uploadCollectionCover(id, file);
-                if (url) setCollectionCover(id, url);
-              } catch {
-                throw new Error(
-                  t(
-                    "Saved on your device, but it couldn't be uploaded for others to see. Try again.",
-                  ),
-                );
-              }
-              syncSoon();
-            }}
-            onRemove={async () => {
-              await removeCollectionCover(id).catch(() => {});
-              setCollectionCover(id, null);
-              syncSoon();
-            }}
-          />
-          <ImageField
-            label={t("Page background")}
-            hint={t("Fills the backdrop when someone opens the collection.")}
-            url={collection.bgImage}
-            canUpload
-            onUpload={async (file) => {
-              const local = await fileToCollectionBackground(file);
-              setCollectionBackground(id, local);
-              await publishCollections();
-              try {
-                const { url } = await uploadCollectionBackground(id, file);
-                if (url) setCollectionBackground(id, url);
-              } catch {
-                throw new Error(
-                  t(
-                    "Saved on your device, but it couldn't be uploaded for others to see. Try again.",
-                  ),
-                );
-              }
-              syncSoon();
-            }}
-            onRemove={async () => {
-              await removeCollectionBackground(id).catch(() => {});
-              setCollectionBackground(id, null);
-              syncSoon();
-            }}
-          />
-        </section>
-
-        <section className="flex flex-col gap-2">
-          <label className="text-[13px] font-semibold text-ink">{t("Description")}</label>
-          <textarea
-            value={desc}
-            maxLength={MAX_COLLECTION_DESCRIPTION}
-            onChange={(e) => {
-              setDesc(e.target.value);
-              setCollectionDescription(id, e.target.value);
-            }}
-            rows={3}
-            placeholder={t("What ties these together? A studio, a mood, a marathon night.")}
-            className="w-full resize-none rounded-2xl border border-edge-soft bg-elevated/40 px-4 py-3 text-[14px] leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
-          />
-        </section>
-
-        <section className="flex flex-col gap-2.5">
-          <label className="text-[13px] font-semibold text-ink">{t("Tags")}</label>
-          <p className="text-[12px] text-ink-subtle">
-            {t("Add up to {max} tags so people can find this in the community.", {
-              max: MAX_COLLECTION_TAGS,
-            })}
-          </p>
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-edge-soft bg-raised px-3 py-1 text-[12px] text-ink"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    aria-label={t("Remove tag")}
-                    className="flex h-4 w-4 items-center justify-center rounded-full text-ink-subtle transition-colors hover:text-danger"
-                  >
-                    <X size={12} strokeWidth={2.4} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-          {tagsFull ? (
-            <p className="text-[12px] text-ink-subtle">{t("Tag limit reached")}</p>
-          ) : (
-            <div className="flex items-center gap-2 pt-1">
-              <input
-                value={tagInput}
-                maxLength={MAX_TAG_LENGTH}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addTag();
-                  }
-                }}
-                placeholder={t("Add a tag")}
-                spellCheck={false}
-                className="h-11 w-full max-w-xs rounded-full border border-edge-soft bg-elevated/50 px-4 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
-              />
-              <button
-                type="button"
-                onClick={addTag}
-                className="inline-flex h-11 items-center gap-1.5 rounded-full border border-edge bg-canvas/80 px-4 text-[14px] font-semibold text-ink transition-colors hover:border-ink-subtle hover:bg-canvas/95"
-              >
-                <Plus size={16} strokeWidth={2} />
-                {t("Add")}
-              </button>
-            </div>
-          )}
-        </section>
-
-        <section className="flex flex-col gap-4">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-[16px] font-semibold text-ink">{t("Titles")}</h2>
-            <div className="flex items-baseline gap-3">
-              {collection.items.length > 0 && (
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className={`text-[12px] font-medium transition-colors ${
-                    confirmClear ? "text-danger" : "text-ink-subtle hover:text-danger"
-                  }`}
-                >
-                  {confirmClear ? t("Tap again to clear") : t("Clear all")}
-                </button>
-              )}
-              <span className="text-[12px] tabular-nums text-ink-muted">
-                {t("{n} / {max} titles", { n: collection.items.length, max: MAX_COLLECTION_ITEMS })}
-              </span>
-            </div>
-          </div>
-
-          {collection.items.length > 0 && (
-            <button
-              type="button"
-              role="switch"
-              aria-checked={!!collection.numbered}
-              onClick={toggleNumbered}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-edge-soft bg-elevated/40 px-4 py-3 text-start transition-colors hover:border-edge"
-            >
-              <span className="flex min-w-0 items-center gap-2.5">
-                <ListOrdered size={18} strokeWidth={2} className="shrink-0 text-ink-muted" />
-                <span className="min-w-0">
-                  <span className="block text-[13.5px] font-semibold text-ink">
-                    {t("Number the titles")}
-                  </span>
-                  <span className="block text-[12px] leading-snug text-ink-subtle">
-                    {t("Show rank numbers on the cards. Drag the titles below to set the order.")}
-                  </span>
-                </span>
-              </span>
-              <span
-                aria-hidden
-                className={`flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${
-                  collection.numbered ? "bg-accent" : "bg-edge"
-                }`}
-              >
-                <span
-                  className={`h-4 w-4 rounded-full bg-white transition-transform ${
-                    collection.numbered ? "translate-x-4" : ""
-                  }`}
-                />
-              </span>
-            </button>
-          )}
-
-          <div className="relative w-full max-w-xl">
-            <Search
-              size={16}
-              strokeWidth={2}
-              className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-ink-subtle"
-            />
+        )}
+        {/* The same head as the Collections page: what this is on the left, its actions on the right. */}
+        <header className="mac-page-head flex flex-wrap items-end justify-between gap-5">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <span className="mac-page-eyebrow text-[11px] font-bold uppercase tracking-[0.28em] text-ink-subtle">
+              {t(id ? "Edit collection" : "New collection")}
+            </span>
             <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("Search movies, shows, and manga to add")}
+              value={draft.name}
+              autoFocus={!id}
+              maxLength={MAX_COLLECTION_NAME}
+              onChange={(e) => edit({ name: e.target.value })}
+              placeholder={t("Name this collection")}
               spellCheck={false}
-              className="h-12 w-full rounded-full border border-edge bg-elevated/50 ps-11 pe-10 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
+              className="mac-page-title w-full min-w-0 border-0 border-b border-transparent bg-transparent pb-1 font-display text-[44px] font-medium leading-[1.05] tracking-tight text-ink outline-none transition-colors placeholder:text-ink-subtle hover:border-edge-soft focus:border-edge-soft"
             />
-            {query && (
+          </div>
+          <div className="flex shrink-0 items-center gap-2.5">
+            {id && !dirty && (
               <button
                 type="button"
-                onClick={() => setQuery("")}
-                aria-label={t("Clear search")}
-                className="absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-raised hover:text-ink"
+                onClick={() => onViewPage(id)}
+                data-arrives=""
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-edge bg-canvas/80 px-5 text-[14px] font-semibold text-ink transition-colors hover:border-ink-subtle hover:bg-canvas/95"
               >
-                <X size={14} strokeWidth={2.2} />
+                <Eye size={16} strokeWidth={2} />
+                {t("View collection page")}
               </button>
             )}
-          </div>
-
-          {searching && hits.length === 0 && (
-            <p className="text-[13px] text-ink-subtle">{t("Searching...")}</p>
-          )}
-
-          {hits.length > 0 && (
-            <>
-              <div className="flex flex-wrap items-center gap-2">
-                {hitFilters.map((f) => {
-                  if (f.id !== "all" && f.count === 0) return null;
-                  const on = typeFilter === f.id;
-                  return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setTypeFilter(f.id)}
-                      className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-medium transition-colors ${
-                        on
-                          ? "border-transparent bg-ink text-canvas"
-                          : "border-edge-soft bg-elevated/40 text-ink-muted hover:border-edge hover:text-ink"
-                      }`}
-                    >
-                      {f.id !== "all" && (
-                        <span className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT[f.id]}`} />
-                      )}
-                      {f.label}
-                      <span className={`tabular-nums ${on ? "text-canvas/70" : "text-ink-subtle"}`}>
-                        {f.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))" }}
-              >
-                {filteredHits.map((hit) => {
-                  const inSet = memberIds.has(hit.id);
-                  return (
-                    <MetaContextButton
-                      key={hit.id}
-                      meta={hit}
-                      membership={inSet ? { kind: "collection", id } : undefined}
-                      type="button"
-                      onClick={() => toggleHit(hit)}
-                      disabled={!inSet && atItemMax}
-                      title={`${hit.name}  ·  ${typeLabel(hit.type)}`}
-                      className="group/hit flex flex-col gap-1.5 text-start disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      <div className="relative transition-transform duration-200 ease-out group-hover/hit:-translate-y-0.5">
-                        <ResultPoster
-                          id={hit.id}
-                          poster={hit.poster}
-                          className={`ring-2 transition-all duration-200 ${inSet ? "ring-accent" : "ring-transparent group-hover/hit:ring-edge"}`}
-                        />
-                        <span className="pointer-events-none absolute start-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/55 py-0.5 ps-1.5 pe-2 text-[10px] font-semibold text-white/90 backdrop-blur-md">
-                          <span className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT[hit.type]}`} />
-                          {typeLabel(hit.type)}
-                        </span>
-                        <span
-                          className={`absolute end-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full backdrop-blur-md transition-colors ${
-                            inSet
-                              ? "bg-accent text-white"
-                              : "bg-black/45 text-white/80 group-hover/hit:bg-black/65"
-                          }`}
-                        >
-                          {inSet ? (
-                            <Check size={14} strokeWidth={2.6} />
-                          ) : (
-                            <Plus size={14} strokeWidth={2.6} />
-                          )}
-                        </span>
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-[var(--poster-radius,12px)] bg-gradient-to-t from-black/85 via-black/35 to-transparent p-2 pt-7 opacity-0 transition-opacity duration-200 group-hover/hit:opacity-100">
-                          <p className="line-clamp-2 text-[11px] font-medium leading-tight text-white">
-                            {hit.name}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="line-clamp-1 text-[12px] text-ink-muted">{hit.name}</span>
-                    </MetaContextButton>
-                  );
-                })}
-              </div>
-
-              {filteredHits.length === 0 && (
-                <p className="text-[13px] text-ink-subtle">{t("Nothing here for that filter.")}</p>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={saving || (!!id && !dirty)}
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-ink px-5 text-[14px] font-semibold text-canvas transition-opacity duration-200 hover:opacity-90 disabled:cursor-default disabled:opacity-40"
+            >
+              {saving ? (
+                <Loader2 size={16} strokeWidth={2.2} className="animate-spin" />
+              ) : (
+                <Check size={16} strokeWidth={2.4} />
               )}
-            </>
-          )}
+              {saving ? t("Saving…") : t("Save")}
+            </button>
+          </div>
+        </header>
 
-          {collection.items.length > 0 && (
-            <div className="mt-2 flex flex-col gap-3">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-subtle">
-                  {t("In this collection")}
-                </p>
-                {orderedItems.length > 1 && (
-                  <p className="text-[11.5px] text-ink-subtle">{t("Drag to reorder")}</p>
-                )}
-              </div>
-              <div
-                className="grid gap-4"
-                style={{ gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))" }}
-              >
-                {orderedItems.map((item, i) => (
-                  <div
-                    key={item.id}
-                    ref={(el) => {
-                      if (el) itemElsRef.current.set(item.id, el);
-                      else itemElsRef.current.delete(item.id);
-                    }}
-                    onPointerDown={(e) => startItemDrag(e, item.id, i)}
-                    onContextMenu={(event) =>
-                      openContextMenu(event, {
-                        kind: "meta",
-                        meta: item,
-                        membership: { kind: "collection", id },
-                      })
-                    }
-                    className="group/item flex cursor-grab touch-none select-none flex-col gap-1.5 active:cursor-grabbing"
+        {/* Titles are the collection; its artwork and details sit beside them. */}
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="flex flex-col gap-4">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="text-[16px] font-semibold text-ink">{t("Titles")}</h2>
+              <div className="flex items-baseline gap-3">
+                {draft.items.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearAll}
+                    className={`text-[12px] font-medium transition-colors ${
+                      confirmClear ? "text-danger" : "text-ink-subtle hover:text-danger"
+                    }`}
                   >
-                    <div className="relative">
-                      <ResultPoster id={item.id} poster={item.poster} />
-                      {collection.numbered ? (
-                        <span className="pointer-events-none absolute start-1.5 top-1.5 flex min-w-[1.4rem] items-center justify-center rounded-full bg-black/70 px-1.5 py-0.5 text-[11.5px] font-bold tabular-nums text-white backdrop-blur-md">
-                          {i + 1}
-                        </span>
-                      ) : (
-                        <span className="pointer-events-none absolute start-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/55 py-0.5 ps-1.5 pe-2 text-[10px] font-semibold text-white/90 backdrop-blur-md">
-                          <span className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT[item.type]}`} />
-                          {typeLabel(item.type)}
-                        </span>
-                      )}
-                      <span className="pointer-events-none absolute bottom-1.5 start-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white/70 opacity-0 backdrop-blur-md transition-opacity group-hover/item:opacity-100">
-                        <GripVertical size={13} strokeWidth={2} />
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeFromCollection(id, item.id)}
-                        title={t("Remove")}
-                        aria-label={t("Remove")}
-                        className="absolute end-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white/85 opacity-0 backdrop-blur-md transition-opacity hover:bg-danger hover:text-white group-hover/item:opacity-100"
-                      >
-                        <X size={13} strokeWidth={2.4} />
-                      </button>
-                    </div>
-                    <span className="flex items-center gap-1.5 text-[12px] text-ink-muted">
-                      {collection.numbered && (
-                        <span
-                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${TYPE_DOT[item.type]}`}
-                        />
-                      )}
-                      <span className="line-clamp-1">{item.name}</span>
-                    </span>
-                  </div>
-                ))}
+                    {confirmClear ? t("Tap again to clear") : t("Clear all")}
+                  </button>
+                )}
+                <span className="text-[12px] tabular-nums text-ink-muted">
+                  {t("{n} / {max} titles", { n: draft.items.length, max: MAX_COLLECTION_ITEMS })}
+                </span>
               </div>
             </div>
-          )}
-        </section>
+
+            {draft.items.length > 0 && (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={!!draft.numbered}
+                onClick={toggleNumbered}
+                className="flex items-center justify-between gap-3 rounded-2xl border border-edge-soft bg-elevated/40 px-4 py-3 text-start transition-colors hover:border-edge"
+              >
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <ListOrdered size={18} strokeWidth={2} className="shrink-0 text-ink-muted" />
+                  <span className="min-w-0">
+                    <span className="block text-[13.5px] font-semibold text-ink">
+                      {t("Number the titles")}
+                    </span>
+                    <span className="block text-[12px] leading-snug text-ink-subtle">
+                      {t("Show rank numbers on the cards. Drag the titles below to set the order.")}
+                    </span>
+                  </span>
+                </span>
+                <span
+                  aria-hidden
+                  className={`flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${
+                    draft.numbered ? "bg-accent" : "bg-edge"
+                  }`}
+                >
+                  <span
+                    className={`h-4 w-4 rounded-full bg-white transition-transform ${
+                      draft.numbered ? "translate-x-4" : ""
+                    }`}
+                  />
+                </span>
+              </button>
+            )}
+
+            <div className="relative w-full max-w-xl">
+              <Search
+                size={16}
+                strokeWidth={2}
+                className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-ink-subtle"
+              />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("Search movies, shows, and manga to add")}
+                spellCheck={false}
+                className="h-12 w-full rounded-full border border-edge bg-elevated/50 ps-11 pe-10 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label={t("Clear search")}
+                  className="absolute end-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-ink-subtle transition-colors hover:bg-raised hover:text-ink"
+                >
+                  <X size={14} strokeWidth={2.2} />
+                </button>
+              )}
+            </div>
+
+            {searching && hits.length === 0 && (
+              <p className="text-[13px] text-ink-subtle">{t("Searching...")}</p>
+            )}
+            {!searching && query.trim().length >= 2 && hits.length === 0 && (
+              <p data-arrives="" className="text-[13px] text-ink-subtle">
+                {t("No matches")}
+              </p>
+            )}
+            {query.trim().length < 2 && draft.items.length === 0 && (
+              <div
+                data-arrives=""
+                className="flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-edge-soft px-6 text-center"
+              >
+                <p className="text-[14px] text-ink-muted">{t("This collection is empty.")}</p>
+                <p className="text-[12.5px] text-ink-subtle">
+                  {t("Search movies, shows, and manga to add")}
+                </p>
+              </div>
+            )}
+
+            {hits.length > 0 && (
+              <>
+                <div className="flex flex-wrap items-center gap-2">
+                  {hitFilters.map((f) => {
+                    if (f.id !== "all" && f.count === 0) return null;
+                    const on = typeFilter === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setTypeFilter(f.id)}
+                        className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12.5px] font-medium transition-colors ${
+                          on
+                            ? "border-transparent bg-ink text-canvas"
+                            : "border-edge-soft bg-elevated/40 text-ink-muted hover:border-edge hover:text-ink"
+                        }`}
+                      >
+                        {f.id !== "all" && (
+                          <span className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT[f.id]}`} />
+                        )}
+                        {f.label}
+                        <span
+                          className={`tabular-nums ${on ? "text-canvas/70" : "text-ink-subtle"}`}
+                        >
+                          {f.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))" }}
+                >
+                  {filteredHits.map((hit) => {
+                    const inSet = memberIds.has(hit.id);
+                    return (
+                      <MetaContextButton
+                        key={hit.id}
+                        meta={hit}
+                        type="button"
+                        onClick={() => toggleHit(hit)}
+                        disabled={!inSet && atItemMax}
+                        title={`${hit.name}  ·  ${typeLabel(hit.type)}`}
+                        className="group/hit flex flex-col gap-1.5 text-start disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <div className="relative transition-transform duration-200 ease-out group-hover/hit:-translate-y-0.5">
+                          <ResultPoster
+                            id={hit.id}
+                            poster={hit.poster}
+                            className={`ring-2 transition-all duration-200 ${inSet ? "ring-accent" : "ring-transparent group-hover/hit:ring-edge"}`}
+                          />
+                          <span className="pointer-events-none absolute start-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/55 py-0.5 ps-1.5 pe-2 text-[10px] font-semibold text-white/90 backdrop-blur-md">
+                            <span className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT[hit.type]}`} />
+                            {typeLabel(hit.type)}
+                          </span>
+                          <span
+                            className={`absolute end-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full backdrop-blur-md transition-colors ${
+                              inSet
+                                ? "bg-accent text-white"
+                                : "bg-black/45 text-white/80 group-hover/hit:bg-black/65"
+                            }`}
+                          >
+                            {inSet ? (
+                              <Check size={14} strokeWidth={2.6} />
+                            ) : (
+                              <Plus size={14} strokeWidth={2.6} />
+                            )}
+                          </span>
+                          <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-[var(--poster-radius,12px)] bg-gradient-to-t from-black/85 via-black/35 to-transparent p-2 pt-7 opacity-0 transition-opacity duration-200 group-hover/hit:opacity-100">
+                            <p className="line-clamp-2 text-[11px] font-medium leading-tight text-white">
+                              {hit.name}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="line-clamp-1 text-[12px] text-ink-muted">{hit.name}</span>
+                      </MetaContextButton>
+                    );
+                  })}
+                </div>
+
+                {filteredHits.length === 0 && (
+                  <p className="text-[13px] text-ink-subtle">
+                    {t("Nothing here for that filter.")}
+                  </p>
+                )}
+              </>
+            )}
+
+            {draft.items.length > 0 && (
+              <div className="mt-2 flex flex-col gap-3">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-ink-subtle">
+                    {t("In this collection")}
+                  </p>
+                  {orderedItems.length > 1 && (
+                    <p className="text-[11.5px] text-ink-subtle">{t("Drag to reorder")}</p>
+                  )}
+                </div>
+                <div
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: "repeat(auto-fill, minmax(112px, 1fr))" }}
+                >
+                  {orderedItems.map((item, i) => (
+                    <div
+                      key={item.id}
+                      ref={(el) => {
+                        if (el) itemElsRef.current.set(item.id, el);
+                        else itemElsRef.current.delete(item.id);
+                      }}
+                      onPointerDown={(e) => startItemDrag(e, item.id, i)}
+                      onContextMenu={(event) =>
+                        openContextMenu(event, { kind: "meta", meta: item })
+                      }
+                      className="group/item flex cursor-grab touch-none select-none flex-col gap-1.5 active:cursor-grabbing"
+                    >
+                      <div className="relative">
+                        <ResultPoster id={item.id} poster={item.poster} />
+                        {draft.numbered ? (
+                          <span className="pointer-events-none absolute start-1.5 top-1.5 flex min-w-[1.4rem] items-center justify-center rounded-full bg-black/70 px-1.5 py-0.5 text-[11.5px] font-bold tabular-nums text-white backdrop-blur-md">
+                            {i + 1}
+                          </span>
+                        ) : (
+                          <span className="pointer-events-none absolute start-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/55 py-0.5 ps-1.5 pe-2 text-[10px] font-semibold text-white/90 backdrop-blur-md">
+                            <span className={`h-1.5 w-1.5 rounded-full ${TYPE_DOT[item.type]}`} />
+                            {typeLabel(item.type)}
+                          </span>
+                        )}
+                        <span className="pointer-events-none absolute bottom-1.5 start-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/45 text-white/70 opacity-0 backdrop-blur-md transition-opacity group-hover/item:opacity-100">
+                          <GripVertical size={13} strokeWidth={2} />
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDraft((d) => ({
+                              ...d,
+                              items: d.items.filter((it) => it.id !== item.id),
+                            }))
+                          }
+                          title={t("Remove")}
+                          aria-label={t("Remove")}
+                          className="absolute end-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white/85 opacity-0 backdrop-blur-md transition-opacity hover:bg-danger hover:text-white group-hover/item:opacity-100"
+                        >
+                          <X size={13} strokeWidth={2.4} />
+                        </button>
+                      </div>
+                      <span className="flex items-center gap-1.5 text-[12px] text-ink-muted">
+                        {draft.numbered && (
+                          <span
+                            className={`h-1.5 w-1.5 shrink-0 rounded-full ${TYPE_DOT[item.type]}`}
+                          />
+                        )}
+                        <span className="line-clamp-1">{item.name}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
+          <aside className="flex flex-col gap-8">
+            <section className="flex flex-col gap-6">
+              <ImageField
+                label={t("Cover image")}
+                hint={t("Shown on the card and at the top of the page.")}
+                url={draft.coverImage}
+                canUpload
+                onUpload={async (file) => {
+                  const local = await fileToCollectionCover(file);
+                  pending.current.cover = file;
+                  edit({ coverImage: local });
+                }}
+                onRemove={async () => {
+                  pending.current.cover = null;
+                  edit({ coverImage: undefined });
+                }}
+              />
+              <ImageField
+                label={t("Page background")}
+                hint={t("Fills the backdrop when someone opens the collection.")}
+                url={draft.bgImage}
+                canUpload
+                onUpload={async (file) => {
+                  const local = await fileToCollectionBackground(file);
+                  pending.current.bg = file;
+                  edit({ bgImage: local });
+                }}
+                onRemove={async () => {
+                  pending.current.bg = null;
+                  edit({ bgImage: undefined });
+                }}
+              />
+            </section>
+
+            <section className="flex flex-col gap-2">
+              <label className="text-[13px] font-semibold text-ink">{t("Description")}</label>
+              <textarea
+                value={draft.description ?? ""}
+                maxLength={MAX_COLLECTION_DESCRIPTION}
+                onChange={(e) => edit({ description: e.target.value })}
+                rows={3}
+                placeholder={t("What ties these together? A studio, a mood, a marathon night.")}
+                className="w-full resize-none rounded-2xl border border-edge-soft bg-elevated/40 px-4 py-3 text-[14px] leading-relaxed text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
+              />
+            </section>
+
+            <section className="flex flex-col gap-2.5">
+              <label className="text-[13px] font-semibold text-ink">{t("Tags")}</label>
+              <p className="text-[12px] text-ink-subtle">
+                {t("Add up to {max} tags so people can find this in the community.", {
+                  max: MAX_COLLECTION_TAGS,
+                })}
+              </p>
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-edge-soft bg-raised px-3 py-1 text-[12px] text-ink"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        aria-label={t("Remove tag")}
+                        className="flex h-4 w-4 items-center justify-center rounded-full text-ink-subtle transition-colors hover:text-danger"
+                      >
+                        <X size={12} strokeWidth={2.4} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {tagsFull ? (
+                <p className="text-[12px] text-ink-subtle">{t("Tag limit reached")}</p>
+              ) : (
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    value={tagInput}
+                    maxLength={MAX_TAG_LENGTH}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
+                    placeholder={t("Add a tag")}
+                    spellCheck={false}
+                    className="h-11 w-full max-w-xs rounded-full border border-edge-soft bg-elevated/50 px-4 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink-subtle"
+                  />
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    className="inline-flex h-11 items-center gap-1.5 rounded-full border border-edge bg-canvas/80 px-4 text-[14px] font-semibold text-ink transition-colors hover:border-ink-subtle hover:bg-canvas/95"
+                  >
+                    <Plus size={16} strokeWidth={2} />
+                    {t("Add")}
+                  </button>
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
       </div>
       <BackToTop scrollRef={scrollRef} />
+      {confirmLeave && (
+        <LeaveWithoutSaving
+          onDiscard={() => {
+            setConfirmLeave(false);
+            onBack();
+          }}
+          onKeepEditing={() => setConfirmLeave(false)}
+        />
+      )}
     </main>
+  );
+}
+
+function LeaveWithoutSaving({
+  onDiscard,
+  onKeepEditing,
+}: {
+  onDiscard: () => void;
+  onKeepEditing: () => void;
+}) {
+  const t = useT();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopPropagation();
+      onKeepEditing();
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [onKeepEditing]);
+  return createPortal(
+    <div
+      data-arrives=""
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/55 p-6"
+      onClick={onKeepEditing}
+    >
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-label={t("Leave without saving?")}
+        onClick={(e) => e.stopPropagation()}
+        className="animate-modal-in w-[340px] max-w-full overflow-hidden rounded-md bg-elevated ring-1 ring-edge harbor-float"
+      >
+        <div className="flex flex-col px-6 pb-6 pt-5">
+          <h2 className="text-[17px] font-semibold tracking-tight text-ink">
+            {t("Leave without saving?")}
+          </h2>
+          <p className="mt-1.5 text-[15px] leading-[22px] text-ink-muted">
+            {t(
+              "Your changes to this collection aren't saved yet. They'll be lost if you leave now.",
+            )}
+          </p>
+          <div className="mt-5 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onDiscard}
+              className="h-11 rounded-md px-4 text-[15px] font-semibold text-ink-subtle transition-colors hover:bg-danger/25 hover:text-danger"
+            >
+              {t("Discard")}
+            </button>
+            <button
+              type="button"
+              autoFocus
+              data-tv-initial-focus
+              onClick={onKeepEditing}
+              className="h-11 rounded-md bg-ink px-5 text-[15px] font-semibold text-canvas transition-opacity hover:opacity-90"
+            >
+              {t("Keep editing")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

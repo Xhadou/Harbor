@@ -541,6 +541,8 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "ライブラリには、Stremio、Trakt、このデバイスのすべての作品が含まれます。「視聴済みを隠す」をオンにすると未視聴の作品だけが残ります。履歴には視聴済みの作品、ローカルにはパソコン上のファイルが表示されます。",
   "Hide watched": "視聴済みを隠す",
+  "Your changes to this collection aren't saved yet. They'll be lost if you leave now.":
+    "このコレクションへの変更はまだ保存されていません。今離れると失われます。",
   "You have reached {max} collections. Remove one to make room.":
     "コレクションが上限の{max}件に達しました。1件削除してください。",
   "A short note about this collection": "このコレクションについての短いメモ",
