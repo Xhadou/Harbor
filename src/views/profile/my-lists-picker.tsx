@@ -405,7 +405,7 @@ export function MyListsPicker({ onClose }: { onClose?: () => void }) {
       <button aria-label={t("Close")} className="absolute inset-0 bg-black/55" onClick={onClose} />
       <div className="relative flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-surface ring-1 ring-edge">
         <div className="flex items-center justify-between border-b border-edge-soft px-6 py-4">
-          <h2 className="font-display text-[20px] text-ink">{t("Featured lists")}</h2>
+          <h2 className="font-display text-[20px] text-ink">{t("Featured collections")}</h2>
           <button
             onClick={onClose}
             aria-label={t("Close")}
@@ -417,16 +417,18 @@ export function MyListsPicker({ onClose }: { onClose?: () => void }) {
 
         <div className="flex-1 space-y-2 overflow-y-auto px-6 py-5">
           <p className="pb-1 text-[13px] text-ink-muted">
-            {t("Pick up to {max} lists to show on your public profile.", {
+            {t("Pick up to {max} collections to show on your public profile.", {
               max: MAX_FEATURED_LISTS,
             })}
           </p>
           {entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-edge py-12 text-center">
               <ListVideo size={24} className="text-ink-subtle" />
-              <p className="mt-2 text-[14px] text-ink-muted">{t("You have no lists yet")}</p>
+              <p className="mt-2 text-[14px] text-ink-muted">
+                {t("You have not made a collection yet.")}
+              </p>
               <p className="mt-1 text-[12px] text-ink-subtle">
-                {t("Create lists in your library to feature them here")}
+                {t("Make collections on the Collections page to feature them here.")}
               </p>
             </div>
           ) : (
@@ -454,7 +456,7 @@ export function MyListsPicker({ onClose }: { onClose?: () => void }) {
                 <div className="space-y-2 pt-1">
                   {selectedEntries.length > 0 && (
                     <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-subtle">
-                      {t("Add a list")}
+                      {t("Add a collection")}
                     </div>
                   )}
                   {unselectedEntries.map((list) => (

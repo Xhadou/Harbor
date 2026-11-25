@@ -118,13 +118,17 @@ export function MyListSubmenu({
             createdRef.current = created.id;
             return created.id;
           }}
-          onCreated={() => emitListToast(t("Added to new list"))}
+          onCreated={() =>
+            emitListToast(
+              t(store === sharedLists ? "Added to new collection" : "Added to new list"),
+            )
+          }
           onClose={() => {
             creatingRef.current = false;
             setCreating(false);
             const root = createRoot.current;
             const destination = createdRef.current
-              ? `membership:add:list:${createdRef.current}`
+              ? `membership:add:${store === sharedLists ? "collection" : "list"}:${createdRef.current}`
               : "membership:create-list";
             requestAnimationFrame(() => {
               if (root?.isConnected) restoreMenuAction("membership:add", destination);

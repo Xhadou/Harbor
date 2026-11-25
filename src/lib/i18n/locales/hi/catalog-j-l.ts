@@ -258,6 +258,17 @@ const catalogJL: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "लाइब्रेरी में Stremio, Trakt और इस डिवाइस का सारा कंटेंट होता है; “देखे गए छिपाएँ” से केवल वे शीर्षक बचते हैं जिन्हें आपने अभी तक नहीं देखा है। हिस्ट्री में वह होता है जो आपने देखा है। लोकल में आपके कंप्यूटर की फ़ाइलें होती हैं।",
   "Hide watched": "देखे गए छिपाएँ",
+  "You have reached {max} collections. Remove one to make room.":
+    "आप {max} कलेक्शन तक पहुँच गए हैं। जगह बनाने के लिए एक हटाएँ।",
+  "A short note about this collection": "इस कलेक्शन के बारे में एक छोटा नोट",
+  "Added to new collection": "नए कलेक्शन में जोड़ा गया",
+  "Add to collection": "कलेक्शन में जोड़ें",
+  "Featured collections": "चुनिंदा कलेक्शन",
+  "Pick up to {max} collections to show on your public profile.":
+    "अपनी सार्वजनिक प्रोफ़ाइल पर दिखाने के लिए अधिकतम {max} कलेक्शन चुनें।",
+  "Make collections on the Collections page to feature them here.":
+    "उन्हें यहाँ दिखाने के लिए कलेक्शन पेज पर कलेक्शन बनाएँ।",
+  "Add a collection": "कलेक्शन जोड़ें",
   "Library sources": "लाइब्रेरी स्रोत",
   "Library, watch progress, and addon collection sync from this account.":
     "इस अकाउंट से लाइब्रेरी, देखने की प्रगति और ऐडऑन संग्रह सिंक होते हैं।",

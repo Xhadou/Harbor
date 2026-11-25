@@ -1,4 +1,5 @@
 import {
+  MAX_COLLECTIONS,
   MAX_COLLECTION_ITEMS,
   readPersistedCollectionSnapshot,
   removeCollectionMembership,
@@ -76,8 +77,15 @@ export function membershipFailureMessage(result: MembershipResult): string {
 }
 
 export function buildMembershipActionSource(options: Options): ActionSource {
-  const { profile, membership } = options;
-  const listStore = options.store ?? membership?.store ?? sharedLists;
+  const { profile } = options;
+  const listStore = options.store ?? options.membership?.store ?? sharedLists;
+  // The user's lists are their collections: offer them once, as collections. Only a
+  // store of its own (manga) still has lists here.
+  const listsAreCollections = listStore === sharedLists;
+  const membership: MembershipContext | undefined =
+    listsAreCollections && options.membership?.kind === "list"
+      ? { ...options.membership, kind: "collection" }
+      : options.membership;
   const item = { ...options.item };
   const t: Translate =
     options.t ??
@@ -129,7 +137,7 @@ export function buildMembershipActionSource(options: Options): ActionSource {
     subscribe: (listener) => {
       const stop = [
         subscribeCollections(listener),
-        listStore.subscribeLists(listener),
+        ...(listsAreCollections ? [] : [listStore.subscribeLists(listener)]),
         subscribeLocalWatchlist(listener),
       ];
       const onStorage = (event: StorageEvent) => {
@@ -157,7 +165,11 @@ export function buildMembershipActionSource(options: Options): ActionSource {
     actions: () => {
       const available = isValid();
       const noProfile = { status: "error", reason: "profile-changed" } as const;
-      const listSnapshot = profile ? listStore.readPersistedListSnapshot(profile) : noProfile;
+      const listSnapshot = listsAreCollections
+        ? { containers: [] }
+        : profile
+          ? listStore.readPersistedListSnapshot(profile)
+          : noProfile;
       const collectionSnapshot = profile ? readPersistedCollectionSnapshot(profile) : noProfile;
       const listFailure = "status" in listSnapshot ? listSnapshot : undefined;
       const collectionFailure = "status" in collectionSnapshot ? collectionSnapshot : undefined;
@@ -216,6 +228,34 @@ export function buildMembershipActionSource(options: Options): ActionSource {
           };
         });
       };
+      const createEntry = (): ContextAction[] => {
+        if (!options.onCreateList || options.membershipOnly) return [];
+        const failure = listsAreCollections ? collectionFailure : listFailure;
+        const count = listsAreCollections ? collections.length : lists.length;
+        const maximum = listsAreCollections ? MAX_COLLECTIONS : MAX_LISTS;
+        return [
+          {
+            id: "membership:create-list",
+            label: t(listsAreCollections ? "New collection" : "Create new list"),
+            icon: options.commandIcon?.("create"),
+            group: "create",
+            sectionLabel: t(listsAreCollections ? "Collections" : "Lists"),
+            disabled: !available || !!failure || count >= maximum,
+            reason: failure
+              ? t(membershipFailureMessage(failure))
+              : count >= maximum
+                ? t(
+                    listsAreCollections
+                      ? "You have reached {max} collections. Remove one to make room."
+                      : "You have reached {max} lists. Remove one to make room.",
+                    { max: maximum },
+                  )
+                : undefined,
+            restoreFocus: false,
+            run: options.onCreateList,
+          },
+        ];
+      };
       const defaultState = profile ? readLocalWatchlistMembership(profile, item.id) : noProfile;
       const defaultChecked = defaultState.status === "ready" ? defaultState.present : undefined;
       const actions: ContextAction[] = [
@@ -254,28 +294,9 @@ export function buildMembershipActionSource(options: Options): ActionSource {
                 ]
               : []),
             ...addDestinations("list"),
-            ...(options.onCreateList && !options.membershipOnly
-              ? [
-                  {
-                    id: "membership:create-list",
-                    label: t("Create new list"),
-                    icon: options.commandIcon?.("create"),
-                    group: "create",
-                    sectionLabel: t("Lists"),
-                    disabled: !available || !!listFailure || lists.length >= MAX_LISTS,
-                    reason: listFailure
-                      ? t(membershipFailureMessage(listFailure))
-                      : lists.length >= MAX_LISTS
-                        ? t("You have reached {max} lists. Remove one to make room.", {
-                            max: MAX_LISTS,
-                          })
-                        : undefined,
-                    restoreFocus: false,
-                    run: options.onCreateList,
-                  },
-                ]
-              : []),
+            ...(listsAreCollections ? [] : createEntry()),
             ...addDestinations("collection"),
+            ...(listsAreCollections ? createEntry() : []),
           ],
         },
       ];

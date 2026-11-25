@@ -495,6 +495,17 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Thư viện gồm mọi nội dung từ Stremio, Trakt và thiết bị này; “Ẩn đã xem” chỉ giữ lại các tựa bạn chưa xem. Lịch sử là nội dung bạn đã xem. Nội bộ là các tệp trên máy tính.",
   "Hide watched": "Ẩn đã xem",
+  "You have reached {max} collections. Remove one to make room.":
+    "Bạn đã đạt {max} bộ sưu tập. Hãy xóa một bộ để có chỗ.",
+  "A short note about this collection": "Ghi chú ngắn về bộ sưu tập này",
+  "Added to new collection": "Đã thêm vào bộ sưu tập mới",
+  "Add to collection": "Thêm vào bộ sưu tập",
+  "Featured collections": "Bộ sưu tập nổi bật",
+  "Pick up to {max} collections to show on your public profile.":
+    "Chọn tối đa {max} bộ sưu tập để hiển thị trên hồ sơ công khai của bạn.",
+  "Make collections on the Collections page to feature them here.":
+    "Tạo bộ sưu tập ở trang Bộ sưu tập để giới thiệu chúng tại đây.",
+  "Add a collection": "Thêm bộ sưu tập",
   "My Lists": "Danh sách của tôi",
   "Heads up: most IPTV providers cap how many streams an account can run at the same time. If other devices or players are using these credentials, close them and try again.":
     "Lưu ý: hầu hết nhà cung cấp IPTV giới hạn số luồng mà một tài khoản có thể phát cùng lúc. Nếu thiết bị hoặc trình phát khác đang dùng thông tin đăng nhập này, hãy đóng chúng rồi thử lại.",

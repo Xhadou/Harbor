@@ -75,7 +75,11 @@ export type CollectionItem = {
   id: string;
   type: CollectionItemType;
   name: string;
+  /** Another name the title is known by; kept from the lists that became collections. */
+  altTitle?: string;
   poster?: string;
+  /** When the title was added; collections made before lists were merged in have none. */
+  addedAt?: number;
   addonOrigin?: Meta["addonOrigin"];
   videos?: Meta["videos"];
 };
@@ -84,6 +88,7 @@ export type CollectionItemInput = {
   id: string;
   type?: string;
   name?: string;
+  altTitle?: string;
   poster?: string;
   addonOrigin?: Meta["addonOrigin"];
   videos?: Meta["videos"];
@@ -180,14 +185,100 @@ function toItem(input: CollectionItemInput): CollectionItem {
     id: input.id,
     type: normalizeType(input.type, input.id),
     name: input.name ?? "",
+    altTitle: input.altTitle,
     poster: input.poster,
     addonOrigin: persistableAddonOrigin(input.addonOrigin),
     videos: persistableVideos(input.videos),
   };
 }
 
+/**
+ * Lists and collections were two names for the same thing; lists are now
+ * collections. Each stored list snapshot (the shared one and each unlinked
+ * profile's) is added to that profile's collections, which keep their own.
+ * The old snapshots are left where they were, untouched. A snapshot is noted
+ * by a fingerprint of what was moved, so one brought back by restoring an
+ * older backup is moved again (lists already there are not added twice).
+ */
+const LISTS_PREFIX = "harbor.customlists.";
+const LISTS_MOVED_KEY = "harbor.lists-into-collections.v1";
+let listsAdopted = false;
+
+function collectionsKeyForLists(listsKey: string): string | null {
+  if (!listsKey.startsWith(LISTS_PREFIX) || listsKey.endsWith(".savedAt.v1")) return null;
+  const rest = listsKey.slice(LISTS_PREFIX.length);
+  if (rest === "v1") return KEY;
+  // Profile snapshots: `harbor.customlists.v1.<id>`, or the older `harbor.customlists.<id>`.
+  const profileId = rest.startsWith("v1.") ? rest.slice(3) : rest;
+  return profileId ? `harbor.collections.${profileId}` : null;
+}
+
+function fingerprint(raw: string): string {
+  let hash = 5381;
+  for (let i = 0; i < raw.length; i++) hash = ((hash << 5) + hash + raw.charCodeAt(i)) | 0;
+  return `${raw.length}:${hash >>> 0}`;
+}
+
+function adoptCustomLists(): void {
+  if (listsAdopted) return;
+  listsAdopted = true;
+  try {
+    const stored = JSON.parse(localStorage.getItem(LISTS_MOVED_KEY) ?? "{}") as unknown;
+    const moved: Record<string, string> =
+      stored && typeof stored === "object" && !Array.isArray(stored)
+        ? (stored as Record<string, string>)
+        : {};
+    const listKeys: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !collectionsKeyForLists(key)) continue;
+      const raw = localStorage.getItem(key);
+      if (raw !== null && moved[key] !== fingerprint(raw)) listKeys.push(key);
+    }
+    if (!listKeys.length) return;
+    for (const listsKey of listKeys) {
+      const target = collectionsKeyForLists(listsKey)!;
+      const raw = localStorage.getItem(listsKey) ?? "null";
+      const lists = JSON.parse(raw) as unknown;
+      const current = JSON.parse(localStorage.getItem(target) ?? "[]") as unknown;
+      const existing = Array.isArray(current) ? (current as Array<{ id?: unknown }>) : [];
+      const taken = new Set(existing.map((entry) => entry?.id));
+      const now = Date.now();
+      const adopted = (Array.isArray(lists) ? (lists as Array<Record<string, unknown>>) : [])
+        .filter(
+          (list) =>
+            !!list &&
+            typeof list.id === "string" &&
+            typeof list.name === "string" &&
+            !taken.has(list.id),
+        )
+        .map((list) => ({
+          id: list.id,
+          name: list.name,
+          description: typeof list.description === "string" ? list.description : undefined,
+          coverImage: typeof list.coverImage === "string" ? list.coverImage : undefined,
+          bgImage: typeof list.bgImage === "string" ? list.bgImage : undefined,
+          items: Array.isArray(list.items) ? list.items : [],
+          createdAt: typeof list.createdAt === "number" ? list.createdAt : now,
+          updatedAt: typeof list.updatedAt === "number" ? list.updatedAt : now,
+        }));
+      if (adopted.length) {
+        const next = [...existing, ...adopted];
+        // Left for the next launch when storage is full; nothing is marked moved.
+        if (!setItemWithRecovery(target, JSON.stringify(next))) continue;
+        mirrorMembershipSnapshot(target, next);
+      }
+      moved[listsKey] = fingerprint(raw);
+    }
+    localStorage.setItem(LISTS_MOVED_KEY, JSON.stringify(moved));
+  } catch {
+    /* A list snapshot that cannot be read stays where it is. */
+  }
+}
+
 function read(): Collection[] {
   if (memoryFallback) return memoryFallback.map((c) => ({ ...c, items: [...c.items] }));
+  adoptCustomLists();
   try {
     const key = activeCollectionsKey();
     const raw = localStorage.getItem(key) ?? (key !== KEY ? localStorage.getItem(KEY) : null);
@@ -209,7 +300,9 @@ function read(): Collection[] {
             id: it.id,
             type: it.type === "series" ? "series" : it.type === "manga" ? "manga" : "movie",
             name: typeof it.name === "string" ? it.name : "",
+            altTitle: typeof it.altTitle === "string" ? it.altTitle : undefined,
             poster: typeof it.poster === "string" ? it.poster : undefined,
+            addedAt: typeof it.addedAt === "number" ? it.addedAt : undefined,
             addonOrigin: persistableAddonOrigin(it.addonOrigin),
             videos: persistableVideos(it.videos),
           });
@@ -349,6 +442,84 @@ export function createCollection(name: string): string | null {
   collections.push({ id, name: trimmed, items: [], createdAt: now, updatedAt: now });
   write(collections);
   return id;
+}
+
+/** A new collection holding `items`, made in one step (saving a list someone shared, "New collection" from a menu). */
+export function createCollectionWithItems(
+  name: string,
+  items: CollectionItemInput[],
+  profile: MembershipProfile,
+  description = "",
+): { result: MembershipResult; id?: string } {
+  if (!name.trim() || !items.length || !items.every(isMembershipItemInput)) {
+    return { result: { status: "error", reason: "invalid-data" } };
+  }
+  if (items.length > MAX_COLLECTION_ITEMS)
+    return { result: { status: "error", reason: "destination-full" } };
+  if (memoryFallback) return { result: { status: "error", reason: "unsaved-changes" } };
+  const id = randomUuid();
+  const now = Date.now();
+  const result = performMembershipOperation(KEY, MAX_COLLECTION_ITEMS, {
+    mode: "create",
+    profile,
+    maxContainers: MAX_COLLECTIONS,
+    container: {
+      id,
+      name: name.trim().slice(0, MAX_COLLECTION_NAME),
+      description: description.trim().slice(0, MAX_COLLECTION_DESCRIPTION) || undefined,
+      createdAt: now,
+      updatedAt: now,
+      items: items.map(toItem),
+    },
+  });
+  if (result.status !== "added") return { result };
+  for (const subscriber of subs) subscriber();
+  return { result, id };
+}
+
+export function renameCollectionWithResult(
+  id: string,
+  name: string,
+  profile: MembershipProfile,
+  description?: string,
+) {
+  if (memoryFallback) return { status: "error", reason: "unsaved-changes" } as const;
+  const result = performContainerOperation(KEY, profile, {
+    mode: "rename",
+    id,
+    name: name.trim().slice(0, MAX_COLLECTION_NAME),
+    description,
+  });
+  if (result.status === "updated") for (const subscriber of subs) subscriber();
+  return result;
+}
+
+/** Corrects one title in place (a fixed match); another entry already holding the new id is dropped. */
+export function updateCollectionItem(
+  collectionId: string,
+  itemId: string,
+  patch: { id?: string; name?: string; altTitle?: string; poster?: string },
+): void {
+  const collections = read();
+  const c = collections.find((x) => x.id === collectionId);
+  if (!c) return;
+  const index = c.items.findIndex((it) => it.id === itemId);
+  if (index < 0) return;
+  const current = c.items[index];
+  const id = patch.id ?? current.id;
+  const next: CollectionItem = {
+    ...current,
+    id,
+    name: patch.name ?? current.name,
+    altTitle: patch.altTitle ?? current.altTitle,
+    poster: patch.poster ?? current.poster,
+  };
+  c.items = c.items.filter((it, i) => i === index || it.id !== id);
+  const at = c.items.findIndex((it) => it.id === itemId);
+  if (at < 0) return;
+  c.items[at] = next;
+  c.updatedAt = Date.now();
+  write(collections);
 }
 
 type CommunityCollectionSource = {

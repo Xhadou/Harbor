@@ -8,7 +8,6 @@ import {
   Library,
   Server,
   SlidersHorizontal,
-  Star,
 } from "lucide-react";
 import { SoftSwap } from "@/components/soft-swap";
 import { UiIcon } from "@/components/ui-icon";
@@ -38,9 +37,7 @@ import { AnilistTab } from "./library/anilist-tab";
 import { HistoryTab } from "./library/history-tab";
 import { LocalTab } from "./library/local-tab";
 import { MalTab } from "./library/mal-tab";
-import { MyListsTab } from "./library/my-lists-tab";
 import { MyGroupsTab } from "./library/my-groups-tab";
-import { FavoritesTab } from "./library/favorites-tab";
 import { TabBtn, type Tab } from "./library/shared";
 import {
   hasHiddenAvailableTab,
@@ -84,9 +81,7 @@ function readSavedTab(): Tab {
       v === "local" ||
       v === "media-servers" ||
       v === "torbox" ||
-      v === "lists" ||
       v === "groups" ||
-      v === "favorites" ||
       v === "trakt" ||
       v === "anilist" ||
       v === "simkl" ||
@@ -152,17 +147,15 @@ export function LibraryView({ active }: { active: boolean }) {
     const label =
       tab === "history"
         ? "Browsing their watch history"
-        : tab === "lists"
-          ? "Browsing their lists"
-          : tab === "trakt"
-            ? "Browsing their Trakt library"
-            : tab === "simkl"
-              ? "Browsing their Simkl library"
-              : tab === "letterboxd"
-                ? "Browsing their Letterboxd library"
-                : tab === "mal"
-                  ? "Browsing their MyAnimeList library"
-                  : "Browsing their Stremio library";
+        : tab === "trakt"
+          ? "Browsing their Trakt library"
+          : tab === "simkl"
+            ? "Browsing their Simkl library"
+            : tab === "letterboxd"
+              ? "Browsing their Letterboxd library"
+              : tab === "mal"
+                ? "Browsing their MyAnimeList library"
+                : "Browsing their Stremio library";
     return pushActivityHint({ details: label, state: "Library" });
   }, [active, tab]);
 
@@ -202,11 +195,7 @@ export function LibraryView({ active }: { active: boolean }) {
             {tab === "local" && <LocalTab scrollRef={scrollRef} />}
             {tab === "media-servers" && <MediaServersTab scrollRef={scrollRef} />}
             {tab === "torbox" && <TorboxTab />}
-            <NativeBackScope front={active}>
-              {tab === "lists" && <MyListsTab />}
-              {tab === "groups" && <MyGroupsTab />}
-            </NativeBackScope>
-            {tab === "favorites" && <FavoritesTab />}
+            <NativeBackScope front={active}>{tab === "groups" && <MyGroupsTab />}</NativeBackScope>
             {tab === "trakt" && traktConnected && <TraktTab />}
             {tab === "anilist" && anilistConnected && <AnilistTab />}
             {tab === "simkl" && simklConnected && <SimklTab />}
@@ -325,9 +314,7 @@ function Header({
       label: "TorBox",
       icon: <img src={torboxLogo} alt="" className="h-3.5 w-3.5 object-contain" />,
     },
-    { id: "lists", label: t("My Lists"), icon: <UiIcon name="list" className="h-3.5 w-3.5" /> },
     { id: "groups", label: t("My Groups"), icon: <UiIcon name="list" className="h-3.5 w-3.5" /> },
-    { id: "favorites", label: t("Favorites"), icon: <Star size={14} strokeWidth={2.2} /> },
   ];
   if (traktConnected)
     tabs.push({

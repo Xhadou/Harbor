@@ -6,12 +6,10 @@ import { useMal } from "@/lib/mal/provider";
 import { useSimkl } from "@/lib/simkl/provider";
 import { useTrakt } from "@/lib/trakt/provider";
 import { AnilistTab } from "@/views/library/anilist-tab";
-import { FavoritesTab } from "@/views/library/favorites-tab";
 import { HistoryTab } from "@/views/library/history-tab";
 import { LetterboxdTab } from "@/views/library/letterboxd-tab";
 import { LocalTab } from "@/views/library/local-tab";
 import { MalTab } from "@/views/library/mal-tab";
-import { MyListsTab } from "@/views/library/my-lists-tab";
 import { SimklTab } from "@/views/library/simkl-tab";
 import { TabBtn, type Tab } from "@/views/library/shared";
 import { TraktTab } from "@/views/library/trakt-tab";
@@ -26,8 +24,6 @@ function readSavedTab(): Tab {
       "library",
       "history",
       "local",
-      "lists",
-      "favorites",
       "trakt",
       "anilist",
       "simkl",
@@ -76,12 +72,6 @@ export function LibraryPanel() {
         <TabBtn active={tab === "history"} onClick={() => setTab("history")}>
           {t("History")}
         </TabBtn>
-        <TabBtn active={tab === "lists"} onClick={() => setTab("lists")}>
-          {t("My lists")}
-        </TabBtn>
-        <TabBtn active={tab === "favorites"} onClick={() => setTab("favorites")}>
-          {t("Favorites")}
-        </TabBtn>
         <TabBtn active={tab === "local"} onClick={() => setTab("local")}>
           {t("Local")}
         </TabBtn>
@@ -115,8 +105,6 @@ export function LibraryPanel() {
       {tab === "library" && <WatchlistTab />}
       {tab === "history" && <HistoryTab />}
       {tab === "local" && <LocalTab />}
-      {tab === "lists" && <MyListsTab />}
-      {tab === "favorites" && <FavoritesTab />}
       {tab === "trakt" && traktConnected && <TraktTab />}
       {tab === "anilist" && anilistConnected && <AnilistTab />}
       {tab === "simkl" && simklConnected && <SimklTab />}

@@ -442,6 +442,17 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Die Mediathek enthält alles aus Stremio, Trakt und von diesem Gerät; mit „Gesehenes ausblenden“ bleiben nur Titel, die du noch nicht angesehen hast. Im Verlauf siehst du, was du angesehen hast. Unter „Lokal“ findest du Dateien auf deinem Computer.",
   "Hide watched": "Gesehenes ausblenden",
+  "You have reached {max} collections. Remove one to make room.":
+    "Du hast {max} Sammlungen erreicht. Entferne eine, um Platz zu schaffen.",
+  "A short note about this collection": "Eine kurze Notiz zu dieser Sammlung",
+  "Added to new collection": "Zu neuer Sammlung hinzugefügt",
+  "Add to collection": "Zur Sammlung hinzufügen",
+  "Featured collections": "Hervorgehobene Sammlungen",
+  "Pick up to {max} collections to show on your public profile.":
+    "Wähle bis zu {max} Sammlungen für dein öffentliches Profil aus.",
+  "Make collections on the Collections page to feature them here.":
+    "Erstelle Sammlungen auf der Seite „Sammlungen“, um sie hier hervorzuheben.",
+  "Add a collection": "Sammlung hinzufügen",
   "List name": "Listenname",
   "List renamed": "Liste umbenannt",
   "List settings": "Listeneinstellungen",

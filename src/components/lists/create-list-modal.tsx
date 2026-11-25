@@ -23,6 +23,8 @@ export function CreateListModal({
 }) {
   const t = useT();
   const lists = store.useLists();
+  // The shared store holds the user's collections; manga keeps lists of its own.
+  const collections = store === sharedLists;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const atMax = lists.length >= MAX_LISTS;
@@ -65,7 +67,7 @@ export function CreateListModal({
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
-        aria-label={t("New list")}
+        aria-label={t(collections ? "New collection" : "New list")}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(event) => {
           if (!contextLayer || event.key !== "Tab") return;
@@ -89,7 +91,7 @@ export function CreateListModal({
       >
         <div className="flex flex-col gap-1.5">
           <h2 className="mac-type-heading font-display text-[22px] font-medium tracking-tight text-ink">
-            {t("New list")}
+            {t(collections ? "New collection" : "New list")}
           </h2>
           <p className="mac-type-body text-[13px] leading-snug text-ink-muted">
             {store === mangaLists
@@ -100,7 +102,7 @@ export function CreateListModal({
 
         <label className="flex flex-col gap-1.5">
           <span className="mac-label text-[11px] font-medium uppercase tracking-[0.12em] text-ink-subtle">
-            {t("List name")}
+            {t(collections ? "Name" : "List name")}
           </span>
           <input
             value={name}
@@ -123,7 +125,9 @@ export function CreateListModal({
             maxLength={240}
             disabled={atMax}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder={t("A short note about this list")}
+            placeholder={t(
+              collections ? "A short note about this collection" : "A short note about this list",
+            )}
             rows={3}
             className="mac-field w-full resize-none rounded-xl border border-edge bg-canvas px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors placeholder:text-ink-subtle focus:border-ink disabled:opacity-50"
           />
@@ -136,7 +140,12 @@ export function CreateListModal({
         )}
         {atMax && (
           <p className="mac-type-small rounded-lg bg-danger/12 px-3 py-2 text-[12.5px] text-danger">
-            {t("You have reached {max} lists. Remove one to make room.", { max: MAX_LISTS })}
+            {t(
+              collections
+                ? "You have reached {max} collections. Remove one to make room."
+                : "You have reached {max} lists. Remove one to make room.",
+              { max: MAX_LISTS },
+            )}
           </p>
         )}
 

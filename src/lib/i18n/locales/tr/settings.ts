@@ -1609,6 +1609,17 @@ const settings: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Kütüphane; Stremio, Trakt ve bu cihazdaki her şeyi içerir. “İzlenenleri gizle” yalnızca henüz izlemediğiniz yapımları bırakır. Geçmiş, izlediklerinizi gösterir. Yerel, bilgisayarınızdaki dosyalardır.",
   "Hide watched": "İzlenenleri gizle",
+  "You have reached {max} collections. Remove one to make room.":
+    "{max} koleksiyona ulaştınız. Yer açmak için birini kaldırın.",
+  "A short note about this collection": "Bu koleksiyon hakkında kısa bir not",
+  "Added to new collection": "Yeni koleksiyona eklendi",
+  "Add to collection": "Koleksiyona ekle",
+  "Featured collections": "Öne çıkan koleksiyonlar",
+  "Pick up to {max} collections to show on your public profile.":
+    "Herkese açık profilinizde göstermek için en fazla {max} koleksiyon seçin.",
+  "Make collections on the Collections page to feature them here.":
+    "Burada öne çıkarmak için Koleksiyonlar sayfasında koleksiyon oluşturun.",
+  "Add a collection": "Koleksiyon ekle",
   "Library, watch progress, and addon collection sync from this account.":
     "Kitaplık, izleme ilerlemesi ve eklenti koleksiyonu bu hesaptan eşzamanlanır.",
   "Lifts shadows so the pitch-black scenes are actually watchable.":

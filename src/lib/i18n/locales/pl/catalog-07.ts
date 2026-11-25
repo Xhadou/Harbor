@@ -242,6 +242,17 @@ const catalog07: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Biblioteka obejmuje wszystko ze Stremio, Trakt i tego urządzenia; „Ukryj obejrzane” pozostawia tylko tytuły, których jeszcze nie obejrzano. Historia zawiera obejrzane tytuły. Pliki lokalne znajdują się na komputerze.",
   "Hide watched": "Ukryj obejrzane",
+  "You have reached {max} collections. Remove one to make room.":
+    "Osiągnięto limit {max} kolekcji. Usuń jedną, aby zrobić miejsce.",
+  "A short note about this collection": "Krótka notatka o tej kolekcji",
+  "Added to new collection": "Dodano do nowej kolekcji",
+  "Add to collection": "Dodaj do kolekcji",
+  "Featured collections": "Wyróżnione kolekcje",
+  "Pick up to {max} collections to show on your public profile.":
+    "Wybierz do {max} kolekcji, które pojawią się w Twoim profilu publicznym.",
+  "Make collections on the Collections page to feature them here.":
+    "Utwórz kolekcje na stronie Kolekcje, aby je tu wyróżnić.",
+  "Add a collection": "Dodaj kolekcję",
   "Library sources": "Źródła biblioteki",
   "Library, watch progress, and addon collection sync from this account.":
     "Biblioteka, postęp oglądania i kolekcja dodatków są synchronizowane z tego konta.",

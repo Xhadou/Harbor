@@ -88,7 +88,7 @@ export function useBpQueueActions(p: {
     },
     {
       key: "lists",
-      label: t("Add to list"),
+      label: t("Add to collection"),
       icon: ListPlus,
       active: inLists,
       onPress: p.onLists,

@@ -889,6 +889,17 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "المكتبة هي كل شيء من Stremio وTrakt وهذا الجهاز؛ ويُبقي «إخفاء ما شوهد» العناوين التي لم تشاهدها بعد فقط. السجل هو ما شاهدته. المحلي هو الملفات الموجودة على حاسوبك.",
   "Hide watched": "إخفاء ما شوهد",
+  "You have reached {max} collections. Remove one to make room.":
+    "لقد وصلت إلى {max} مجموعة. احذف واحدة لإفساح المجال.",
+  "A short note about this collection": "ملاحظة قصيرة عن هذه المجموعة",
+  "Added to new collection": "أُضيف إلى مجموعة جديدة",
+  "Add to collection": "إضافة إلى مجموعة",
+  "Featured collections": "المجموعات المميزة",
+  "Pick up to {max} collections to show on your public profile.":
+    "اختر حتى {max} مجموعات لعرضها في ملفك الشخصي العام.",
+  "Make collections on the Collections page to feature them here.":
+    "أنشئ مجموعات في صفحة المجموعات لتمييزها هنا.",
+  "Add a collection": "إضافة مجموعة",
   Stats: "الإحصائيات",
   Local: "محلي",
   "My Lists": "قوائمي",

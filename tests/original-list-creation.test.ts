@@ -66,7 +66,7 @@ function loader(extra: Record<string, unknown> = {}) {
 
 function storageFixture() {
   const values = new Map<string, string>();
-  const key = "harbor.customlists.v1.fixture";
+  const key = "harbor.collections.fixture";
   let failed = false;
   let writes = 0;
   const switchProfile = (id: string) =>
@@ -151,7 +151,7 @@ test("shared-list copying rejects an actor change while fetching without touchin
   resolve({ name: "Remote fixture", items: [{ id: "tt-a" }] });
   await assert.rejects(operation);
   assert.equal(h.writes(), 0);
-  assert.equal(h.values.has("harbor.customlists.v1.next"), false);
+  assert.equal(h.values.has("harbor.collections.next"), false);
 });
 
 test("ordinary Add to list creation keeps failure editable and atomically saves the originally chosen title on retry", async () => {
@@ -207,7 +207,7 @@ test("ordinary Add to list creation keeps failure editable and atomically saves 
     );
   try {
     await render();
-    await React.act(() => button("Create new list").click());
+    await React.act(() => button("New collection").click());
     await enterName();
     h.fail(true);
     await submit();
@@ -227,18 +227,18 @@ test("ordinary Add to list creation keeps failure editable and atomically saves 
       ["tt-original"],
     );
     const persisted = h.values.get(h.key);
-    await React.act(() => button("Create new list").click());
+    await React.act(() => button("New collection").click());
     await React.act(() => button("Cancel").click());
     assert.equal(closes, 2);
     assert.equal(h.values.get(h.key), persisted, "cancel does not create an empty destination");
-    await React.act(() => button("Create new list").click());
+    await React.act(() => button("New collection").click());
     await enterName();
     h.switchProfile("next");
     await submit();
     assert.equal(closes, 2, "an actor change keeps the failed creation open");
     assert.ok(document.querySelector("[role=alert]"));
     assert.equal(h.values.get(h.key), persisted);
-    assert.equal(h.values.has("harbor.customlists.v1.next"), false);
+    assert.equal(h.values.has("harbor.collections.next"), false);
   } finally {
     await React.act(() => root.unmount());
     dom.window.close();

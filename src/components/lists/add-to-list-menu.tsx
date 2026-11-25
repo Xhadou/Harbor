@@ -74,13 +74,13 @@ export function AddToListMenu({
         <div className="animate-menu-pop overflow-hidden rounded-md bg-elevated shadow-[0_18px_44px_-18px_rgba(0,0,0,0.85)]">
           <div className="px-3 pt-2.5 pb-1.5">
             <span className="text-[10.5px] font-medium uppercase tracking-wider text-ink-subtle">
-              {t("Add to list")}
+              {t("Add to collection")}
             </span>
           </div>
           <div className="max-h-[264px] overflow-y-auto">
             {lists.length === 0 && (
               <p className="px-3 pb-2.5 text-[12.5px] leading-snug text-ink-subtle">
-                {t("No lists yet. Create your first one below.")}
+                {t("You have not made a collection yet.")}
               </p>
             )}
             {lists.map((l) => {
@@ -129,7 +129,7 @@ export function AddToListMenu({
               <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center">
                 <Plus size={16} strokeWidth={2.4} />
               </span>
-              {t("Create new list")}
+              {t("New collection")}
             </button>
           </div>
         </div>

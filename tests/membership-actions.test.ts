@@ -126,19 +126,21 @@ test("membership destination artwork belongs to that collection", () => {
     assert.equal(entry.destination.coverImage, collections[1].coverImage);
     assert.equal(entry.destination.bgImage, collections[1].bgImage);
   }
-  assert.ok(seen.some((entry) => entry.kind === "list" && entry.destination?.id === "list-b"));
+  assert.equal(
+    seen.some((entry) => entry.kind === "list" && entry.destination),
+    false,
+    "the user's lists are their collections, offered once",
+  );
 });
 
 test("membership destinations expose independent checked states and keep already-added rows actionable", () => {
   const actions = source().actions();
   assert.ok(findAction(actions, "membership:add:default"));
-  assert.equal(findAction(actions, "membership:add:list:list-a")?.disabled, false);
+  assert.equal(findAction(actions, "membership:add:list:list-a"), undefined);
   assert.equal(findAction(actions, "membership:add:collection:collection-a")?.disabled, false);
-  assert.equal(findAction(actions, "membership:add:list:list-a")?.checked, true);
   assert.equal(findAction(actions, "membership:add:collection:collection-a")?.checked, true);
-  assert.equal(findAction(actions, "membership:add:list:list-b")?.checked, false);
-  assert.equal(findAction(actions, "membership:add:list:list-b")?.dismiss, "keep-open");
-  assert.equal(findAction(actions, "membership:add:list:list-b")?.disabled, false);
+  assert.equal(findAction(actions, "membership:add:collection:collection-b")?.checked, false);
+  assert.equal(findAction(actions, "membership:add:collection:collection-b")?.dismiss, "keep-open");
   assert.equal(findAction(actions, "membership:add:collection:collection-b")?.disabled, false);
   assert.equal(
     actions.some((action) => action.id === "membership:move"),
@@ -146,7 +148,7 @@ test("membership destinations expose independent checked states and keep already
   );
 });
 
-test("creating a list belongs to Add and opening creation does not change existing memberships", async () => {
+test("creating a collection belongs to Add and opening creation does not change existing memberships", async () => {
   let opened = 0;
   const selected = module.buildMembershipActionSource({
     item,
@@ -163,11 +165,11 @@ test("creating a list belongs to Add and opening creation does not change existi
   const add = findAction(actions, "membership:add");
   assert.equal(add.label, "Add to list");
   const createIndex = add.children.findIndex((action) => action.id === "membership:create-list");
-  assert.equal(add.children[createIndex].sectionLabel, "Lists");
+  assert.equal(add.children[createIndex].label, "New collection");
+  assert.equal(add.children[createIndex].sectionLabel, "Collections");
   assert.equal(add.children[createIndex].group, "create");
-  assert.ok(
-    createIndex < add.children.findIndex((action) => action.sectionLabel === "Collections"),
-  );
+  assert.equal(createIndex, add.children.length - 1, "New collection follows the collections");
+  // "My List" keeps its own heading; the user's lists are under Collections.
   assert.deepEqual(
     [...new Set(add.children.map((action) => action.sectionLabel))],
     ["Lists", "Collections"],
@@ -177,8 +179,7 @@ test("creating a list belongs to Add and opening creation does not change existi
   assert.deepEqual(values, before, "opening or cancelling creation must not move or add the item");
 });
 
-test("creation stays available without custom destinations and is unavailable at the list limit", () => {
-  values.set("harbor.customlists.v1.a", "[]");
+test("creation stays available without custom destinations and is unavailable at the collection limit", () => {
   values.set("harbor.collections.a", "[]");
   const selected = module.buildMembershipActionSource({ item, profile, onCreateList: () => {} });
   const add = findAction(selected.actions(), "membership:add");
@@ -187,11 +188,11 @@ test("creation stays available without custom destinations and is unavailable at
     ["membership:add:default", "membership:create-list"],
   );
   values.set(
-    "harbor.customlists.v1.a",
+    "harbor.collections.a",
     JSON.stringify(
       Array.from({ length: 24 }, (_, index) => ({
-        id: `list-${index}`,
-        name: `List ${index}`,
+        id: `collection-${index}`,
+        name: `Collection ${index}`,
         items: [],
       })),
     ),
@@ -203,23 +204,24 @@ test("creation stays available without custom destinations and is unavailable at
 test("large destination choices are searchable without making short menus into editors", () => {
   assert.equal(findAction(source().actions(), "membership:add").searchable, false);
   values.set(
-    "harbor.customlists.v1.a",
+    "harbor.collections.a",
     JSON.stringify(
       Array.from({ length: 9 }, (_, index) => ({
-        id: index === 0 ? "list-a" : `destination-${index}`,
+        id: index === 0 ? "collection-a" : `destination-${index}`,
         name: `Destination ${index}`,
         items: index === 0 ? [item] : [],
       })),
     ),
   );
-  const actions = source({ kind: "list", id: "list-a" }).actions();
+  const actions = source({ kind: "collection", id: "collection-a" }).actions();
   assert.equal(findAction(actions, "membership:add").searchable, true);
   assert.equal(findAction(actions, "membership:move"), undefined);
-  const lists = JSON.parse(values.get("harbor.customlists.v1.a")!);
-  lists.push({ id: "tenth", name: "Tenth", items: [] });
-  values.set("harbor.customlists.v1.a", JSON.stringify(lists));
+  const collections = JSON.parse(values.get("harbor.collections.a")!);
+  collections.push({ id: "tenth", name: "Tenth", items: [] });
+  values.set("harbor.collections.a", JSON.stringify(collections));
   assert.equal(
-    findAction(source({ kind: "list", id: "list-a" }).actions(), "membership:add").searchable,
+    findAction(source({ kind: "collection", id: "collection-a" }).actions(), "membership:add")
+      .searchable,
     true,
   );
 });
@@ -242,27 +244,27 @@ test("membership menu revalidates the destination and surfaces failed persistenc
   const selected = source();
   failure = true;
   await assert.rejects(
-    executeContextAction(selected, "membership:add:list:list-b"),
+    executeContextAction(selected, "membership:add:collection:collection-b"),
     /save|storage/i,
   );
-  assert.deepEqual(JSON.parse(values.get("harbor.customlists.v1.a")!)[1].items, []);
+  assert.deepEqual(JSON.parse(values.get("harbor.collections.a")!)[1].items, []);
   failure = false;
-  values.set("harbor.customlists.v1.a", "[]");
+  values.set("harbor.collections.a", "[]");
   await assert.rejects(
-    executeContextAction(selected, "membership:add:list:list-b"),
+    executeContextAction(selected, "membership:add:collection:collection-b"),
     /no longer available/i,
   );
 });
 
 test("a profile switch invalidates an open membership menu", async () => {
-  const selected = source({ kind: "list", id: "list-a" });
+  const selected = source({ kind: "collection", id: "collection-a" });
   values.set(
     "harbor.profiles.v1",
     JSON.stringify({ activeId: "b", profiles: [{ id: "b", settingsLinked: false }] }),
   );
   assert.equal(selected.isValid(), false);
   await assert.rejects(
-    executeContextAction(selected, "membership:remove:list:list-a"),
+    executeContextAction(selected, "membership:remove:collection:collection-a"),
     /no longer available/i,
   );
 });
@@ -345,14 +347,17 @@ test("simultaneous destination changes retain both writes, metadata and stable r
 
 test("rapid repeated input does not toggle an accepted membership back off", async () => {
   const selected = source();
-  const adding = executeContextAction(selected, "membership:add:list:list-b");
+  const adding = executeContextAction(selected, "membership:add:collection:collection-b");
   await assert.rejects(
-    executeContextAction(selected, "membership:add:list:list-b"),
+    executeContextAction(selected, "membership:add:collection:collection-b"),
     /already running/,
   );
   await adding;
-  assert.equal(findAction(selected.actions(), "membership:add:list:list-b").checked, true);
-  assert.equal(JSON.parse(values.get("harbor.customlists.v1.a")!)[1].items.length, 1);
+  assert.equal(
+    findAction(selected.actions(), "membership:add:collection:collection-b").checked,
+    true,
+  );
+  assert.equal(JSON.parse(values.get("harbor.collections.a")!)[1].items.length, 1);
 });
 
 test("failed addition never removes another membership and an explicit removal is not rolled back", async () => {
@@ -413,17 +418,17 @@ test("full destinations allow removal of an existing member while refusing new a
 });
 
 test("unreadable membership data is unavailable, never presented as unchecked or an empty destination set", () => {
-  values.set("harbor.customlists.v1.a", "not-json");
+  values.set("harbor.collections.a", "not-json");
   values.set("harbor.localwatchlist.v1.a", "not-json");
   const actions = source().actions();
   const defaultList = findAction(actions, "membership:add:default");
   assert.equal(defaultList.checked, undefined);
   assert.equal(defaultList.disabled, true);
   assert.ok(defaultList.reason);
-  const unavailable = findAction(actions, "membership:unavailable:list");
+  const unavailable = findAction(actions, "membership:unavailable:collection");
   assert.equal(unavailable.disabled, true);
   assert.ok(unavailable.reason);
-  assert.equal(findAction(actions, "membership:add:collection:collection-a").checked, true);
+  assert.equal(findAction(actions, "membership:unavailable:list"), undefined);
 });
 
 test("default My List membership supports immediate removal while preserving unrelated saved metadata", async () => {
@@ -449,10 +454,10 @@ test("membership subscriptions observe store changes without a polling timer", a
   assert.equal(typeof selected.subscribe, "function");
   let updates = 0;
   const unsubscribe = selected.subscribe(() => updates++);
-  await executeContextAction(selected, "membership:add:list:list-b");
+  await executeContextAction(selected, "membership:add:collection:collection-b");
   assert.equal(updates, 1);
   unsubscribe();
-  await executeContextAction(selected, "membership:add:list:list-b");
+  await executeContextAction(selected, "membership:add:collection:collection-b");
   assert.equal(updates, 1);
 });
 

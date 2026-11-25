@@ -664,6 +664,17 @@ const audit: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Perpustakaan mencakup semua dari Stremio, Trakt, dan perangkat ini; “Sembunyikan yang ditonton” hanya menyisakan judul yang belum Anda tonton. Riwayat berisi yang sudah Anda tonton. Lokal berisi file di komputer Anda.",
   "Hide watched": "Sembunyikan yang ditonton",
+  "You have reached {max} collections. Remove one to make room.":
+    "Anda sudah mencapai {max} koleksi. Hapus satu untuk memberi ruang.",
+  "A short note about this collection": "Catatan singkat tentang koleksi ini",
+  "Added to new collection": "Ditambahkan ke koleksi baru",
+  "Add to collection": "Tambahkan ke koleksi",
+  "Featured collections": "Koleksi unggulan",
+  "Pick up to {max} collections to show on your public profile.":
+    "Pilih hingga {max} koleksi untuk ditampilkan di profil publik Anda.",
+  "Make collections on the Collections page to feature them here.":
+    "Buat koleksi di halaman Koleksi untuk menampilkannya di sini.",
+  "Add a collection": "Tambahkan koleksi",
   "Library, watch progress, and addon collection sync from this account.":
     "Perpustakaan, progres menonton, dan koleksi addon disinkronkan dari akun ini.",
   "Library, watch progress, and addons are syncing.":

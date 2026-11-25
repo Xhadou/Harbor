@@ -54,6 +54,9 @@ let storage = new MemoryStorage();
 Object.defineProperty(globalThis, "localStorage", { configurable: true, value: storage });
 const collections = await import("../src/lib/collections.ts");
 const lists = await import("../src/lib/custom-lists.ts");
+// The user's own lists are now collections; the list store itself (used by manga) is
+// exercised through a store of its own on the old key.
+const listStore = lists.createListStore("harbor.customlists.v1");
 const defaultList = await import("../src/lib/local-watchlist.tsx");
 const { captureMembershipProfile } = await import("../src/lib/membership-operations.ts");
 environmentHook.deregister();
@@ -142,25 +145,25 @@ const stores = [
     baseKey: "harbor.customlists.v1",
     otherKey: "harbor.customlists.v1.profile-b",
     maxItems: lists.MAX_ITEMS,
-    add: lists.addToList,
-    create: lists.createList,
+    add: listStore.addToList,
+    create: listStore.createList,
     remove: (request: object) => {
-      assert.equal(typeof lists.removeListMembership, "function", "Remove API exists");
-      return lists.removeListMembership(request);
+      assert.equal(typeof listStore.removeListMembership, "function", "Remove API exists");
+      return listStore.removeListMembership(request);
     },
     move: (request: object) => {
-      assert.equal(typeof lists.moveBetweenLists, "function", "Move API exists");
-      return lists.moveBetweenLists(request);
+      assert.equal(typeof listStore.moveBetweenLists, "function", "Move API exists");
+      return listStore.moveBetweenLists(request);
     },
-    subscribe: lists.subscribeLists,
-    read: lists.readLists,
+    subscribe: listStore.subscribeLists,
+    read: listStore.readLists,
   },
 ];
 
 test("context list creation persists the initial item in one write and preserves existing metadata", () => {
   const key = "harbor.customlists.v1.profile-a";
   storage.values.set(key, JSON.stringify([container("existing", [savedItem])]));
-  const created = lists.createListWithItem("New list", item, profile);
+  const created = listStore.createListWithItem("New list", item, profile);
   assert.equal(created.result.status, "added");
   assert.equal(typeof created.id, "string");
   const after = JSON.parse(storage.values.get(key)!);
@@ -175,7 +178,7 @@ test("failed context list creation preserves existing lists and returns no new l
   const before = JSON.stringify([container("existing", [savedItem])]);
   storage.values.set(key, before);
   storage.failure = new DOMException("Full", "QuotaExceededError");
-  assert.deepEqual(lists.createListWithItem("New list", item, profile), {
+  assert.deepEqual(listStore.createListWithItem("New list", item, profile), {
     result: { status: "error", reason: "storage-failed" },
   });
   assert.equal(storage.values.get(key), before);

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { setItemWithRecovery, freeStorageSpace } from "@/lib/storage-recovery";
 import { randomUuid } from "@/lib/uuid";
 import { persistableAddonOrigin, persistableVideos, type Meta } from "@/lib/cinemeta";
+import { collectionListStore } from "@/lib/collection-list-store";
 
 import {
   isMembershipItemInput,
@@ -15,7 +16,6 @@ import {
   type RemoveMembershipRequest,
 } from "@/lib/membership-operations";
 
-const KEY = "harbor.customlists.v1";
 const PROFILES_KEY = "harbor.profiles.v1";
 
 export type ListItem = {
@@ -573,7 +573,8 @@ export function createListStore(storageKey: string): ListStore {
   };
 }
 
-const shared = createListStore(KEY);
+// The user's own lists are their collections (see collection-list-store.ts).
+const shared = collectionListStore;
 
 export const sharedLists = shared;
 

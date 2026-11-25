@@ -552,6 +552,17 @@ const appFill: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "Библиотека – это всё из Stremio, Trakt и с этого устройства; «Скрыть просмотренное» оставляет только то, что вы ещё не смотрели. История – то, что уже просмотрено. Локальные – файлы на вашем компьютере.",
   "Hide watched": "Скрыть просмотренное",
+  "You have reached {max} collections. Remove one to make room.":
+    "Достигнут предел в {max} коллекций. Удалите одну, чтобы освободить место.",
+  "A short note about this collection": "Короткая заметка об этой коллекции",
+  "Added to new collection": "Добавлено в новую коллекцию",
+  "Add to collection": "Добавить в коллекцию",
+  "Featured collections": "Избранные коллекции",
+  "Pick up to {max} collections to show on your public profile.":
+    "Выберите до {max} коллекций для показа в публичном профиле.",
+  "Make collections on the Collections page to feature them here.":
+    "Создайте коллекции на странице «Коллекции», чтобы показать их здесь.",
+  "Add a collection": "Добавить коллекцию",
   Stats: "Статистика",
   "My Lists": "Мои списки",
   "Heads up: most IPTV providers cap how many streams an account can run at the same time. If other devices or players are using these credentials, close them and try again.":

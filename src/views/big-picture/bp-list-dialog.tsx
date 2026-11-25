@@ -37,18 +37,18 @@ export function BpListDialog({ item, onClose }: { item: ListItemInput; onClose: 
   return (
     <div
       role="dialog"
-      aria-label={t("Add to list")}
+      aria-label={t("Add to collection")}
       data-bp-dialog
       className="absolute inset-0 z-[70] flex items-center justify-center bg-[color-mix(in_oklab,var(--bp-void)_78%,transparent)] [animation:bp-fade_var(--bp-dur)_var(--bp-ease)_both] motion-reduce:[animation:none]"
     >
       <div className="flex max-h-[76vh] w-[min(88vw,760px)] flex-col gap-[clamp(16px,2.2vh,30px)] rounded-[var(--bp-r-lg)] bg-[var(--bp-panel)] p-[clamp(26px,3vw,46px)]">
         <h2 className="font-display text-[clamp(20px,2.9vh,35px)] font-semibold leading-[1.1] tracking-[-0.02em] text-ink">
-          {t("Add to list")}
+          {t("Add to collection")}
         </h2>
 
         {lists.length === 0 ? (
           <p className="text-[clamp(13px,1.8vh,20px)] leading-relaxed text-ink-subtle">
-            {t("No lists yet")}
+            {t("You have not made a collection yet.")}
           </p>
         ) : (
           <div

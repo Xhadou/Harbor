@@ -110,7 +110,7 @@ test("membership creation cancels and saves back into the same stable destinatio
     "harbor.profiles.v1",
     JSON.stringify({ activeId: "fixture", profiles: [{ id: "fixture", settingsLinked: false }] }),
   );
-  const key = "harbor.customlists.v1.fixture";
+  const key = "harbor.collections.fixture";
   const item = { id: "tt-fixture", name: "Fixture title", type: "movie" };
   localStorage.setItem(key, JSON.stringify([{ id: "existing", name: "Existing", items: [item] }]));
   const MyListSubmenu = loadControl();
@@ -178,8 +178,11 @@ test("membership creation cancels and saves back into the same stable destinatio
       created.items.map(({ id }) => id),
       [item.id],
     );
-    assert.equal(action(`membership:add:list:${created.id}`).getAttribute("aria-checked"), "true");
-    assert.equal(document.activeElement, action(`membership:add:list:${created.id}`));
+    assert.equal(
+      action(`membership:add:collection:${created.id}`).getAttribute("aria-checked"),
+      "true",
+    );
+    assert.equal(document.activeElement, action(`membership:add:collection:${created.id}`));
     await React.act(() => root.render(render()));
     assert.equal(
       document.querySelector("[data-context-submenu]"),
@@ -189,12 +192,12 @@ test("membership creation cancels and saves back into the same stable destinatio
     assert.deepEqual(
       [...chooser!.querySelectorAll("[data-context-action]")]
         .filter((row) =>
-          row.getAttribute("data-context-action")!.startsWith("membership:add:list:"),
+          row.getAttribute("data-context-action")!.startsWith("membership:add:collection:"),
         )
         .map((row) => row.getAttribute("data-context-action")),
-      ["membership:add:list:existing", `membership:add:list:${created.id}`],
+      ["membership:add:collection:existing", `membership:add:collection:${created.id}`],
     );
-    const existingRow = action("membership:add:list:existing");
+    const existingRow = action("membership:add:collection:existing");
     await React.act(() => existingRow.focus());
     await click(existingRow);
     assert.equal(existingRow.getAttribute("aria-checked"), "false");
@@ -219,7 +222,7 @@ test("membership creation cancels and saves back into the same stable destinatio
     );
     assert.match(document.querySelector("[role='alert']")?.textContent ?? "", /save|storage/i);
     assert.equal(
-      action(`membership:add:list:${created.id}`).getAttribute("aria-checked"),
+      action(`membership:add:collection:${created.id}`).getAttribute("aria-checked"),
       "true",
       "other saved membership survives",
     );

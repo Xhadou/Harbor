@@ -1154,6 +1154,17 @@ const catalog04: Record<string, string> = {
   "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
     "La Libreria include tutto ciò che proviene da Stremio, Trakt e da questo dispositivo; «Nascondi visti» lascia solo i titoli che non hai ancora visto. La Cronologia mostra ciò che hai guardato. La sezione Locale contiene i file del tuo computer.",
   "Hide watched": "Nascondi visti",
+  "You have reached {max} collections. Remove one to make room.":
+    "Hai raggiunto {max} collezioni. Rimuovine una per fare spazio.",
+  "A short note about this collection": "Una breve nota su questa collezione",
+  "Added to new collection": "Aggiunto a una nuova collezione",
+  "Add to collection": "Aggiungi a una collezione",
+  "Featured collections": "Collezioni in evidenza",
+  "Pick up to {max} collections to show on your public profile.":
+    "Scegli fino a {max} collezioni da mostrare nel tuo profilo pubblico.",
+  "Make collections on the Collections page to feature them here.":
+    "Crea collezioni nella pagina Raccolte per metterle in evidenza qui.",
+  "Add a collection": "Aggiungi una collezione",
   "Library sources": "Fonti della raccolta",
   "Library, watch progress, and addon collection sync from this account.":
     "La Libreria, l'avanzamento di visione e la raccolta di Add-on vengono sincronizzati da questo account.",
