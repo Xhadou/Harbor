@@ -1,5 +1,5 @@
 import { SoftDiv } from "@/components/soft-swap";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import {
   buildSettingsResults,
   buildSettingsSidebar,
@@ -10,6 +10,8 @@ import {
   withShowAllRow,
   type SettingsSidebar,
 } from "@/chrome/mac/settings-sidebar";
+import { pushNativeState } from "@/chrome/mac/native-events";
+import { findHotkeyMatch, shouldHandleGlobalKeyboardEvent } from "@/lib/hotkeys";
 import { useT } from "@/lib/i18n";
 import { isMacDesktop } from "@/lib/platform";
 import { useSettings } from "@/lib/settings";
@@ -68,6 +70,8 @@ export function settingsPageLabel(id: SectionId, own: string): string {
  *
  * The sidebar's search field searches Settings while this is on screen: the
  * list then shows the matching pages and settings, and Return opens the first.
+ * The search key goes to that field too (or to Settings' own field when the
+ * sidebar is hidden), not to the catalogue search, and Escape leaves it.
  */
 export function MacSettingsNav({
   visible,
@@ -77,6 +81,7 @@ export function MacSettingsNav({
   setQuery,
   onSelect,
   onJump,
+  fieldRef,
 }: {
   visible: boolean;
   active: SectionId;
@@ -85,9 +90,13 @@ export function MacSettingsNav({
   setQuery: (text: string) => void;
   onSelect: (section: SectionId) => void;
   onJump: (section: SectionId, anchor?: string, tab?: string) => void;
+  /** Settings' own search field, shown when the sidebar is not. */
+  fieldRef: RefObject<HTMLInputElement | null>;
 }) {
   const t = useT();
   const mac = isMacDesktop();
+  const { settings } = useSettings();
+  const hotkeys = settings.hotkeys;
   const sidebarSearch = useMacSidebarSearch();
   const [showAll, setShowAll] = useState(readShowAll);
   const all = showAll || !isMacMainSection(active);
@@ -130,9 +139,30 @@ export function MacSettingsNav({
 
   const searchKey = useRef<(key: string) => void>(() => {});
   searchKey.current = (pressed) => {
-    if (pressed === "Escape") setQuery("");
-    else if (pressed === "Enter" && results.length > 0) select.current("result:0");
+    if (pressed === "Escape") {
+      setQuery("");
+      pushNativeState("mac_native_search_set", { focused: false });
+    } else if (pressed === "Enter" && results.length > 0) select.current("result:0");
   };
+
+  // Taken before the window's own listeners (the catalogue search's) hear the key at all.
+  useEffect(() => {
+    if (!mac || !visible) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (!shouldHandleGlobalKeyboardEvent(event)) return;
+      if (findHotkeyMatch(event, hotkeys ?? {}, "Global") !== "globalSearchFocus") return;
+      // A dialog over Settings keeps its keys.
+      if (document.querySelector('[role="dialog"]')) return;
+      const field = sidebarSearch ? null : fieldRef.current;
+      if (!sidebarSearch && !field) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (field) field.focus();
+      else pushNativeState("mac_native_search_set", { focused: true });
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [mac, visible, sidebarSearch, hotkeys, fieldRef]);
   const setQueryRef = useRef(setQuery);
   setQueryRef.current = setQuery;
   const offered = mac && visible && sidebarSearch;

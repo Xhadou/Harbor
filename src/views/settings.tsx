@@ -413,6 +413,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
   const sidebarSearch = useMacSidebarSearch();
   const [browseOpen, setBrowseOpen] = useState(false);
   const browseRef = useRef<HTMLButtonElement>(null);
+  const searchFieldRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const scrollRef = useRef<HTMLElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -648,6 +649,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
               {/* With the Mac sidebar shown, its search field searches Settings. */}
               {!sidebarSearch && (
                 <SettingsTools
+                  inputRef={searchFieldRef}
                   query={query}
                   setQuery={(value) => {
                     setQuery(value);
@@ -692,6 +694,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 setQuery={setQuery}
                 onSelect={selectFromRail}
                 onJump={handleNav}
+                fieldRef={searchFieldRef}
               />
               <main
                 ref={scrollRef}

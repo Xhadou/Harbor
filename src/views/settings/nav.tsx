@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type RefObject } from "react";
 import { useSettings } from "@/lib/settings";
 import { MAC_ABSENT_SETTINGS } from "@/lib/mac-chrome";
 import { isMacDesktop } from "@/lib/platform";
@@ -11204,10 +11204,12 @@ function SearchField({
   query,
   setQuery,
   onSubmit,
+  inputRef,
 }: {
   query: string;
   setQuery: (q: string) => void;
   onSubmit: () => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }) {
   const t = useT();
   const SEARCH_NAV_HINT = "Press Enter or Space to type";
@@ -11232,6 +11234,7 @@ function SearchField({
           <path d="m20 20-3.5-3.5" />
         </svg>
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -11240,7 +11243,11 @@ function SearchField({
           className={NAV_FIELD_INPUT}
           onKeyDown={(e) => {
             if (e.key === "Enter") onSubmit();
-            else if (e.key === "Escape") setQuery("");
+            else if (e.key === "Escape") {
+              setQuery("");
+              // As Escape leaves the catalogue search: the keyboard goes back to the page.
+              if (isMacDesktop()) e.currentTarget.blur();
+            }
           }}
         />
         {query && (
@@ -11319,10 +11326,12 @@ export function SettingsTools({
   query,
   setQuery,
   onSubmit,
+  inputRef,
 }: {
   query: string;
   setQuery: (v: string) => void;
   onSubmit: (id: SectionId, anchor?: string, tab?: string) => void;
+  inputRef?: RefObject<HTMLInputElement | null>;
 }) {
   const { settings } = useSettings();
   const navLayout = activeLayout(settings.theme);
@@ -11343,7 +11352,7 @@ export function SettingsTools({
   return (
     <div data-tv-nav-zone className="hset-tools">
       {showBack && <BackButton />}
-      <SearchField query={query} setQuery={setQuery} onSubmit={submit} />
+      <SearchField query={query} setQuery={setQuery} onSubmit={submit} inputRef={inputRef} />
     </div>
   );
 }
