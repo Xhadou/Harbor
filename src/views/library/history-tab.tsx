@@ -182,22 +182,24 @@ export function HistoryTab() {
   return (
     <section className="flex flex-col gap-4">
       {merged.length > 0 && (
-        <FilterBar
-          type={type}
-          setType={setType}
-          query={query}
-          setQuery={setQuery}
-          counts={counts}
-          trailing={
-            <>
-              <HistoryViewToggle view={view} onChange={setViewPersist} />
-              <SortControl />
-              {settings.librarySort === "recent" && (
-                <ViewModeToggle flat={flat} onToggle={toggleFlat} />
-              )}
-            </>
-          }
-        />
+        <div data-arrives="">
+          <FilterBar
+            type={type}
+            setType={setType}
+            query={query}
+            setQuery={setQuery}
+            counts={counts}
+            trailing={
+              <>
+                <HistoryViewToggle view={view} onChange={setViewPersist} />
+                <SortControl />
+                {settings.librarySort === "recent" && (
+                  <ViewModeToggle flat={flat} onToggle={toggleFlat} />
+                )}
+              </>
+            }
+          />
+        </div>
       )}
       <div className="flex items-center justify-between">
         <span className="text-[12px] text-ink-muted">
@@ -361,7 +363,7 @@ function HistoryViewToggle({
 
 function HistorySkeleton() {
   return (
-    <div className="flex flex-col gap-7" aria-hidden>
+    <SoftDiv className="flex flex-col gap-7" aria-hidden>
       {[14, 8].map((count, gi) => (
         <div key={gi} className="flex flex-col gap-3">
           <div className="harbor-skel h-3 w-24 rounded bg-elevated/25" />
@@ -379,7 +381,7 @@ function HistorySkeleton() {
           </Grid>
         </div>
       ))}
-    </div>
+    </SoftDiv>
   );
 }
 

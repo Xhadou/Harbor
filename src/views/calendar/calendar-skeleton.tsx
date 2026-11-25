@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useT } from "@/lib/i18n";
 import { useSettings } from "@/lib/settings";
 import { orderedWeekdayNames } from "./utils";
@@ -11,7 +12,7 @@ export function CalendarSkeleton() {
   const t = useT();
   const { settings } = useSettings();
   return (
-    <div className="flex flex-col gap-2">
+    <SoftDiv data-arrives="" className="flex flex-col gap-2">
       <div className="grid grid-cols-7 gap-2">
         {orderedWeekdayNames(settings.weekStartsMonday).map((d) => (
           <div
@@ -37,6 +38,6 @@ export function CalendarSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </SoftDiv>
   );
 }

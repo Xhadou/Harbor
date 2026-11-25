@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   Star,
 } from "lucide-react";
+import { SoftSwap } from "@/components/soft-swap";
 import { UiIcon } from "@/components/ui-icon";
 import { Profiled } from "@/components/profiled";
 import { AnchoredMenu } from "@/components/anchored-menu";
@@ -189,35 +190,38 @@ export function LibraryView({ active }: { active: boolean }) {
             pmdbConnected={pmdbConnected}
             lbConnected={lb.isActive}
           />
-          {tab === "library" && (
-            <Profiled id="library.collection">
-              <WatchlistTab mode="library" scrollRef={scrollRef} />
-            </Profiled>
-          )}
-          {tab === "watchlist" && (
-            <Profiled id="library.watchlist">
-              <WatchlistTab mode="watchlist" scrollRef={scrollRef} />
-            </Profiled>
-          )}
-          {tab === "history" && (
-            <Profiled id="library.history">
-              <HistoryTab />
-            </Profiled>
-          )}
-          {tab === "local" && <LocalTab scrollRef={scrollRef} />}
-          {tab === "media-servers" && <MediaServersTab scrollRef={scrollRef} />}
-          {tab === "torbox" && <TorboxTab />}
-          <NativeBackScope front={active}>
-            {tab === "lists" && <MyListsTab />}
-            {tab === "groups" && <MyGroupsTab />}
-          </NativeBackScope>
-          {tab === "favorites" && <FavoritesTab />}
-          {tab === "trakt" && traktConnected && <TraktTab />}
-          {tab === "anilist" && anilistConnected && <AnilistTab />}
-          {tab === "simkl" && simklConnected && <SimklTab />}
-          {tab === "publicmetadb" && pmdbConnected && <PublicMetaDbTab />}
-          {tab === "letterboxd" && lb.isActive && <LetterboxdTab />}
-          {tab === "mal" && malConnected && <MalTab />}
+          {/* One tab's contents fade out over the next one's fading in. */}
+          <SoftSwap swapKey={tab}>
+            {tab === "library" && (
+              <Profiled id="library.collection">
+                <WatchlistTab mode="library" scrollRef={scrollRef} />
+              </Profiled>
+            )}
+            {tab === "watchlist" && (
+              <Profiled id="library.watchlist">
+                <WatchlistTab mode="watchlist" scrollRef={scrollRef} />
+              </Profiled>
+            )}
+            {tab === "history" && (
+              <Profiled id="library.history">
+                <HistoryTab />
+              </Profiled>
+            )}
+            {tab === "local" && <LocalTab scrollRef={scrollRef} />}
+            {tab === "media-servers" && <MediaServersTab scrollRef={scrollRef} />}
+            {tab === "torbox" && <TorboxTab />}
+            <NativeBackScope front={active}>
+              {tab === "lists" && <MyListsTab />}
+              {tab === "groups" && <MyGroupsTab />}
+            </NativeBackScope>
+            {tab === "favorites" && <FavoritesTab />}
+            {tab === "trakt" && traktConnected && <TraktTab />}
+            {tab === "anilist" && anilistConnected && <AnilistTab />}
+            {tab === "simkl" && simklConnected && <SimklTab />}
+            {tab === "publicmetadb" && pmdbConnected && <PublicMetaDbTab />}
+            {tab === "letterboxd" && lb.isActive && <LetterboxdTab />}
+            {tab === "mal" && malConnected && <MalTab />}
+          </SoftSwap>
         </div>
       </LibraryFeaturedProvider>
     </main>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Pin, Puzzle, SlidersHorizontal, X } from "lucide-react";
 import { PencilOutlineIcon } from "@/components/icons/pencil-outline";
+import { SoftSwap } from "@/components/soft-swap";
 import { Search } from "@/components/icons/search-icon";
 import { useAuth } from "@/lib/auth";
 import {
@@ -128,6 +129,7 @@ export function Catalogs({ active = true }: { active?: boolean }) {
             </div>
             {!loading && catalogs.length > 0 && (
               <button
+                data-arrives=""
                 onClick={() => setCustomize((v) => !v)}
                 className={`flex h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[13.5px] font-semibold transition-colors ${
                   customize
@@ -141,10 +143,14 @@ export function Catalogs({ active = true }: { active?: boolean }) {
             )}
           </div>
 
-          {!customize && !loading && <CatalogBrowser catalogs={catalogs} />}
+          {!customize && !loading && (
+            <div data-arrives="">
+              <CatalogBrowser catalogs={catalogs} />
+            </div>
+          )}
 
           {!loading && catalogs.length > 0 && (
-            <div className="flex flex-col gap-3">
+            <div data-arrives="" className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative h-11 w-full max-w-[360px] min-w-0">
                   <Search
@@ -198,75 +204,84 @@ export function Catalogs({ active = true }: { active?: boolean }) {
           )}
         </header>
 
-        {loading ? (
-          <ShelfSkeletons />
-        ) : catalogs.length === 0 ? (
-          <EmptyState onOpenAddons={() => setView("addons")} />
-        ) : customize ? (
-          filtered.length === 0 ? (
-            <NoMatch />
+        {/* The placeholder gives way to the shelves, and the shelves to the list being
+            arranged, as one fades over the other. */}
+        <SoftSwap
+          swapKey={loading ? "loading" : customize ? "arranging" : "shelves"}
+          className="flex flex-col gap-8"
+        >
+          {loading ? (
+            <ShelfSkeletons />
+          ) : catalogs.length === 0 ? (
+            <EmptyState onOpenAddons={() => setView("addons")} />
+          ) : customize ? (
+            filtered.length === 0 ? (
+              <NoMatch />
+            ) : (
+              <CatalogManageList
+                filtered={filtered}
+                pinnedCats={pinnedCats}
+                pinnedSet={pinnedSet}
+                hiddenSet={hiddenSet}
+                onTogglePin={togglePin}
+                onToggleHide={toggleHide}
+                onMovePin={movePin}
+              />
+            )
+          ) : pinnedCats.length === 0 && groups.length === 0 ? (
+            hiddenCount > 0 ? (
+              <AllHidden count={hiddenCount} onCustomize={() => setCustomize(true)} />
+            ) : (
+              <NoMatch />
+            )
           ) : (
-            <CatalogManageList
-              filtered={filtered}
-              pinnedCats={pinnedCats}
-              pinnedSet={pinnedSet}
-              hiddenSet={hiddenSet}
-              onTogglePin={togglePin}
-              onToggleHide={toggleHide}
-              onMovePin={movePin}
-            />
-          )
-        ) : pinnedCats.length === 0 && groups.length === 0 ? (
-          hiddenCount > 0 ? (
-            <AllHidden count={hiddenCount} onCustomize={() => setCustomize(true)} />
-          ) : (
-            <NoMatch />
-          )
-        ) : (
-          <>
-            {pinnedCats.length > 0 && (
-              <section className="flex flex-col gap-4">
-                <div className="flex items-center gap-2.5">
-                  <Pin size={16} className="text-accent" />
-                  <h2 className="text-[15.5px] font-semibold tracking-tight text-ink">
-                    {t("Pinned")}
-                  </h2>
-                  <span className="text-[12px] text-ink-subtle">{pinnedCats.length}</span>
-                </div>
-                <div className="flex flex-col gap-7">
-                  {pinnedCats.map((c) => (
-                    <CatalogShelf key={c.key} catalog={c} />
-                  ))}
-                </div>
-              </section>
-            )}
-            {groups.map((g) => (
-              <section key={g.name} className="flex flex-col gap-4">
-                <div className="flex items-center gap-2.5">
-                  {g.logo ? (
-                    <img
-                      src={g.logo}
-                      alt=""
-                      draggable={false}
-                      className="h-6 w-6 rounded-sm object-contain"
-                    />
-                  ) : (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-elevated text-[11px] font-bold text-ink-subtle ring-1 ring-edge-soft">
-                      {g.name.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                  <h2 className="text-[15.5px] font-semibold tracking-tight text-ink">{g.name}</h2>
-                  <span className="text-[12px] text-ink-subtle">{g.cats.length}</span>
-                </div>
-                <div className="flex flex-col gap-7">
-                  {g.cats.map((c) => (
-                    <CatalogShelf key={c.key} catalog={c} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </>
-        )}
+            <>
+              {pinnedCats.length > 0 && (
+                <section className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2.5">
+                    <Pin size={16} className="text-accent" />
+                    <h2 className="text-[15.5px] font-semibold tracking-tight text-ink">
+                      {t("Pinned")}
+                    </h2>
+                    <span className="text-[12px] text-ink-subtle">{pinnedCats.length}</span>
+                  </div>
+                  <div className="flex flex-col gap-7">
+                    {pinnedCats.map((c) => (
+                      <CatalogShelf key={c.key} catalog={c} />
+                    ))}
+                  </div>
+                </section>
+              )}
+              {groups.map((g) => (
+                <section key={g.name} className="flex flex-col gap-4">
+                  <div className="flex items-center gap-2.5">
+                    {g.logo ? (
+                      <img
+                        src={g.logo}
+                        alt=""
+                        draggable={false}
+                        className="h-6 w-6 rounded-sm object-contain"
+                      />
+                    ) : (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-elevated text-[11px] font-bold text-ink-subtle ring-1 ring-edge-soft">
+                        {g.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <h2 className="text-[15.5px] font-semibold tracking-tight text-ink">
+                      {g.name}
+                    </h2>
+                    <span className="text-[12px] text-ink-subtle">{g.cats.length}</span>
+                  </div>
+                  <div className="flex flex-col gap-7">
+                    {g.cats.map((c) => (
+                      <CatalogShelf key={c.key} catalog={c} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </>
+          )}
+        </SoftSwap>
       </div>
     </main>
   );

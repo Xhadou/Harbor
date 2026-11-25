@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -229,6 +230,7 @@ export function CalendarView({
   } else {
     body = (
       <MonthGrid
+        key={`${year}-${month}`}
         cells={cells}
         grouped={grouped}
         todayISO={todayISO}
@@ -392,7 +394,7 @@ export function CalendarView({
           {showAllControls && (
             <>
               <span className="mx-1 h-5 w-px bg-edge-soft" />
-              <div data-arrives="" className="flex flex-wrap items-center gap-2">
+              <SoftDiv data-arrives="" className="flex flex-wrap items-center gap-2">
                 {filters.map((f) => {
                   const active = filter === f.id;
                   const count =
@@ -435,7 +437,7 @@ export function CalendarView({
                   />
                   {t("Watchlist only")}
                 </button>
-              </div>
+              </SoftDiv>
             </>
           )}
           {showPremiereFilters && (

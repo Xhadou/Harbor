@@ -290,9 +290,12 @@ export function HeroCarousel({
             const isActive = i === safeActive;
             const distance = Math.abs(i - safeActive);
             const shouldMount = distance <= 1 || dragging;
+            // A slide is only unmounted when the list itself changes (fresher titles come in
+            // under an open page): the one on screen then fades into what takes its place.
             return (
-              <div
+              <SoftDiv
                 key={`${s.meta.id}-${i}`}
+                data-arrives=""
                 dir={rtl ? "rtl" : "ltr"}
                 aria-hidden={!isActive}
                 className={`w-full shrink-0 ${billboard ? "[grid-area:1/1]" : ""}`}
@@ -319,7 +322,7 @@ export function HeroCarousel({
                     className={`harbor-hero-stage w-full bg-elevated/30 ${full ? `${HERO_FULL_HEIGHT} min-h-[640px] rounded-none` : "h-[560px] rounded-2xl"}`}
                   />
                 )}
-              </div>
+              </SoftDiv>
             );
           })}
         </div>

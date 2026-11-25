@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import type { CalendarItem } from "@/lib/calendar";
 import { useT } from "@/lib/i18n";
 import { CalendarChip } from "./calendar-chip";
@@ -25,7 +26,7 @@ export function MonthGrid({
   const cap = 2;
   const weekdays = orderedWeekdayNames(weekStartsMonday);
   return (
-    <div className="flex flex-col gap-2">
+    <SoftDiv data-arrives="" className="flex flex-col gap-2">
       <div className="grid grid-cols-7 gap-2">
         {weekdays.map((d) => (
           <div
@@ -87,6 +88,6 @@ export function MonthGrid({
           );
         })}
       </div>
-    </div>
+    </SoftDiv>
   );
 }

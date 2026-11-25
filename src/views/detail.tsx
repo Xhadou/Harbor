@@ -3226,6 +3226,7 @@ export function DetailView({
       >
         {(overview || hasHeroAside) && (
           <div
+            data-arrives=""
             className={`grid min-w-0 grid-cols-1 items-start gap-8 xl:gap-10 ${heroGridColumns}`}
           >
             {overview && <Synopsis text={overview} />}
