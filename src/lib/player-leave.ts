@@ -3,7 +3,7 @@ import { isMacDesktop } from "@/lib/platform";
 import type { PlayerSrc } from "@/lib/view";
 
 /**
- * How long leaving the player takes on macOS: the page fades in over the paused video
+ * How long leaving the player takes on macOS: the page fades in over the muted video
  * while the player's controls fade out (index.css, "Leaving the player").
  */
 export const PLAYER_LEAVE_MS = 340;
@@ -39,7 +39,7 @@ export function useLeavingPlayer(player: PlayerSrc | null, active: boolean): Pla
   // The page in front again is laid out and drawn anew, and that frame is long (226 ms in
   // the dev app): a fade started with it was over before anything was drawn, and the page
   // came in at once. It waits at its start (index.css) until the page has been drawn, under
-  // the held frame of the video, and only then runs.
+  // the video still running, and only then runs.
   useLayoutEffect(() => {
     if (!leaving) return;
     const root = document.documentElement;

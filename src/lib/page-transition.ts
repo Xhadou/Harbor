@@ -70,6 +70,8 @@ async function frontPageLaidOut(): Promise<void> {
       ...layer.children,
     ]);
     if (roots.some((el) => el.getBoundingClientRect().height > 100)) return;
+    // The player is not a page in a layer: it is in front once it is there.
+    if (document.querySelector("[data-harbor-player]")) return;
     if (performance.now() - started > 350) return;
     // Not requestAnimationFrame: frames are not produced while the picture is held.
     await new Promise((resolve) => window.setTimeout(resolve, 16));

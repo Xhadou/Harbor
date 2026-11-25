@@ -590,6 +590,19 @@ function openingPageKey(stack: Frame[]): string | null {
 /** On the root while the page changes to the source picker or back from it. */
 const PICKER_CHANGE_CLASS = "mac-picker-vt";
 
+/** On the root while a page gives way to the player opening over the whole window. */
+const PLAYER_CHANGE_CLASS = "mac-player-vt";
+
+/**
+ * The player has just come up over the whole window. No picture of it can be taken to
+ * leave from, but the page it opens from can be: the page fades out over the player's
+ * stage, which is black until the video's first frame (leaving it is lib/player-leave.ts).
+ */
+function playerOpened(stack: Frame[]): boolean {
+  const top = stack[stack.length - 1];
+  return top?.kind === "player" && !top.src.sportsDocked && !top.src.pipDocked;
+}
+
 function lastOfKind<K extends Frame["kind"]>(
   frames: Frame[],
   kind: K,
@@ -795,10 +808,12 @@ export function ViewProvider({ children }: { children: ReactNode }) {
       before !== null,
       () => {
         const after = transitionPageKey(stackRef.current);
-        const changed = after !== null && after !== before;
-        // The sidebar slides away for the source picker and back after it; the styles
-        // give the pages' fade the same time (index.css).
-        if (changed && (fromPicker || isPicker(stackRef.current)))
+        const toPlayer = playerOpened(stackRef.current);
+        const changed = toPlayer || (after !== null && after !== before);
+        // The sidebar slides away for the source picker and back after it, and away for
+        // the player; the styles give the pages' fade the same time (index.css).
+        if (toPlayer) document.documentElement.classList.add(PLAYER_CHANGE_CLASS);
+        else if (changed && (fromPicker || isPicker(stackRef.current)))
           document.documentElement.classList.add(PICKER_CHANGE_CLASS);
         return changed;
       },
@@ -807,7 +822,7 @@ export function ViewProvider({ children }: { children: ReactNode }) {
         arrive: () => opening?.arrive(),
         done: () => {
           opening?.done();
-          document.documentElement.classList.remove(PICKER_CHANGE_CLASS);
+          document.documentElement.classList.remove(PICKER_CHANGE_CLASS, PLAYER_CHANGE_CLASS);
         },
       },
     );

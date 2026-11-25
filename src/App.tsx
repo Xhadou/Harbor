@@ -1928,7 +1928,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
               <WindowClosedBridge />
               <NativeSidebarBridge
                 pickerTop={pickerTop}
-                playerLeaving={leavingPlayer !== null}
+                playerTop={playerActive}
                 visible={sidebarVisible({
                   playerActive,
                   standaloneLive,

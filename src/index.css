@@ -307,7 +307,7 @@ html[data-mpv-embed="1"] #root {
 
 /* Leaving the player (macOS, src/lib/player-leave.ts). The player stays a moment after it
    is closed, and with it the video under the transparent page: the page and the theme's
-   backdrop behind it come in over the held frame while the controls go, so by the time
+   backdrop behind it come in over the muted video while the controls go, so by the time
    the player and the video are taken away the page already covers them. Same length as
    PLAYER_LEAVE_MS. */
 @keyframes harbor-player-leave-page {
@@ -9100,6 +9100,15 @@ html.mac-page-vt.mac-picker-vt::view-transition-new(root),
 html.mac-page-vt.mac-picker-vt:not(.mac-open-vt)::view-transition-old(mac-page-open) {
   animation-duration: 340ms;
   animation-timing-function: cubic-bezier(0.3, 0, 0.1, 1);
+}
+/* The player opening: the page fades out over the player's black stage while the
+   sidebar slides away, evenly, as the player fades back into the page on the way out
+   (lib/player-leave.ts). */
+html.mac-page-vt.mac-player-vt::view-transition-old(root),
+html.mac-page-vt.mac-player-vt::view-transition-new(root),
+html.mac-page-vt.mac-player-vt:not(.mac-open-vt)::view-transition-old(mac-page-open) {
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
 }
 /* A page opening out of the card that was pressed, and closing back into it.
    One frame changes shape between the card and the window while the card's

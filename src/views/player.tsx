@@ -212,11 +212,14 @@ function NativePlayerView({ src, leaving }: { src: PlayerSrc; leaving: boolean }
   );
   const videoMountRef = useRef<HTMLDivElement>(null);
   const bridgeRef = useRef<PlayerBridge | null>(null);
-  // Closed: silent at once, the last frame held under the page coming in, and the window's
-  // chrome (hidden with the controls) given back now rather than when the player goes.
+  // Closed: silent at once, and the window's chrome (hidden with the controls) given back
+  // now rather than when the player goes. Muted, not paused: the page coming back takes a
+  // couple of long frames before it can fade in, and a frame held still through them read
+  // as the app stopping; the picture runs on under the sidebar and the fade. Only the
+  // engine is muted, not the saved preference (only the player's own controls write that).
   useEffect(() => {
     if (!leaving) return;
-    bridgeRef.current?.pause("leaving");
+    bridgeRef.current?.setMuted(true);
     setAppChromeHidden(false);
   }, [leaving, setAppChromeHidden]);
   const selfFrameReadyRef = useRef(false);
