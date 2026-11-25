@@ -44,6 +44,43 @@ export function heroTextZoom(scale = 1): number {
 
 let lastLayout: NativeLayout | null = null;
 let interfaceScale = 1;
+/** The sidebar's width as last reported while it was showing. */
+let shownSidebarWidth = 0;
+/** Whether the view in front has a sidebar, as the page last said. */
+let sidebarWanted: boolean | null = null;
+/**
+ * What `expectSidebar` wrote ahead of the native side's report, until a report agrees or
+ * this long has passed. The native side answers other requests in between with the
+ * state it still has; taking that for news put the old inset back for a moment.
+ */
+let expected: SidebarExpectation | null = null;
+const EXPECTED_FOR_MS = 1500;
+
+export type SidebarExpectation = { shown: boolean; until: number };
+
+/**
+ * A report read against what was written ahead of it. A report that agrees ends the
+ * wait, as does time; one that does not is taken for everything but the sidebar, which
+ * stays as expected at `shownWidth`.
+ */
+export function readReport(
+  reported: NativeLayout,
+  waiting: SidebarExpectation | null,
+  now: number,
+  shownWidth: number,
+): { layout: NativeLayout; waiting: SidebarExpectation | null } {
+  if (!waiting || now > waiting.until || reported.sidebarVisible === waiting.shown)
+    return { layout: reported, waiting: null };
+  return {
+    layout: {
+      ...reported,
+      sidebarVisible: waiting.shown,
+      sidebarWidth: waiting.shown ? shownWidth : 0,
+      sidebarMotionMs: 0,
+    },
+    waiting,
+  };
+}
 
 function write(): void {
   document.documentElement.style.setProperty("--mac-hero-zoom", String(heroZoom(interfaceScale)));
@@ -83,15 +120,47 @@ function reducedMotion(): boolean {
   );
 }
 
-export function applyNativeLayout(layout: NativeLayout): void {
+export function applyNativeLayout(reported: NativeLayout): void {
+  const read = readReport(reported, expected, performance.now(), shownSidebarWidth);
+  const layout = read.layout;
+  expected = read.waiting;
   const moved = lastLayout !== null && lastLayout.sidebarVisible !== layout.sidebarVisible;
   const ms = layout.sidebarMotionMs ?? 0;
   lastLayout = layout;
+  if (layout.sidebarVisible) shownSidebarWidth = layout.sidebarWidth;
   // The sidebar is sliding: the content beside it moves with it. At every other moment the
   // insets are written at once, so a page that loads with the sidebar open, or a view that
   // has no sidebar, never glides into place.
   if (moved && ms > 0 && !reducedMotion()) glideLayout(writeAndSettle, ms, SIDEBAR_SLIDE_EASE);
   else write();
+}
+
+/**
+ * Called by the page in the render that says whether the view in front has a
+ * sidebar (`wanted`) and whether the person keeps it hidden (`collapsed`).
+ *
+ * When a change of page gains or loses the sidebar, the sidebar's own report
+ * of that takes a trip to the native side and back; until it came, the new
+ * page was laid out at the old page's inset and then jumped sideways in front
+ * of the person. Writing what the report will say lets the page be laid out
+ * once, where it will stay; the report then changes nothing.
+ *
+ * When the person shows or hides the sidebar themselves nothing is written
+ * here: the page waits for the report and glides beside the sidebar.
+ */
+export function expectSidebar(wanted: boolean, collapsed: boolean): void {
+  const pageChanged = sidebarWanted !== null && sidebarWanted !== wanted;
+  sidebarWanted = wanted;
+  const shown = wanted && !collapsed;
+  if (!pageChanged || !lastLayout || lastLayout.sidebarVisible === shown) return;
+  if (shown && shownSidebarWidth === 0) return;
+  expected = { shown, until: performance.now() + EXPECTED_FOR_MS };
+  lastLayout = {
+    ...lastLayout,
+    sidebarVisible: shown,
+    sidebarWidth: shown ? shownSidebarWidth : 0,
+  };
+  writeAndSettle();
 }
 
 /** Call whenever Harbor's interface scale setting changes. */

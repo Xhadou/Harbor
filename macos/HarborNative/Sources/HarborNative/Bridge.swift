@@ -83,7 +83,8 @@ final class HarborNativeController {
     }
 
     private func sidebarChanged() {
-        chrome?.sidebarChanged(wanted: sidebar.isWanted, shown: sidebar.isShown)
+        chrome?.sidebarChanged(
+            wanted: sidebar.isWanted, shown: sidebar.isShown, slideMs: sidebar.motionMs)
         emitLayout()
     }
 

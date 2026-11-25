@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { avatarFace, useAccountAvatarInputs } from "@/chrome/account-menu/account-avatar";
 import { AccountMenu } from "@/chrome/account-menu/account-menu";
 import { useSidebarNavigation } from "@/chrome/context-page-navigation";
@@ -10,6 +10,7 @@ import { useUnseenReminderCount } from "@/lib/reminders";
 import { useView, type View } from "@/lib/view";
 import { nativeChromeCoverStore } from "./native-chrome-cover";
 import { onNativeEvent, pushNativeJson } from "./native-events";
+import { expectSidebar } from "./native-layout";
 import { useGatedNavigation, useSidebarToggle } from "./native-navigation";
 import { setNativeSearchParts } from "./native-search-state";
 import { useSidebarAvatarImage } from "./sidebar-avatar";
@@ -25,7 +26,14 @@ import {
  * Drives the native macOS sidebar from Harbor's own navigation model and
  * routes its clicks back. It replaces the React sidebar on macOS.
  */
-export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
+export function NativeSidebarBridge({
+  visible: wanted,
+  pickerTop,
+}: {
+  visible: boolean;
+  /** The source picker is in front: a page with no sidebar, where the player is not a page. */
+  pickerTop: boolean;
+}) {
   // Read on every render: skipping the hook while `wanted` is false changes the
   // hook order the first time the sidebar hides, which crashes the app.
   const covered = useSyncExternalStore(...nativeChromeCoverStore);
@@ -52,9 +60,20 @@ export function NativeSidebarBridge({ visible: wanted }: { visible: boolean }) {
     reminderCount,
     customOrder: customization.order.length > 0,
   });
+  // Going to the source picker and coming back from it are changes of page, and the
+  // sidebar slides away and back with them. Everything else that takes the sidebar (the
+  // player, a dialog over the whole window) takes it at once.
+  const [pickerTopSent, setPickerTopSent] = useState(pickerTop);
+  const slide = pickerTopSent !== pickerTop;
+  useEffect(() => setPickerTopSent(pickerTop), [pickerTop]);
+  // In the render that changes page, so the new page is laid out where it will stay.
+  useLayoutEffect(() => {
+    expectSidebar(visible, collapsed);
+  }, [visible, collapsed]);
   const payload = JSON.stringify({
     visible,
     collapsed,
+    slide,
     ...navigation,
     ...(settingsNav ? { items: settingsNav.items, sections: settingsNav.sections } : null),
     // Under parental lock the profile cannot be switched, as in the React sidebar.

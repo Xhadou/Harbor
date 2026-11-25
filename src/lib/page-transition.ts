@@ -79,8 +79,8 @@ async function frontPageLaidOut(): Promise<void> {
 /**
  * Applies a navigation state change, cross-fading when it changes the page.
  *
- * `eligible`: the page being left can be pictured (not the player, not the
- * picker). `changedPage` is asked after the change has rendered and says
+ * `eligible`: the page being left can be pictured (not the player).
+ * `changedPage` is asked after the change has rendered and says
  * whether a different page is now in front; when it is not, nothing animates.
  * `carried` is only used by a change that starts its own cross-fade.
  */

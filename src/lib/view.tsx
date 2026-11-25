@@ -573,9 +573,22 @@ function syncFrameKey(f: Frame): string {
 /** The page a stack shows, for telling one page from the next; null where no picture of it can be taken. */
 function transitionPageKey(stack: Frame[]): string | null {
   const top = stack[stack.length - 1];
-  if (!top || top.kind === "player" || top.kind === "picker") return null;
+  if (!top || top.kind === "player") return null;
   return syncFrameKey(top);
 }
+
+/**
+ * The same, for a page that can open out of the thing pressed and close back
+ * into it. The source picker is not one: a card that starts playback passes
+ * through it on the way to the player, so it only cross-fades.
+ */
+function openingPageKey(stack: Frame[]): string | null {
+  const top = stack[stack.length - 1];
+  return top?.kind === "picker" ? null : transitionPageKey(stack);
+}
+
+/** On the root while the page changes to the source picker or back from it. */
+const PICKER_CHANGE_CLASS = "mac-picker-vt";
 
 function lastOfKind<K extends Frame["kind"]>(
   frames: Frame[],
@@ -774,14 +787,29 @@ export function ViewProvider({ children }: { children: ReactNode }) {
   // `from` is the stack being left, for callers that have already moved the ref on.
   const commitStack = useCallback((commit: () => void, from: Frame[] = stackRef.current) => {
     const before = transitionPageKey(from);
+    const opening = pageOpening(openingPageKey(from), () => openingPageKey(stackRef.current));
+    const isPicker = (stack: Frame[]) => stack[stack.length - 1]?.kind === "picker";
+    const fromPicker = isPicker(from);
     commitWithPageTransition(
       commit,
       before !== null,
       () => {
         const after = transitionPageKey(stackRef.current);
-        return after !== null && after !== before;
+        const changed = after !== null && after !== before;
+        // The sidebar slides away for the source picker and back after it; the styles
+        // give the pages' fade the same time (index.css).
+        if (changed && (fromPicker || isPicker(stackRef.current)))
+          document.documentElement.classList.add(PICKER_CHANGE_CLASS);
+        return changed;
       },
-      pageOpening(before, () => transitionPageKey(stackRef.current)),
+      {
+        leave: () => opening?.leave(),
+        arrive: () => opening?.arrive(),
+        done: () => {
+          opening?.done();
+          document.documentElement.classList.remove(PICKER_CHANGE_CLASS);
+        },
+      },
     );
   }, []);
   useEffect(() => {

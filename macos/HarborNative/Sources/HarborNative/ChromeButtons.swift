@@ -66,13 +66,14 @@ final class ChromeButtons: NSObject {
     }
 
     /// `wanted`: the web app wants a sidebar on this view. `shown`: it is on screen.
-    func sidebarChanged(wanted: Bool, shown: Bool) {
+    /// `slideMs`: how long the pane takes to slide to that state; 0 when it changed at once.
+    func sidebarChanged(wanted: Bool, shown: Bool, slideMs: Double = 0) {
         sidebarWanted = wanted
         sidebarShown = shown
-        refresh()
+        refresh(slideMs: slideMs)
     }
 
-    private func refresh() {
+    private func refresh(slideMs: Double = 0) {
         // Only offered where the user hid the sidebar, not where the view has none.
         let showToggle = chromeVisible && sidebarWanted && !sidebarShown
         if sidebarShown {
@@ -83,8 +84,22 @@ final class ChromeButtons: NSObject {
             backLeadingValue = Self.afterTrafficLights
         }
         toggleMount.setMounted(showToggle)
+        let backWasMounted = backMount.isMounted
         backMount.setMounted(chromeVisible && canGoBack)
-        backLeadingConstraint?.constant = backLeadingValue
+        guard slideMs > 0, backWasMounted, backMount.isMounted, let leading = backLeadingConstraint
+        else {
+            backLeadingConstraint?.constant = backLeadingValue
+            return
+        }
+        // Back sits beside the pane, so it moves with the pane while the pane slides.
+        let target = backLeadingValue
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = slideMs / 1000
+            context.timingFunction = SidebarHost.slideCurve
+            context.allowsImplicitAnimation = true
+            leading.animator().constant = target
+            back.superview?.layoutSubtreeIfNeeded()
+        }
     }
 
     @objc func goBack(_ sender: Any?) {

@@ -53,8 +53,11 @@ const ORIGIN_PICTURE = "[data-preview-anchor], [data-continue-card-trigger]";
 const ORIGIN_ONLY_ONE = ".harbor-hero-stage";
 /** The whole web page: always the window's size, and it does not scroll. */
 const PAGE = "#root";
-/** A page's top section, where it has one: the picture across its top with its title. */
-const PAGE_TOP = "[data-tv-hero-zone]";
+/**
+ * A page's top section, where it has one: the picture across its top with its
+ * title. `data-page-top` is for a page whose top section is not a hero.
+ */
+const PAGE_TOP = "[data-tv-hero-zone], [data-page-top]";
 
 /** What the styles read, set on the root. */
 const SET_ON_ROOT = [
@@ -110,9 +113,15 @@ function unmark(): void {
   marked = null;
 }
 
-/** Drawn, and with enough of it inside the window to grow from or shrink into. */
+/**
+ * Drawn, and with enough of it inside the window to grow from or shrink into.
+ * A page kept in the background still has boxes, so being seen is asked too:
+ * without that, going on from a title page to its source picker closed the
+ * title page into its card on the Home page behind, which nobody could see.
+ */
 function onScreen(el: HTMLElement): boolean {
   if (!el.isConnected || el.getClientRects().length === 0) return false;
+  if (!el.checkVisibility({ visibilityProperty: true })) return false;
   const r = el.getBoundingClientRect();
   if (r.width < 8 || r.height < 8) return false;
   const seenWidth = Math.min(r.right, window.innerWidth) - Math.max(r.left, 0);
@@ -125,8 +134,12 @@ function onScreen(el: HTMLElement): boolean {
  * element, and never the whole web page. Taken whole (`#root`, or a title
  * page's scrolling element), the picture brought the way back down to about 15
  * frames a second in the Mac window; a top section or a plain page's element
- * runs at the full 60. A top section scrolled out of sight, or a page far
- * taller than the window, has nothing to close from and cross-fades as any
+ * runs at the full 60. A page whose own element holds rows of cards is not
+ * plain in that sense: taken whole, a streaming service's page left the web
+ * view drawing nothing for 900 ms (its script kept running; with the rows left
+ * out of the picture it drew every frame), so such a page marks its top
+ * section with `data-page-top`. A top section scrolled out of sight, or a page
+ * far taller than the window, has nothing to close from and cross-fades as any
  * other page does.
  */
 function closingPicture(): HTMLElement | null {

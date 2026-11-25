@@ -1722,9 +1722,14 @@ function Shell({ onReady }: { onReady?: () => void }) {
   const wrappedAlive = useIdleEvict(wrappedTop);
   const queueAlive = useKeepAlive(queueTop, queueTop);
   const serviceAlive = useKeepAlive(serviceTop, serviceTop && !!service);
-  // Keep a detail page mounted while Settings is open. Otherwise the keep-alive timer
-  // drops it after 1.5s, and returning refetches the whole title from its addons.
-  const detailAlive = useKeepAlive(detailTop, !!meta, topKind === "settings");
+  // Keep a detail page mounted while Settings or its own source picker is open. Otherwise
+  // the keep-alive timer drops it after 1.5s, and returning refetches the whole title from
+  // its addons and draws its top section in again.
+  const detailAlive = useKeepAlive(
+    detailTop,
+    !!meta,
+    topKind === "settings" || topKind === "picker",
+  );
   const personAlive = useKeepAlive(personTop, personId !== null);
   const profileAlive = useKeepAlive(profileTop, profileHandle !== null);
   const feedAlive = useKeepAlive(feedTop, feedOpen, stackKinds.includes("feed"));
@@ -1905,6 +1910,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
               <NativeMenuBridge playerActive={playerActive} />
               <WindowClosedBridge />
               <NativeSidebarBridge
+                pickerTop={pickerTop}
                 visible={sidebarVisible({
                   playerActive,
                   standaloneLive,

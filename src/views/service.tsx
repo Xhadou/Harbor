@@ -35,7 +35,7 @@ export function ServiceView({ service }: { service: StreamingService }) {
 
   return (
     <main ref={scrollRef} className="absolute inset-0 overflow-y-auto pb-14">
-      <div className="relative px-12 pt-28 pb-6">
+      <div data-page-top className="relative px-12 pt-28 pb-6">
         <div
           aria-hidden
           className="harbor-service-glow harbor-bleed-stremio pointer-events-none absolute inset-0"

@@ -120,11 +120,16 @@ final class SidebarHost: NSObject {
         let wasWanted = model.isWanted
         let wasShown = model.isShown
         model.apply(payload)
-        // The pane slides only when the person shows or hides it on a view that has a
-        // sidebar. A view without one (the player) takes it away, and gives it back, at once.
+        // The pane slides when the person shows or hides it on a view that has a sidebar,
+        // and when a change of page says so. Anything else without one (the player) takes
+        // it away, and gives it back, at once.
         let slides =
-            wasWanted && model.isWanted && wasShown != model.isShown && Self.canSlide(in: window)
-        setShown(model.isShown, sliding: slides)
+            wasShown != model.isShown
+            && ((wasWanted && model.isWanted) || payload.slide == true)
+            && Self.canSlide(in: window)
+        // Only on a change: a payload that repeats the state (new items, a new badge) must
+        // not end a slide that is still under way.
+        if wasShown != model.isShown { setShown(model.isShown, sliding: slides) }
         motionMs = slides ? Self.slideDuration * 1000 : 0
         layoutChanged()
         motionMs = 0

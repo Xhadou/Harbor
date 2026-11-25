@@ -3,7 +3,13 @@ import assert from "node:assert/strict";
 // @ts-expect-error Node test types are intentionally outside the browser-only tsconfig.
 import test from "node:test";
 
-import { HERO_SCALE, heroTextZoom, heroZoom, layoutInsets } from "../src/chrome/mac/native-layout";
+import {
+  HERO_SCALE,
+  heroTextZoom,
+  heroZoom,
+  layoutInsets,
+  readReport,
+} from "../src/chrome/mac/native-layout";
 import { registerOnPage, subscribe } from "../src/chrome/mac/native-subscription";
 import { searchHiddenFor, toolbarPayload } from "../src/chrome/mac/toolbar-payload";
 
@@ -59,6 +65,31 @@ test("layout insets leave a gutter beside a visible sidebar and none when hidden
     sidebar: "0px",
     controls: "92px",
   });
+});
+
+test("a report that still has the old sidebar state does not undo what the page wrote ahead", () => {
+  const base = { titlebarInset: 52, sidebarWidth: 240, controlsInset: 92 };
+  const shown = { ...base, sidebarVisible: true };
+  const hidden = { ...base, sidebarWidth: 0, sidebarVisible: false };
+  const waiting = { shown: false, until: 1000 };
+
+  // The toolbar's answer arrives first and still says the sidebar is showing.
+  const stale = readReport({ ...shown, titlebarInset: 60 }, waiting, 10, 240);
+  assert.deepEqual(stale.layout, { ...hidden, titlebarInset: 60, sidebarMotionMs: 0 });
+  assert.equal(stale.waiting, waiting);
+
+  // The sidebar's own report agrees and ends the wait, slide and all.
+  const agreed = readReport({ ...hidden, sidebarMotionMs: 340 }, waiting, 20, 240);
+  assert.deepEqual(agreed, { layout: { ...hidden, sidebarMotionMs: 340 }, waiting: null });
+
+  // Expecting it back, the remembered width stands in until the report comes.
+  const back = readReport(hidden, { shown: true, until: 1000 }, 10, 240);
+  assert.equal(back.layout.sidebarVisible, true);
+  assert.equal(back.layout.sidebarWidth, 240);
+
+  // Nothing waits for ever: after the time is up the report is believed.
+  assert.deepEqual(readReport(shown, waiting, 1001, 240), { layout: shown, waiting: null });
+  assert.deepEqual(readReport(shown, null, 0, 240), { layout: shown, waiting: null });
 });
 
 test("layout insets are converted from screen points to CSS pixels under interface zoom", () => {

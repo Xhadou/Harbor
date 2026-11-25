@@ -9033,6 +9033,23 @@ html.mac-page-vt::view-transition-new(root) {
   animation-duration: 220ms;
   animation-timing-function: var(--ease-out);
 }
+/* What was marked to open or close a page, when the change turned out to be
+   neither (a card that starts playback, a title page left for its source
+   picker): it has no other side, and goes with its page on the page's time. */
+html.mac-page-vt:not(.mac-open-vt)::view-transition-old(mac-page-open) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out);
+}
+/* To the source picker and back: the sidebar slides away, or in, as the page
+   changes (SidebarHost.slideDuration and slideCurve). The pages change over
+   the same time on the same curve, so the two are one movement; on the page's
+   usual curve nearly all of the fade was in its first frame. */
+html.mac-page-vt.mac-picker-vt::view-transition-old(root),
+html.mac-page-vt.mac-picker-vt::view-transition-new(root),
+html.mac-page-vt.mac-picker-vt:not(.mac-open-vt)::view-transition-old(mac-page-open) {
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.3, 0, 0.1, 1);
+}
 /* A page opening out of the card that was pressed, and closing back into it.
    One frame changes shape between the card and the window while the card's
    picture and the page dissolve into each other inside it. The motion itself

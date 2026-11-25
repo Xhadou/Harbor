@@ -45,6 +45,9 @@ struct SidebarPayload: Codable, Equatable, Sendable {
     var account: SidebarAccount? = nil
     /// The Settings entry, shown as a button at the foot instead of a row.
     var settings: SidebarItem? = nil
+    /// True when `visible` changed because the page did (to the source picker or back
+    /// from it): the pane slides for that, as it does when the person hides it.
+    var slide: Bool? = nil
 }
 
 /// State of the floating window controls (Back, sidebar toggle, search field).
