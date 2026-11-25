@@ -9,12 +9,15 @@ import {
   backupSectionLabel,
   backupSections,
   downloadBackup,
+  openBackupCredentials,
   parseBackup,
   pickBackupFile,
+  sectionsHoldCredentials,
   type Backup,
   type BackupSectionKey,
   type BackupValidationError,
 } from "@/lib/backup";
+import { MIN_PASSPHRASE_LENGTH, WrongPassphraseError } from "@/lib/backup-seal";
 import { useT } from "@/lib/i18n";
 import { ROW_DESC, SettingRow, SettingsModal } from "./kit";
 import { SButton } from "./ui";
@@ -35,6 +38,7 @@ export function BackupRow() {
   const [applying, setApplying] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [restoreError, setRestoreError] = useState(false);
+  const [wrongPassphrase, setWrongPassphrase] = useState(false);
 
   useEffect(() => {
     if (!exported) return;
@@ -42,11 +46,11 @@ export function BackupRow() {
     return () => window.clearTimeout(timer);
   }, [exported]);
 
-  const doExport = async (selected: BackupSectionKey[]) => {
+  const doExport = async (selected: BackupSectionKey[], passphrase: string | null) => {
     setError(null);
     setPickerOpen(false);
     try {
-      const saved = await downloadBackup(selected);
+      const saved = await downloadBackup(selected, passphrase);
       if (saved) {
         setExported(true);
       }
@@ -63,6 +67,7 @@ export function BackupRow() {
     }
     setPending(res.backup);
     setRestoreError(false);
+    setWrongPassphrase(false);
   };
 
   const startRestore = () => {
@@ -91,18 +96,32 @@ export function BackupRow() {
     reader.readAsText(file);
   };
 
-  const confirmRestore = () => {
+  /** `passphrase` opens the sealed sign-ins; null restores everything else. */
+  const confirmRestore = (passphrase: string | null) => {
     if (!pending) return;
     setApplying(true);
     setRestoreError(false);
-    void applyBackup(pending)
-      .then(() => {
+    setWrongPassphrase(false);
+    void (async () => {
+      let backup = pending;
+      if (passphrase !== null && pending.sealed) {
+        try {
+          backup = await openBackupCredentials(pending, passphrase);
+        } catch (error) {
+          setApplying(false);
+          if (error instanceof WrongPassphraseError) setWrongPassphrase(true);
+          else setRestoreError(true);
+          return;
+        }
+      }
+      try {
+        await applyBackup(backup);
         window.setTimeout(() => window.location.reload(), 280);
-      })
-      .catch(() => {
+      } catch {
         setApplying(false);
         setRestoreError(true);
-      });
+      }
+    })();
   };
 
   return (
@@ -158,6 +177,7 @@ export function BackupRow() {
           backup={pending}
           applying={applying}
           error={restoreError}
+          wrongPassphrase={wrongPassphrase}
           onConfirm={confirmRestore}
           onCancel={() => setPending(null)}
         />
@@ -166,18 +186,33 @@ export function BackupRow() {
   );
 }
 
+const PASSPHRASE_FIELD =
+  "h-11 w-full min-w-0 rounded-[10px] border border-edge-soft bg-canvas px-4 text-[16.5px] text-ink outline-none placeholder:text-ink-subtle/55 focus-visible:border-edge focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+
 function ExportPicker({
   onExport,
   onCancel,
 }: {
-  onExport: (selected: BackupSectionKey[]) => void;
+  onExport: (selected: BackupSectionKey[], passphrase: string | null) => void;
   onCancel: () => void;
 }) {
   const t = useT();
-  // Sign-ins and keys are left out until they are ticked: a backup file is plain text.
+  // Sign-ins and keys are left out until they are ticked, and then sealed with a passphrase.
   const [selected, setSelected] = useState<Set<BackupSectionKey>>(
     () => new Set(DEFAULT_BACKUP_SECTIONS),
   );
+  const [passphrase, setPassphrase] = useState("");
+  const [repeat, setRepeat] = useState("");
+  const sealing = sectionsHoldCredentials(selected);
+  const tooShort = passphrase.length < MIN_PASSPHRASE_LENGTH;
+  const mismatch = repeat.length > 0 && repeat !== passphrase;
+  const passphraseReady = !sealing || (!tooShort && repeat === passphrase);
+  // The fields arrive at the end of a long list, out of sight of the box that brought them.
+  const sealBlock = useRef<HTMLDivElement>(null);
+  const passphraseProblem = (passphrase.length > 0 && tooShort) || mismatch;
+  useEffect(() => {
+    if (sealing) sealBlock.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [sealing, passphraseProblem]);
 
   const allSelected = selected.size === BACKUP_SECTIONS.length;
   const toggle = (key: BackupSectionKey) => {
@@ -207,8 +242,8 @@ function ExportPicker({
           <SButton onClick={onCancel}>{t("Cancel")}</SButton>
           <SButton
             variant="primary"
-            disabled={selected.size === 0}
-            onClick={() => onExport([...selected])}
+            disabled={selected.size === 0 || !passphraseReady}
+            onClick={() => onExport([...selected], sealing ? passphrase : null)}
           >
             <Download size={16} strokeWidth={2.4} />
             {t("Export {n} sections", { n: selected.size })}
@@ -272,6 +307,45 @@ function ExportPicker({
           );
         })}
       </div>
+
+      {sealing && (
+        <div ref={sealBlock} className="flex flex-col gap-3 rounded-[10px] bg-elevated px-4 py-3.5">
+          <p className={`max-w-[66ch] ${ROW_DESC}`}>
+            {t(
+              "Sign-ins and keys are sealed in the file with a passphrase. Restoring them needs the same passphrase; nothing can recover it if it is lost.",
+            )}
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <input
+              type="password"
+              value={passphrase}
+              onChange={(e) => setPassphrase(e.target.value)}
+              placeholder={t("Passphrase")}
+              aria-label={t("Passphrase")}
+              autoComplete="new-password"
+              spellCheck={false}
+              className={PASSPHRASE_FIELD}
+            />
+            <input
+              type="password"
+              value={repeat}
+              onChange={(e) => setRepeat(e.target.value)}
+              placeholder={t("Passphrase again")}
+              aria-label={t("Passphrase again")}
+              autoComplete="new-password"
+              spellCheck={false}
+              className={PASSPHRASE_FIELD}
+            />
+          </div>
+          {passphraseProblem ? (
+            <p role="alert" className="text-[15px] text-danger">
+              {mismatch
+                ? t("The two passphrases are not the same.")
+                : t("Use at least {n} characters.", { n: MIN_PASSPHRASE_LENGTH })}
+            </p>
+          ) : null}
+        </div>
+      )}
     </SettingsModal>
   );
 }
@@ -280,16 +354,20 @@ function RestoreConfirm({
   backup,
   applying,
   error,
+  wrongPassphrase,
   onConfirm,
   onCancel,
 }: {
   backup: Backup;
   applying: boolean;
   error: boolean;
-  onConfirm: () => void;
+  wrongPassphrase: boolean;
+  onConfirm: (passphrase: string | null) => void;
   onCancel: () => void;
 }) {
   const t = useT();
+  const [passphrase, setPassphrase] = useState("");
+  const sealed = backup.sealed != null;
   const when = backup.exportedAt
     ? new Date(backup.exportedAt).toLocaleString()
     : t("an unknown date");
@@ -310,9 +388,24 @@ function RestoreConfirm({
           <SButton disabled={applying} onClick={onCancel}>
             {t("Cancel")}
           </SButton>
-          <SButton variant="primary" disabled={applying} onClick={onConfirm}>
-            {applying ? t("Restoring...") : t("Restore and reload")}
-          </SButton>
+          {sealed ? (
+            <>
+              <SButton disabled={applying} onClick={() => onConfirm(null)}>
+                {t("Restore without sign-ins")}
+              </SButton>
+              <SButton
+                variant="primary"
+                disabled={applying || passphrase.length === 0}
+                onClick={() => onConfirm(passphrase)}
+              >
+                {applying ? t("Restoring...") : t("Restore with sign-ins")}
+              </SButton>
+            </>
+          ) : (
+            <SButton variant="primary" disabled={applying} onClick={() => onConfirm(null)}>
+              {applying ? t("Restoring...") : t("Restore and reload")}
+            </SButton>
+          )}
         </>
       }
     >
@@ -333,6 +426,34 @@ function RestoreConfirm({
           </span>
         ))}
       </div>
+
+      {sealed && (
+        <div className="flex flex-col gap-2.5 rounded-[10px] bg-elevated px-4 py-3.5">
+          <p className={`max-w-[66ch] ${ROW_DESC}`}>
+            {t(
+              "Its sign-ins and keys are sealed with a passphrase. Enter it to restore them too, or restore everything else without them.",
+            )}
+          </p>
+          <input
+            type="password"
+            value={passphrase}
+            onChange={(e) => setPassphrase(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && passphrase && !applying) onConfirm(passphrase);
+            }}
+            placeholder={t("Passphrase")}
+            aria-label={t("Passphrase")}
+            autoComplete="off"
+            spellCheck={false}
+            className={PASSPHRASE_FIELD}
+          />
+          {wrongPassphrase && (
+            <p role="alert" className="text-[15px] text-danger">
+              {t("That passphrase does not open this backup's sign-ins.")}
+            </p>
+          )}
+        </div>
+      )}
 
       {backup.sections?.includes("iptv") && !backup.sections.includes("iptvCredentials") && (
         <p className={`max-w-[66ch] ${ROW_DESC}`}>

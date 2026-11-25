@@ -1060,6 +1060,7 @@ test("backups neither enroll another device nor erase this device's channel or s
       "@/lib/download-text": empty,
       "@/lib/profile-sync/backup-payload": { buildSyncBackup: () => ({}) },
       "@/lib/theme-storage": empty,
+      "@/lib/backup-seal": { isSealedEntries: () => false },
       "@/lib/profiles": { readAllProfilesIdentity: () => [] },
       "@/lib/active-profile-id": { activeProfileId: () => "local" },
       "@/lib/secret-store": {

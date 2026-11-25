@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 // @ts-expect-error Node test types are intentionally outside the browser-only tsconfig.
 import test from "node:test";
 import ts from "typescript";
+import * as seal from "../src/lib/backup-seal.ts";
 
 type BackupModule = typeof import("../src/lib/backup");
 
@@ -21,6 +22,7 @@ function loadBackup(overrides: Record<string, unknown>): BackupModule {
     "@/lib/secret-store": empty,
     "@/lib/storage-recovery": empty,
     "@/lib/local-library": empty,
+    "@/lib/backup-seal": seal,
     ...overrides,
   };
   const source = readFileSync(new URL("../src/lib/backup.ts", import.meta.url), "utf8");
@@ -96,4 +98,99 @@ test("a file that cannot be read surfaces the failure", async () => {
   });
 
   await assert.rejects(() => backup.pickBackupFile(), /ENOENT/);
+});
+
+test("sealed entries open with their passphrase and with nothing else", async () => {
+  const sealed = await seal.sealEntries(
+    { "harbor.trakt.session.v1": "token-fixture" },
+    "correct horse",
+  );
+  assert.doesNotMatch(JSON.stringify(sealed), /token-fixture/);
+  assert.equal(seal.isSealedEntries(sealed), true);
+  assert.deepEqual(await seal.openSealedEntries(sealed, "correct horse"), {
+    "harbor.trakt.session.v1": "token-fixture",
+  });
+  await assert.rejects(seal.openSealedEntries(sealed, "wrong horse"), seal.WrongPassphraseError);
+  // One changed character in the file is caught, not restored as garbage.
+  const flipped = sealed.data[5] === "A" ? "B" : "A";
+  const tampered = { ...sealed, data: sealed.data.slice(0, 5) + flipped + sealed.data.slice(6) };
+  await assert.rejects(
+    seal.openSealedEntries(tampered, "correct horse"),
+    seal.WrongPassphraseError,
+  );
+  assert.equal(seal.isSealedEntries({ ...sealed, iterations: 1000 }), false);
+});
+
+test("a backup with sign-ins keeps them sealed, and Live TV restores without the passphrase", async () => {
+  const backup = loadBackup({});
+  const playlists = JSON.stringify([
+    { id: "m", kind: "m3u", url: "https://lists.example/one.m3u" },
+    { id: "x", kind: "xtream", xtream: { username: "u", password: "xtream-fixture" } },
+  ]);
+  const built = {
+    format: "harbor-backup",
+    version: 1,
+    app: "test",
+    exportedAt: "",
+    sections: ["settings", "sessions", "apiKeys", "iptv", "iptvCredentials"] as const,
+    data: {
+      "harbor.settings": "{}",
+      "harbor.trakt.session.v1": "token-fixture",
+      "harbor.settings-secrets.v1.shared": '{"fields":{"tmdbKey":"tmdb-fixture"}}',
+      "harbor.iptv.playlists.v1": playlists,
+    },
+  };
+  await assert.rejects(
+    backup.sealBackupCredentials({ ...built, sections: [...built.sections] }, null),
+  );
+  const file = JSON.stringify(
+    await backup.sealBackupCredentials(
+      { ...built, sections: [...built.sections] },
+      "correct horse",
+    ),
+  );
+  assert.doesNotMatch(file, /token-fixture|tmdb-fixture|xtream-fixture/);
+
+  const parsed = backup.parseBackup(file);
+  assert.ok(parsed.ok);
+  if (!parsed.ok) return;
+  assert.ok(parsed.backup.sealed);
+  // Without the passphrase: everything else, Live TV's other playlists included.
+  assert.deepEqual(Object.keys(parsed.backup.data).sort(), [
+    "harbor.iptv.playlists.v1",
+    "harbor.settings",
+  ]);
+  assert.deepEqual(
+    JSON.parse(parsed.backup.data["harbor.iptv.playlists.v1"]).map((p: { id: string }) => p.id),
+    ["m"],
+  );
+  await assert.rejects(
+    backup.openBackupCredentials(parsed.backup, "wrong horse"),
+    seal.WrongPassphraseError,
+  );
+  const opened = await backup.openBackupCredentials(parsed.backup, "correct horse");
+  assert.equal(opened.sealed, undefined);
+  assert.equal(opened.data["harbor.trakt.session.v1"], "token-fixture");
+  assert.equal(opened.data["harbor.iptv.playlists.v1"], playlists);
+});
+
+test("a backup holding only sealed sign-ins is still a backup", async () => {
+  const backup = loadBackup({});
+  const file = JSON.stringify(
+    await backup.sealBackupCredentials(
+      {
+        format: "harbor-backup",
+        version: 1,
+        app: "test",
+        exportedAt: "",
+        sections: ["sessions"],
+        data: { "harbor.trakt.session.v1": "token-fixture" },
+      },
+      "correct horse",
+    ),
+  );
+  const parsed = backup.parseBackup(file);
+  assert.ok(parsed.ok);
+  assert.equal(backup.sectionsHoldCredentials(["settings", "theme"]), false);
+  assert.equal(backup.sectionsHoldCredentials(["settings", "apiKeys"]), true);
 });

@@ -3148,6 +3148,23 @@ const uiFallback: Record<string, string> = {
     "Video downloads are managed on the Downloads page.",
   "Stop playback when you minimize Harbor to the Dock.":
     "Stop playback when you minimize Harbor to the Dock.",
+  "API keys": "API keys",
+  "The keys and tokens typed into Settings: TMDB, debrid services, subtitles and the rest.":
+    "The keys and tokens typed into Settings: TMDB, debrid services, subtitles and the rest.",
+  "Your saved Trakt, Simkl, MAL, AniList, Letterboxd, Nuvio, Last.fm and media server logins, and the Harbor account.":
+    "Your saved Trakt, Simkl, MAL, AniList, Letterboxd, Nuvio, Last.fm and media server logins, and the Harbor account.",
+  "Sign-ins and keys are sealed in the file with a passphrase. Restoring them needs the same passphrase; nothing can recover it if it is lost.":
+    "Sign-ins and keys are sealed in the file with a passphrase. Restoring them needs the same passphrase; nothing can recover it if it is lost.",
+  Passphrase: "Passphrase",
+  "Passphrase again": "Passphrase again",
+  "The two passphrases are not the same.": "The two passphrases are not the same.",
+  "Use at least {n} characters.": "Use at least {n} characters.",
+  "Its sign-ins and keys are sealed with a passphrase. Enter it to restore them too, or restore everything else without them.":
+    "Its sign-ins and keys are sealed with a passphrase. Enter it to restore them too, or restore everything else without them.",
+  "That passphrase does not open this backup's sign-ins.":
+    "That passphrase does not open this backup's sign-ins.",
+  "Restore without sign-ins": "Restore without sign-ins",
+  "Restore with sign-ins": "Restore with sign-ins",
 };
 
 export default uiFallback;

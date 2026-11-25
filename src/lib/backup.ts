@@ -12,6 +12,12 @@ import {
 } from "@/lib/secret-store";
 import { setItemWithRecovery } from "@/lib/storage-recovery";
 import { localLibraryReady, readLocalLibrary, restoreLocalLibrary } from "@/lib/local-library";
+import {
+  isSealedEntries,
+  openSealedEntries,
+  sealEntries,
+  type SealedEntries,
+} from "@/lib/backup-seal";
 
 declare const __APP_VERSION__: string;
 
@@ -298,6 +304,11 @@ export type Backup = {
    * the :8799 community sync service and it must not repeat here with higher stakes.
    */
   sync?: SyncBackup;
+  /**
+   * Sign-ins and keys, sealed with a passphrase (backup-seal.ts). `data` never
+   * holds them in a file written by this build.
+   */
+  sealed?: SealedEntries;
 };
 
 function isPortable(key: string): boolean {
@@ -332,21 +343,11 @@ export async function buildBackup(selected?: BackupSectionKey[]): Promise<Backup
   // credentials section is left out (but Live TV is exported), drop them so
   // they never leave the device.
   if (sectionSet?.has("iptv") && !sectionSet.has("iptvCredentials")) {
-    const raw = data["harbor.iptv.playlists.v1"];
+    const raw = data[PLAYLISTS_KEY];
     if (raw != null) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((p: { kind?: string }) => p?.kind !== "xtream");
-          if (filtered.length === 0) {
-            delete data["harbor.iptv.playlists.v1"];
-          } else {
-            data["harbor.iptv.playlists.v1"] = JSON.stringify(filtered);
-          }
-        }
-      } catch {
-        /* leave malformed playlists data untouched */
-      }
+      const plain = withoutXtream(raw);
+      if (plain === null) delete data[PLAYLISTS_KEY];
+      else data[PLAYLISTS_KEY] = plain;
     }
   }
   const includeBg = !sectionSet || sectionSet.has("theme");
@@ -371,8 +372,74 @@ export async function buildBackup(selected?: BackupSectionKey[]): Promise<Backup
   };
 }
 
-export async function downloadBackup(selected?: BackupSectionKey[]): Promise<boolean> {
-  const backup = await buildBackup(selected);
+const PLAYLISTS_KEY = "harbor.iptv.playlists.v1";
+
+/** The playlists without the Xtream ones; null when none are left. Malformed data is kept as it is. */
+function withoutXtream(raw: string): string | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return raw;
+    const filtered = parsed.filter((p: { kind?: string }) => p?.kind !== "xtream");
+    return filtered.length === 0 ? null : JSON.stringify(filtered);
+  } catch {
+    return raw;
+  }
+}
+
+/** Whether a backup of these sections carries sign-ins or keys, and so needs a passphrase. */
+export function sectionsHoldCredentials(sections: Iterable<BackupSectionKey>): boolean {
+  for (const key of sections) {
+    if (CREDENTIAL_SECTIONS.some((section) => section.key === key)) return true;
+  }
+  return false;
+}
+
+/**
+ * Moves the sign-ins and keys out of `data` into `sealed`. With Xtream
+ * credentials chosen, the full playlists go into `sealed` and `data` keeps the
+ * others, so Live TV still restores without the passphrase.
+ */
+export async function sealBackupCredentials(
+  backup: Backup,
+  passphrase: string | null,
+): Promise<Backup> {
+  const data = { ...backup.data };
+  const secret: Record<string, string> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (!sectionsHoldCredentials([sectionOf(key)])) continue;
+    secret[key] = value;
+    delete data[key];
+  }
+  if (backup.sections?.includes("iptvCredentials") && data[PLAYLISTS_KEY] != null) {
+    const full = data[PLAYLISTS_KEY];
+    const plain = withoutXtream(full);
+    if (plain !== full) {
+      secret[PLAYLISTS_KEY] = full;
+      if (plain === null) delete data[PLAYLISTS_KEY];
+      else data[PLAYLISTS_KEY] = plain;
+    }
+  }
+  if (Object.keys(secret).length === 0) return { ...backup, data };
+  if (!passphrase) throw new Error("A passphrase is needed to save sign-ins in a backup.");
+  return { ...backup, data, sealed: await sealEntries(secret, passphrase) };
+}
+
+/** The backup with its sealed sign-ins opened into `data`; throws `WrongPassphraseError`. */
+export async function openBackupCredentials(backup: Backup, passphrase: string): Promise<Backup> {
+  if (!backup.sealed) return backup;
+  const opened = await openSealedEntries(backup.sealed, passphrase);
+  const data: Record<string, string> = { ...backup.data };
+  for (const [key, value] of Object.entries(opened)) if (isPortable(key)) data[key] = value;
+  const { sealed: _opened, ...rest } = backup;
+  void _opened;
+  return { ...rest, data };
+}
+
+export async function downloadBackup(
+  selected?: BackupSectionKey[],
+  passphrase: string | null = null,
+): Promise<boolean> {
+  const backup = await sealBackupCredentials(await buildBackup(selected), passphrase);
   const text = JSON.stringify(backup, null, 2);
   const stamp = new Date().toISOString().slice(0, 10);
   return downloadText(`harbor-backup-${stamp}.harbx`, text, ["harbx"], "Harbor backup");
@@ -428,7 +495,8 @@ export function parseBackup(text: string): ParsedBackup {
   for (const [k, v] of Object.entries(b.data)) {
     if (typeof v === "string" && isPortable(k)) data[k] = v;
   }
-  if (Object.keys(data).length === 0) {
+  const sealed = isSealedEntries(b.sealed) ? b.sealed : undefined;
+  if (Object.keys(data).length === 0 && !sealed) {
     return { ok: false, error: "This backup contained nothing restorable." };
   }
   const sections = Array.isArray(b.sections)
@@ -451,6 +519,7 @@ export function parseBackup(text: string): ParsedBackup {
       ...(sections && sections.length > 0 ? { sections } : {}),
       ...(Object.keys(bgImages).length > 0 ? { bgImages } : {}),
       ...(typeof b.bgImage === "string" || b.bgImage === null ? { bgImage: b.bgImage } : {}),
+      ...(sealed ? { sealed } : {}),
     },
   };
 }
