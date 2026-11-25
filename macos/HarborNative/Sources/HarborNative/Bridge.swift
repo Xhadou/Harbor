@@ -24,6 +24,10 @@ final class HarborNativeController {
     private(set) var sidebar: SidebarHost!
     private(set) var trafficLights: TrafficLights!
     private var lastLayout: LayoutPayload?
+    /// The repeat of the layout report that follows a change to the sidebar, while it waits.
+    private var settledReport: DispatchWorkItem?
+    /// Longer than the sidebar's slide, so the repeat never lands in the middle of one.
+    private static let settledAfter: TimeInterval = 0.6
     private var webConnected = false
     private var sidebarConnected = false
 
@@ -116,6 +120,16 @@ final class HarborNativeController {
 
     func setSidebar(_ payload: SidebarPayload) {
         sidebar.apply(payload)
+        // The page lays itself out from the layout reports. One that is lost or overtaken
+        // on its way leaves the page laid out for a sidebar that is not there, or under
+        // one that is, until something else changes. So the state is said once more when
+        // it has settled (after a slide, and after a run of payloads at launch).
+        settledReport?.cancel()
+        let report = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated { self?.emitLayout(force: true) }
+        }
+        settledReport = report
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.settledAfter, execute: report)
         if !sidebarConnected {
             sidebarConnected = true
             NSLog(

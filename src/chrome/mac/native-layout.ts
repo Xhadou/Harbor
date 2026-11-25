@@ -152,6 +152,9 @@ export function expectSidebar(wanted: boolean, collapsed: boolean): void {
   const pageChanged = sidebarWanted !== null && sidebarWanted !== wanted;
   sidebarWanted = wanted;
   const shown = wanted && !collapsed;
+  // What was written ahead stands for the request before this one only. Left standing, it
+  // would take the report of this one for a stale report and never be corrected.
+  expected = null;
   if (!pageChanged || !lastLayout || lastLayout.sidebarVisible === shown) return;
   if (shown && shownSidebarWidth === 0) return;
   expected = { shown, until: performance.now() + EXPECTED_FOR_MS };
