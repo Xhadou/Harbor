@@ -3601,16 +3601,28 @@ html[data-theme-layout="minui"] .harbor-together-pill {
   animation: harbor-search-scrim-in 220ms ease-out both;
 }
 
+/* Held at their first frame until the overlay has been drawn once (search-overlay.tsx).
+   Named, not every element: the attribute arriving restyles whatever these match. */
+[data-search-overlay]:not([data-drawn]) .harbor-search-scrim-in,
+[data-search-overlay]:not([data-drawn]) .harbor-search-panel-in,
+[data-search-overlay]:not([data-drawn]) .harbor-search-section,
+[data-search-overlay]:not([data-drawn]) .harbor-search-cascade > section {
+  animation-play-state: paused;
+}
+
 .harbor-search-scrim-out {
   animation: harbor-search-scrim-out 150ms ease-in both;
 }
 
 /* macOS: search is typed in the native toolbar field, so results simply fade
-   in below it instead of scaling out of a web search box. On the way out the
-   panel goes first and the scrim clears behind it, each evenly; the longer of
-   the two is how long the overlay stays (MAC_EXIT_MS in search-overlay.tsx). */
-html[data-os="macos"] .harbor-search-panel-in {
-  animation: harbor-search-scrim-in 120ms ease-out both;
+   in below it instead of scaling out of a web search box. Both ways evenly: in,
+   the scrim and the panel together (a short ease-out put most of a panel full of
+   results into the first frame, which read as a cut); out, the panel goes first
+   and the scrim clears behind it, and the longer of the two is how long the
+   overlay stays (MAC_EXIT_MS in search-overlay.tsx). */
+html[data-os="macos"] .harbor-search-panel-in,
+html[data-os="macos"] .harbor-search-scrim-in {
+  animation: harbor-search-scrim-in 260ms cubic-bezier(0.4, 0, 0.6, 1) both;
 }
 
 html[data-os="macos"] .harbor-search-panel-out {

@@ -101,6 +101,23 @@ export function SearchOverlay() {
   // the overlay is taken away once they have. It leaves no fading copy besides: a copy
   // starts those fades again, so the panel went, came back whole, and went a second time.
   const { mounted, closing } = useExitPresence(open, isMacDesktop() ? MAC_EXIT_MS : 150);
+  // Opening onto results already there lays all of them out in the frame the fades start
+  // in, and that frame is long: the first one drawn was most of the way through the scrim's
+  // fade. Every fade in the overlay waits at its first frame (index.css) until the overlay
+  // has been drawn once. Set on the element, not through state: a render of the whole
+  // overlay is what made that frame long.
+  useEffect(() => {
+    const root = panelRef.current;
+    if (!mounted || !root) return;
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => root.setAttribute("data-drawn", ""));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [mounted]);
   const fullscreen = useWindowFullscreen();
   // The exit animation unmounts the panel; retain its position outside that DOM.
   const scrollKey = JSON.stringify([activeProfile?.id, query, mediaFilter, aiMode, explore]);
