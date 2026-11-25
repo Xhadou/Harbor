@@ -1,7 +1,6 @@
 import { Heart } from "lucide-react";
 import { Poster } from "@/components/poster";
 import type { AnimeCharacter } from "@/lib/providers/anime-characters";
-import { useCharacterFavorites, useIsCharacterFavorite } from "@/lib/character-favorites";
 
 function formatCount(n: number): string {
   if (n < 1000) return String(n);
@@ -17,9 +16,7 @@ export function CharacterCard({
   character: AnimeCharacter;
   onOpen?: (c: AnimeCharacter) => void;
 }) {
-  const favKey = String(character.id);
-  const isFav = useIsCharacterFavorite(favKey);
-  const { toggle } = useCharacterFavorites();
+  const seed = String(character.id);
 
   const Wrap: "button" | "div" = onOpen ? "button" : "div";
   const wrapProps = onOpen ? { onClick: () => onOpen(character), type: "button" as const } : {};
@@ -34,28 +31,10 @@ export function CharacterCard({
       >
         <Poster
           src={character.image}
-          seed={favKey}
+          seed={seed}
           ratio="portrait"
           className={`rounded-xl shadow-[0_0_0_rgba(0,0,0,0)] transition-shadow duration-300 ${onOpen ? "harbor-card-ring group-hover:shadow-[0_24px_44px_-14px_rgba(0,0,0,0.6)]" : ""}`}
         />
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            toggle({ id: favKey, name: character.name, image: character.image });
-          }}
-          aria-label={isFav ? "Unfavorite" : "Favorite"}
-          aria-pressed={isFav}
-          className="absolute end-2 top-2 rounded-full bg-canvas/70 p-1.5 backdrop-blur-md transition-colors hover:bg-canvas/85"
-        >
-          <Heart
-            size={14}
-            strokeWidth={isFav ? 0 : 1.9}
-            fill={isFav ? "currentColor" : "none"}
-            className={isFav ? "text-rose-400" : "text-ink-muted"}
-          />
-        </button>
       </div>
       <div className="flex flex-col gap-0.5">
         <p className="line-clamp-1 text-[13px] font-medium text-ink">{character.name}</p>

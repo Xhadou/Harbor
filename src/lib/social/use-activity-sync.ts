@@ -3,7 +3,6 @@ import { currentAuthor, subscribeAuthor } from "@/lib/theme-auth";
 import { useContinueWatching } from "@/lib/continue-watching";
 import { useMyRatings } from "@/lib/ratings/store";
 import { listImports, subscribeImports } from "@/lib/ratings/import/receipts";
-import { useMediaFavorites } from "@/lib/media-favorites";
 import { useMangaFavorites } from "@/lib/manga-favorites";
 import { listWatchEvents, subscribeWatchEvents } from "@/lib/watch-events";
 import { buildActivityFeed, pushActivity, sameFeed, type ActivityFeedItem } from "./activity-feed";
@@ -13,7 +12,6 @@ const DEBOUNCE_MS = 2500;
 export function useActivitySync(): void {
   const cw = useContinueWatching(undefined, 20);
   const ratings = useMyRatings();
-  const { items: favMap } = useMediaFavorites();
   const { items: mangaMap } = useMangaFavorites();
   const [imports, setImports] = useState(listImports);
   const [watchEvents, setWatchEvents] = useState(listWatchEvents);
@@ -26,12 +24,11 @@ export function useActivitySync(): void {
       buildActivityFeed({
         cw,
         ratings,
-        favorites: [...favMap.values()],
         mangaFavorites: [...mangaMap.values()],
         imports,
         watchEvents,
       }),
-    [cw, ratings, favMap, mangaMap, imports, watchEvents],
+    [cw, ratings, mangaMap, imports, watchEvents],
   );
 
   const lastRef = useRef<ActivityFeedItem[] | null>(null);

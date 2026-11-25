@@ -1,8 +1,6 @@
 import type { Meta } from "@/lib/cinemeta";
 import { toggleWatchlist, watchlistHas } from "@/lib/watchlist";
 import { requireMediaActionSuccess, setContextWatched } from "@/lib/media-context-actions";
-import { setMediaFavorite } from "@/lib/media-favorites";
-import { readActiveProfileIdentity } from "@/lib/profiles";
 import { resolveSimklTarget } from "@/lib/simkl/ids";
 import { setSimklStatus, clearSimklStatus } from "@/lib/simkl/list-status";
 import { resolveAnilistMediaId } from "@/lib/anilist/sync";
@@ -46,11 +44,6 @@ export async function runLibraryAction(cmd: LibraryActionCommand): Promise<void>
           allowSimklLibraryRemoval: true,
         }),
       );
-      return;
-    }
-    case "favorite": {
-      const pid = readActiveProfileIdentity()?.id ?? "default";
-      setMediaFavorite(pid, { id: metaId, type: metaType, name, poster }, op.on);
       return;
     }
     case "simkl": {

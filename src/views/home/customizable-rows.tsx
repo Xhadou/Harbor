@@ -53,7 +53,6 @@ const BUILT_IN_HOME_ROW_TITLES: Readonly<Record<string, string>> = {
   "anime-new": "New Anime Releases",
   "anime-popular": "Popular Anime",
   "anime-upcoming": "Upcoming Anime",
-  "harbor-favorites": "Favorites",
   "harbor-watchlist": "My Watchlist",
   "trakt-watchlist": "Your Trakt Watchlist",
   "trakt-upcoming": "Up Next on Trakt",

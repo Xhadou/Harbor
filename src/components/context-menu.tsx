@@ -45,7 +45,6 @@ import { useView } from "@/lib/view";
 import { useInWatchlist } from "@/lib/watchlist";
 import {
   dropContextTitle,
-  setContextFavorite,
   setContextWatchlist,
   setContextWatched,
   requireMediaActionSuccess,
@@ -53,7 +52,6 @@ import {
 import { useContextWatchedState } from "@/lib/context-watched-state";
 import { setMovieWatchedWithConfirmation } from "@/lib/movie-watched-action";
 import { useTmdbImdbId } from "@/lib/providers/tmdb";
-import { useIsFavorite } from "@/lib/media-favorites";
 import { MyListSubmenu } from "./context-menu/my-list-submenu";
 import { useSettings } from "@/lib/settings";
 import { isMacDesktop } from "@/lib/platform";
@@ -342,7 +340,6 @@ export function ContextMenu() {
       : null,
   );
   const isWatchlisted = useInWatchlist(targetMetaId, [targetImdb]);
-  const isFav = useIsFavorite(targetMetaId);
   const { settings: appSettings, update: updateSettings } = useSettings();
   const navEditing = useNavEditMode();
   const commitNav = (next: typeof appSettings.navCustomization) =>
@@ -716,31 +713,6 @@ export function ContextMenu() {
           label={isWatchlisted ? t("Remove from watchlist") : t("Add to watchlist")}
           onClick={handleWatchlist}
           accent={isWatchlisted}
-        />,
-      );
-    if (organizedMedia)
-      items.push(
-        <Item
-          key="favorite"
-          icon={<Heart size={14} strokeWidth={2} fill={isFav ? "currentColor" : "none"} />}
-          label={isFav ? t("Remove from favorites") : t("Add to favorites")}
-          onClick={async () => {
-            requireMediaActionSuccess(
-              await setContextFavorite(
-                {
-                  id: meta.id,
-                  type: meta.type,
-                  name: meta.name,
-                  poster: meta.poster,
-                  addonOrigin: meta.addonOrigin,
-                  videos: meta.videos,
-                },
-                !isFav,
-              ),
-            );
-            close();
-          }}
-          accent={isFav}
         />,
       );
     if (organizedMedia || state.target.membership)

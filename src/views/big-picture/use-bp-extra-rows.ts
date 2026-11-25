@@ -12,7 +12,7 @@ import { buildLetterboxdHomeRows } from "@/lib/stremboxd/home-rails";
 import { useLetterboxd } from "@/lib/stremboxd/provider";
 import { useCustomLists } from "@/lib/custom-lists";
 import { useCollectionRowsForPage } from "@/lib/page-collection-rows";
-import { useMediaFavorites, type MediaEntry } from "@/lib/media-favorites";
+import type { MediaEntry } from "@/lib/media-list-store";
 import { useLocalWatchlist } from "@/lib/local-watchlist";
 import { usePinnedRows } from "@/views/home/hooks/use-pinned-rows";
 import { useSettings } from "@/lib/settings";
@@ -119,7 +119,6 @@ export function useBpExtraRows(): BpExtraRows {
     ],
   );
 
-  const { items: favItems } = useMediaFavorites();
   const { items: localItems } = useLocalWatchlist();
   const personalRows = useMemo<HomeRow[]>(() => {
     const toMetas = (m: Map<string, MediaEntry>): Meta[] =>
@@ -127,11 +126,10 @@ export function useBpExtraRows(): BpExtraRows {
         .sort((a, b) => b.addedAt - a.addedAt)
         .map((e) => ({ id: e.id, type: e.type, name: e.name, poster: e.poster }));
     const out: HomeRow[] = [];
-    if (favItems.size > 0) out.push(listRow("harbor-favorites", "Favorites", toMetas(favItems)));
     if (localItems.size > 0)
       out.push(listRow("harbor-watchlist", "My Watchlist", toMetas(localItems)));
     return out;
-  }, [favItems, localItems]);
+  }, [localItems]);
 
   const customLists = useCustomLists();
   const listHomeRows = useMemo<HomeRow[]>(() => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bookmark, Clock, FolderOpen, Server, Star, WifiOff } from "lucide-react";
+import { Bookmark, Clock, FolderOpen, Server, WifiOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { Meta } from "@/lib/cinemeta";
 import { Poster, usePosterChain } from "@/components/poster";
@@ -9,14 +9,13 @@ import type { RemoteLibraryItem } from "@/lib/remote/protocol";
 import { useMobileRemote } from "./mobile-remote";
 import { MobileDetail } from "./mobile-detail";
 
-type SectionId = "watchlist" | "history" | "favorites" | "local" | "mediaServers";
+type SectionId = "watchlist" | "history" | "local" | "mediaServers";
 type Entry = { meta: Meta; date: number };
 type SectionState = { entries: Entry[]; loading: boolean };
 
 const SECTIONS: Array<{ id: SectionId; label: string; icon: LucideIcon }> = [
   { id: "watchlist", label: "Watchlist", icon: Bookmark },
   { id: "history", label: "History", icon: Clock },
-  { id: "favorites", label: "Favorites", icon: Star },
   { id: "local", label: "Local Library", icon: FolderOpen },
   { id: "mediaServers", label: "Media Servers", icon: Server },
 ];
@@ -31,11 +30,6 @@ const EMPTY: Record<SectionId, { icon: LucideIcon; title: string; body: string }
     icon: Clock,
     title: "Nothing watched yet",
     body: "Press play on something. It shows up here once you start watching.",
-  },
-  favorites: {
-    icon: Star,
-    title: "No favorites yet",
-    body: "Tap the star on any movie or show to keep it close.",
   },
   local: {
     icon: FolderOpen,
@@ -65,14 +59,7 @@ const VIEW_SWAP_CSS = `
 function readSavedTab(): SectionId {
   try {
     const v = localStorage.getItem(TAB_KEY);
-    if (
-      v === "watchlist" ||
-      v === "history" ||
-      v === "favorites" ||
-      v === "local" ||
-      v === "mediaServers"
-    )
-      return v;
+    if (v === "watchlist" || v === "history" || v === "local" || v === "mediaServers") return v;
   } catch {}
   return "watchlist";
 }
@@ -275,7 +262,6 @@ function useLibraryData(): { data: Record<SectionId, SectionState>; connected: b
       data: {
         watchlist: { entries: toEntries(lib?.watchlist), loading },
         history: { entries: toEntries(lib?.history), loading },
-        favorites: { entries: toEntries(lib?.favorites), loading },
         local: { entries: toEntries(lib?.local), loading },
         mediaServers: { entries: toEntries(lib?.mediaServers), loading },
       },

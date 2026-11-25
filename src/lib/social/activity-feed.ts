@@ -1,7 +1,6 @@
 import { socialPost } from "./client";
 import type { MyRating } from "@/lib/ratings/types";
 import type { CwCard } from "@/lib/continue-watching";
-import type { MediaEntry } from "@/lib/media-list-store";
 import type { MangaFavEntry } from "@/lib/manga-favorites";
 import type { WatchEvent } from "@/lib/watch-events";
 
@@ -29,7 +28,6 @@ function withAnime(id: string, type: "movie" | "series"): "movie" | "series" | "
 export function buildActivityFeed(input: {
   cw: CwCard[];
   ratings: MyRating[];
-  favorites: MediaEntry[];
   mangaFavorites: MangaFavEntry[];
   imports?: ImportReceipt[];
   watchEvents?: WatchEvent[];
@@ -87,16 +85,6 @@ export function buildActivityFeed(input: {
       subtitle: String(imp.count),
       at: imp.finishedAt,
       rating: imp.count,
-    });
-  }
-  for (const f of input.favorites) {
-    items.push({
-      kind: "favorited",
-      metaId: f.id,
-      mediaType: withAnime(f.id, f.type),
-      title: f.name,
-      poster: f.poster,
-      at: f.addedAt,
     });
   }
   for (const m of input.mangaFavorites) {

@@ -8,7 +8,6 @@ export type BpLibTab =
   | "local"
   | "media-servers"
   | "lists"
-  | "favorites"
   | "trakt"
   | "anilist"
   | "mal"
@@ -36,7 +35,6 @@ export type BpLibFeed = {
   status: BpLibStatus;
   groups: BpLibGroup[];
   libraries?: BpLibGroup[];
-  hidden?: number;
 };
 
 export type BpLibSection = { label: string; items: BpLibEntry[]; total: number };

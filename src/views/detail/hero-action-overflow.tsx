@@ -70,8 +70,6 @@ export function useHeroActionOverflow(rowRef: RefObject<HTMLDivElement | null>, 
 
 export function HeroActionOverflow({
   meta,
-  isFav,
-  onToggleFavorite,
   hasTrailer,
   onTrailer,
   canDownload,
@@ -92,8 +90,6 @@ export function HeroActionOverflow({
   reminder = null,
 }: {
   meta: Meta;
-  isFav: boolean;
-  onToggleFavorite: () => void;
   hasTrailer: boolean;
   onTrailer: () => void;
   canDownload: boolean;
@@ -197,9 +193,6 @@ export function HeroActionOverflow({
           }
         >
           <MoreHorizontal size={mac ? 16 : 20} strokeWidth={1.9} />
-          {isFav && !mac && (
-            <span className="absolute end-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-accent" />
-          )}
         </button>
       </HoverTooltip>
       {menu &&
@@ -242,21 +235,6 @@ export function HeroActionOverflow({
                 }}
               />
             )}
-            <Item
-              icon={
-                isFav ? (
-                  <UiIcon name="unfavorite" className="h-3.5 w-3.5" />
-                ) : (
-                  <UiIcon name="favorite" className="h-3.5 w-3.5" />
-                )
-              }
-              label={isFav ? t("Favorited") : t("Favorite")}
-              active={isFav}
-              onClick={() => {
-                onToggleFavorite();
-                setMenu(null);
-              }}
-            />
             {listItem && (
               <Item
                 icon={<UiIcon name="list" className="h-3.5 w-3.5" />}

@@ -123,18 +123,14 @@ function ActionsSheet({
   const isAnime = /^(kitsu|mal|anilist|anidb):/.test(meta.id);
   const isSeriesLike = meta.type === "series" || detail?.kind === "tv";
 
-  const favBase = inList(library?.favorites, meta.id, imdbId);
   const watchlistBase = inList(library?.watchlist, meta.id, imdbId);
   const historyBase = inList(library?.history, meta.id, imdbId);
 
-  const [favOpt, setFavOpt] = useState<boolean | null>(null);
   const [watchlistOpt, setWatchlistOpt] = useState<boolean | null>(null);
   const [historyOpt, setHistoryOpt] = useState<boolean | null>(null);
-  useEffect(() => setFavOpt(null), [favBase]);
   useEffect(() => setWatchlistOpt(null), [watchlistBase]);
   useEffect(() => setHistoryOpt(null), [historyBase]);
 
-  const isFav = favOpt ?? favBase;
   const inWatchlist = watchlistOpt ?? watchlistBase;
   const isWatched = historyOpt ?? historyBase;
 
@@ -199,21 +195,6 @@ function ActionsSheet({
 
         <Group label={t("Your library")}>
           <SheetRow
-            icon={<HeartIcon filled={isFav} />}
-            label={t("Favorites")}
-            sublabel={isFav ? t("Saved to your favorites") : t("Save to your favorites")}
-            active={isFav}
-            disabled={!online}
-            trailing={
-              isFav ? <Check size={18} strokeWidth={2.6} className="text-accent" /> : undefined
-            }
-            onClick={() => {
-              const next = !isFav;
-              setFavOpt(next);
-              send({ kind: "favorite", on: next });
-            }}
-          />
-          <SheetRow
             icon={
               <Bookmark size={20} strokeWidth={2} fill={inWatchlist ? "currentColor" : "none"} />
             }
@@ -270,21 +251,4 @@ function ActionsSheet({
     </div>
   );
   return typeof document !== "undefined" ? createPortal(sheet, document.body) : sheet;
-}
-
-function HeartIcon({ filled }: { filled: boolean }) {
-  return (
-    <svg
-      width={20}
-      height={20}
-      viewBox="0 0 24 24"
-      fill={filled ? "currentColor" : "none"}
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-    </svg>
-  );
 }

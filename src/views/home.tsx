@@ -112,7 +112,7 @@ import { useAnilist } from "@/lib/anilist/provider";
 import { loadAnilistWatchedMap } from "@/lib/anilist/watched-map";
 import { useLetterboxd } from "@/lib/stremboxd/provider";
 import { buildLetterboxdHomeRows } from "@/lib/stremboxd/home-rails";
-import { useMediaFavorites, type MediaEntry } from "@/lib/media-favorites";
+import type { MediaEntry } from "@/lib/media-list-store";
 import { useLocalWatchlist } from "@/lib/local-watchlist";
 import { useScrollMemory, useHomeResetTick } from "@/lib/view";
 import { CustomizableRows } from "./home/customizable-rows";
@@ -979,7 +979,6 @@ export function Home({
     [authKey, isNuvioProvider],
   );
 
-  const { items: favItems } = useMediaFavorites();
   const { items: localItems } = useLocalWatchlist();
   const personalRows = useMemo<HomeRow[]>(() => {
     const toMetas = (m: Map<string, MediaEntry>): Meta[] =>
@@ -994,17 +993,6 @@ export function Home({
           videos: e.videos,
         }));
     const out: HomeRow[] = [];
-    if (favItems.size > 0) {
-      out.push({
-        key: "harbor-favorites",
-        type: "movie",
-        name: "Favorites",
-        metas: toMetas(favItems),
-        page: 1,
-        hasMore: false,
-        noDedup: true,
-      });
-    }
     if (localItems.size > 0) {
       out.push({
         key: "harbor-watchlist",
@@ -1017,7 +1005,7 @@ export function Home({
       });
     }
     return out;
-  }, [favItems, localItems]);
+  }, [localItems]);
 
   const heroSourceRow = useMemo<HomeRow | null>(() => {
     const key = settings.homeRows.heroSource;
@@ -1207,15 +1195,19 @@ export function Home({
     }));
   }, [homeRowsCustom.customSources]);
 
+  const homeCollections = useCollectionRowsForPage("home");
+  // Lists are collections now, and a collection can be put on Home from either
+  // side; one already shown as a collection row is not shown again.
   const customLists = useCustomLists();
   const listHomeRows = useMemo<HomeRow[]>(() => {
     const ids = homeRowsCustom.listRows ?? [];
     if (ids.length === 0) return [];
     const byId = new Map(customLists.map((l) => [l.id, l]));
+    const onHome = new Set(homeCollections.map((c) => c.id));
     const out: HomeRow[] = [];
     for (const id of ids) {
       const l = byId.get(id);
-      if (!l || l.items.length === 0) continue;
+      if (!l || l.items.length === 0 || onHome.has(id)) continue;
       out.push({
         key: `list-${l.id}`,
         type: "movie",
@@ -1232,16 +1224,20 @@ export function Home({
       });
     }
     return out;
-  }, [customLists, homeRowsCustom.listRows]);
+  }, [customLists, homeRowsCustom.listRows, homeCollections]);
   const availableListRows = useMemo(
     () =>
       customLists
-        .filter((l) => l.items.length > 0 && !(homeRowsCustom.listRows ?? []).includes(l.id))
+        .filter(
+          (l) =>
+            l.items.length > 0 &&
+            !(homeRowsCustom.listRows ?? []).includes(l.id) &&
+            !homeCollections.some((c) => c.id === l.id),
+        )
         .map((l) => ({ id: l.id, name: l.name })),
-    [customLists, homeRowsCustom.listRows],
+    [customLists, homeRowsCustom.listRows, homeCollections],
   );
 
-  const homeCollections = useCollectionRowsForPage("home");
   const collectionHomeRows = useMemo<HomeRow[]>(
     () =>
       homeCollections

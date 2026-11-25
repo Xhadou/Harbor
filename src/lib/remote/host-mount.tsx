@@ -21,7 +21,6 @@ import { mediaServerItems } from "@/lib/media-server/index-store";
 import { groupMediaServerTitles } from "@/lib/media-server/selectors";
 import { subscribeMediaServerSyncProgress } from "@/lib/media-server/sync";
 import { hydrateLibraryMeta } from "@/views/library/hydrate-meta";
-import { useMediaFavorites } from "@/lib/media-favorites";
 import { useSimkl } from "@/lib/simkl/provider";
 import { useAnilist } from "@/lib/anilist/provider";
 import { useMal } from "@/lib/mal/provider";
@@ -245,18 +244,6 @@ function useLocalWatchlist(): LocalEntry[] {
   return entries;
 }
 
-function useFavoriteItems(): RemoteLibraryItem[] {
-  const { items } = useMediaFavorites();
-  return useMemo(
-    () =>
-      [...items.values()]
-        .sort((a, b) => b.addedAt - a.addedAt)
-        .slice(0, LIBRARY_CAP)
-        .map((e) => ({ id: e.id, type: e.type, name: e.name, poster: e.poster })),
-    [items],
-  );
-}
-
 function useRemoteLocalLibrary(tmdbKey: string, localeKey: string): RemoteLibraryItem[] {
   const files = useLocalLibrary();
   const [items, setItems] = useState<RemoteLibraryItem[]>([]);
@@ -379,7 +366,6 @@ function useHostLibrary(
   const stremio = useStremioLibrary(enabled);
   const trakt = useTraktData(enabled);
   const local = useLocalWatchlist();
-  const favorites = useFavoriteItems();
   const localLibrary = useRemoteLocalLibrary(tmdbKey, localeKey);
   const mediaServers = useRemoteMediaServers(enabled, tmdbKey, localeKey);
   return useMemo(() => {
@@ -389,7 +375,6 @@ function useHostLibrary(
     return {
       watchlist: mergeWatchlist(local, bookmarks, trakt.watchlist),
       history: mergeHistory(watched, trakt.history),
-      favorites,
       local: localLibrary,
       mediaServers,
     };
@@ -400,7 +385,6 @@ function useHostLibrary(
     trakt.watchlist,
     trakt.history,
     local,
-    favorites,
     localLibrary,
     mediaServers,
   ]);

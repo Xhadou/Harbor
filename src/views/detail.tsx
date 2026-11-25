@@ -124,7 +124,6 @@ import {
   optimisticMovieWatchedState,
   setMovieWatchedWithConfirmation,
 } from "@/lib/movie-watched-action";
-import { useIsFavorite, useMediaFavorites } from "@/lib/media-favorites";
 import { openUrl } from "@/lib/window";
 import { profileFromDetail, trackEvent } from "@/lib/discover";
 import { MOVIE_GENRES, TV_GENRES } from "@/lib/feed/tags";
@@ -444,8 +443,6 @@ export function DetailView({
   const inWatchlist = useInWatchlist(meta.id, [detail?.imdbId]);
   const inLocalLibrary = useInLocalLibrary(meta.id, [detail?.imdbId]);
   const titleHomeServers = useTitleMediaServers(meta.id, detail?.imdbId);
-  const { toggle: toggleFavorite } = useMediaFavorites();
-  const isFav = useIsFavorite(meta.id, [detail?.imdbId]);
   const inSession = roomSnapshot.state === "joined" && roomSnapshot.participants.length >= 2;
   // macOS opens a title page at its top unless the switch says otherwise, but a
   // page gone back to still returns to where it was left.
@@ -2901,15 +2898,6 @@ export function DetailView({
                     <HeroActionOverflow
                       layout="mac"
                       meta={meta}
-                      isFav={isFav}
-                      onToggleFavorite={() =>
-                        toggleFavorite({
-                          id: meta.id,
-                          type: meta.type,
-                          name: title || meta.name,
-                          poster: poster,
-                        })
-                      }
                       hasTrailer={false}
                       onTrailer={() => setTrailerOpen(true)}
                       canDownload={meta.type === "movie"}
@@ -3043,15 +3031,6 @@ export function DetailView({
                     {actionStage >= 1 ? (
                       <HeroActionOverflow
                         meta={meta}
-                        isFav={isFav}
-                        onToggleFavorite={() =>
-                          toggleFavorite({
-                            id: meta.id,
-                            type: meta.type,
-                            name: title || meta.name,
-                            poster: poster,
-                          })
-                        }
                         hasTrailer={!!trailerCandidate}
                         onTrailer={() => setTrailerOpen(true)}
                         canDownload={meta.type === "movie"}
@@ -3095,35 +3074,6 @@ export function DetailView({
                       />
                     ) : (
                       <>
-                        <HoverTooltip
-                          label={isFav ? t("Favorited") : t("Add to favorites")}
-                          align="center"
-                          className="shrink-0"
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              toggleFavorite({
-                                id: meta.id,
-                                type: meta.type,
-                                name: title || meta.name,
-                                poster: poster,
-                              })
-                            }
-                            aria-label={isFav ? t("Remove from favorites") : t("Add to favorites")}
-                            className={`group flex h-12 w-12 items-center justify-center rounded-full transition-[transform,background-color] duration-200 active:scale-[0.94] ${
-                              isFav
-                                ? "bg-accent/20 text-accent hover:bg-accent/22"
-                                : "bg-canvas/80 text-ink hover:bg-canvas/95"
-                            }`}
-                          >
-                            <PopIcon
-                              active={isFav}
-                              activeIcon={<UiIcon name="unfavorite" className="h-5 w-5" />}
-                              inactiveIcon={<UiIcon name="favorite" className="h-5 w-5" />}
-                            />
-                          </button>
-                        </HoverTooltip>
                         <HoverTooltip
                           label={t("Add to list")}
                           align="center"

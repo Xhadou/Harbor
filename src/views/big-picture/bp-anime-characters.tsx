@@ -1,8 +1,6 @@
-import { Heart, User } from "lucide-react";
-import { useCharacterFavorites } from "@/lib/character-favorites";
+import { User } from "lucide-react";
 import type { AnimeCharacter } from "@/lib/providers/anime-characters";
 import { useProxiedImageSrc } from "@/lib/remote-image-proxy";
-import { SFX } from "@/lib/sfx";
 import { useAnimeCharacters } from "@/views/detail/use-anime-characters";
 import { bpBoxCss, bpBoxPx, bpCardArt, type BpArtBox } from "./bp-art";
 import { BpArt } from "./bp-art-img";
@@ -20,19 +18,10 @@ function formatCount(n: number): string {
   }).format(n);
 }
 
-// The desktop card is a plain div with a separate heart button inside it. A
-// nested button would be a second focusable in one cell and a second thing for
-// the rail to step through, so here the cell itself is the toggle: there is no
-// character page to open, and favouriting is the only action the data supports.
-function BpCharacterCell({
-  character,
-  favorite,
-  onToggle,
-}: {
-  character: AnimeCharacter;
-  favorite: boolean;
-  onToggle: () => void;
-}) {
+// There is no character page to open, so the cell has no action. It stays
+// focusable, like a cast cell without a person page, so the rail can step
+// through it.
+function BpCharacterCell({ character }: { character: AnimeCharacter }) {
   const src = useProxiedImageSrc(bpCardArt(character.image, bpBoxPx(BOX)));
   // Raw, like the desktop card. character.role is provider data, not a UI string,
   // and putting runtime values through t() is a key-collision surface: AniList
@@ -50,12 +39,7 @@ function BpCharacterCell({
       data-bp-focusable
       data-bp-tile
       data-bp-restore-key={`bp-character:${character.id}`}
-      aria-pressed={favorite}
       aria-label={role ? `${character.name}, ${role}` : character.name}
-      onClick={() => {
-        SFX.click();
-        onToggle();
-      }}
       className="group flex shrink-0 flex-col overflow-hidden rounded-[var(--bp-r-md)] bg-[var(--bp-panel)] text-start transition-[transform,box-shadow] duration-[var(--bp-dur)] ease-[var(--bp-ease)]"
       style={{ width: CELL_W }}
     >
@@ -68,22 +52,6 @@ function BpCharacterCell({
         ) : (
           <User size={26} className="text-ink-subtle" strokeWidth={1.7} />
         )}
-        {/* State is always on screen, the affordance only when the ring is here.
-            Favourited is the one saturated fill on this card, and it earns it by
-            being the thing pressing Enter does. */}
-        <span
-          className={`absolute end-[7px] top-[7px] flex h-[34px] w-[34px] items-center justify-center rounded-full transition-opacity duration-[var(--bp-dur-fast)] motion-reduce:transition-none ${
-            favorite
-              ? "bg-[var(--bp-on)] text-ink"
-              : "bg-[var(--bp-void)]/92 text-ink-muted opacity-0 group-data-[bp-focus=true]:opacity-100"
-          }`}
-        >
-          <Heart
-            size={17}
-            fill={favorite ? "currentColor" : "none"}
-            strokeWidth={favorite ? 0 : 2}
-          />
-        </span>
       </span>
       <span className="flex w-full flex-col gap-0.5 p-[clamp(9px,0.9vw,15px)]">
         <span className="line-clamp-1 w-full text-[clamp(17px,2.4vh,22px)] font-semibold leading-tight text-ink">
@@ -113,7 +81,6 @@ function BpCharacterCell({
 export function BpAnimeCharactersRow({ anime }: { anime: BpAnimeDetail }) {
   const t = useBpT();
   const characters = useAnimeCharacters(anime.canonicalId, anime.isAnime);
-  const { has, toggle } = useCharacterFavorites();
 
   if (characters.length === 0) return null;
 
@@ -122,12 +89,7 @@ export function BpAnimeCharactersRow({ anime }: { anime: BpAnimeDetail }) {
       <h2 className={BP_DETAIL_HEADING}>{t("Characters")}</h2>
       <div data-bp-scroll-x className={BP_DETAIL_TRACK}>
         {characters.map((c) => (
-          <BpCharacterCell
-            key={c.id}
-            character={c}
-            favorite={has(String(c.id))}
-            onToggle={() => toggle({ id: String(c.id), name: c.name, image: c.image })}
-          />
+          <BpCharacterCell key={c.id} character={c} />
         ))}
       </div>
     </section>

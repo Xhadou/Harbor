@@ -11,14 +11,12 @@ import { TrackerProfileBridge } from "@/lib/tracker-profile-bridge";
 import { AnilistProvider } from "@/lib/anilist/provider";
 import { AuthProvider } from "@/lib/auth";
 import { enterBigPicture, useBigPicture } from "@/lib/big-picture";
-import { CharacterFavoritesProvider } from "@/lib/character-favorites";
 import { ContextMenuProvider } from "@/lib/context-menu";
 import { DvrProvider } from "@/lib/dvr/provider";
 import { FavoritesProvider } from "@/lib/iptv/favorites";
 import { LocalWatchlistProvider } from "@/lib/local-watchlist";
 import { MalProvider } from "@/lib/mal/provider";
 import { MangaFavoritesProvider } from "@/lib/manga-favorites";
-import { MediaFavoritesProvider } from "@/lib/media-favorites";
 import { OnboardingProvider } from "@/lib/onboarding";
 import { ParentalProvider } from "@/lib/parental";
 import { ProfilesProvider } from "@/lib/profiles";
@@ -75,8 +73,6 @@ const BP_TV_PROVIDERS: BpTvProvider[] = [
   SearchProvider,
   DvrProvider,
   FavoritesProvider,
-  MediaFavoritesProvider,
-  CharacterFavoritesProvider,
   MangaFavoritesProvider,
   LocalWatchlistProvider,
   ContextMenuProvider,

@@ -104,9 +104,8 @@ function emptyCopy(params: {
   status: BpLibStatus;
   signedIn: boolean;
   total: number;
-  hidden: number;
 }): string {
-  const { t, tab, status, signedIn, total, hidden } = params;
+  const { t, tab, status, signedIn, total } = params;
   if (status === "error") {
     const name = SERVICE_NAMES[tab];
     return name
@@ -127,13 +126,6 @@ function emptyCopy(params: {
   }
   if (tab === "local") return t("No files from your computer yet. Add a folder in Settings.");
   if (tab === "lists") return t("You have no lists yet.");
-  if (tab === "favorites") {
-    return hidden > 0
-      ? t("Your {n} character and manga favorites live on the desktop Favorites tab.", {
-          n: hidden,
-        })
-      : t("No favorites yet. Save a movie or show to see it here.");
-  }
   return t("Nothing here yet.");
 }
 
@@ -472,7 +464,6 @@ export function BpLibrary({ onSelect }: { onSelect: (m: Meta) => void }) {
                 status: feed.status,
                 signedIn: feed.signedIn,
                 total: scoped.length,
-                hidden: feed.hidden ?? 0,
               })}
             </p>
           </div>

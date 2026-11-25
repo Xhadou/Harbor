@@ -190,7 +190,6 @@ async function fixture({
       },
     },
     "@/lib/providers/tmdb": { useTmdbImdbId: empty },
-    "@/lib/media-favorites": { useIsFavorite: () => false },
     "@/lib/title-backdrop": {},
     "./context-menu/my-list-submenu": { MyListSubmenu: childrenOnly },
     "./context-menu/use-manual-download": {

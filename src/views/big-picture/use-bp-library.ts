@@ -37,9 +37,6 @@ import {
   type LocalEntry as SavedEntry,
 } from "@/lib/watchlist";
 import { useCustomLists } from "@/lib/custom-lists";
-import { useMediaFavorites } from "@/lib/media-favorites";
-import { useCharacterFavorites } from "@/lib/character-favorites";
-import { useMangaFavorites } from "@/lib/manga-favorites";
 import { parseTs, sortedGroups, type SortKey } from "@/views/library/shared";
 import { filterLibrary, mergeWatchlist } from "@/views/library/watchlist-tab";
 import { filterHistory, historyItemsToDated, mergeHistory } from "@/views/library/history-merge";
@@ -60,7 +57,6 @@ const CORE_TABS: Array<{ id: BpLibTab; label: string }> = [
   { id: "local", label: "Local" },
   { id: "media-servers", label: "Media Servers" },
   { id: "lists", label: "My Lists" },
-  { id: "favorites", label: "Favorites" },
 ];
 
 export function useBpLibraryTabs(): Array<{ id: BpLibTab; label: string }> {
@@ -319,9 +315,6 @@ export function useBpLibraryFeed(
   const saved = useSavedEntries();
   const files = useLocalLibrary();
   const lists = useCustomLists();
-  const favorites = useMediaFavorites();
-  const characters = useCharacterFavorites();
-  const manga = useMangaFavorites();
   const service = useBpServiceFeed(tab, reload);
   const mediaServers = useMediaServerEntries(reload);
 
@@ -385,19 +378,6 @@ export function useBpLibraryFeed(
       };
     }
 
-    if (tab === "favorites") {
-      return {
-        entries: [...favorites.items.values()].map((e) => ({
-          key: e.id,
-          meta: { id: e.id, type: e.type, name: e.name, poster: e.poster },
-          date: e.addedAt || null,
-        })),
-        status: "ready",
-        groups: [],
-        hidden: characters.items.size + manga.items.size,
-      };
-    }
-
     if (tab === "trakt") {
       const entries: BpLibEntry[] = [];
       for (const item of trakt.watchlist) {
@@ -430,9 +410,6 @@ export function useBpLibraryFeed(
     saved,
     files,
     lists,
-    favorites,
-    characters,
-    manga,
     service,
     mediaServers,
     trakt.watchlist,

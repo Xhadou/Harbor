@@ -14,7 +14,6 @@ import {
   clearWatchlistAggregate,
   type WatchlistInput,
 } from "./watchlist";
-import { setMediaFavoriteSafely, type MediaInput } from "./media-favorites";
 import { setMovieWatchedLocalAcknowledged } from "./movie-watched";
 import { setWatchedFlagAcknowledged } from "./watched-flag";
 import { setManualWatchedManyAcknowledged, recordManualWatchedMeta } from "./manual-watched";
@@ -276,22 +275,6 @@ export async function setContextWatchlist(
     }
   }
   return result;
-}
-
-export async function setContextFavorite(
-  input: MediaInput,
-  on: boolean,
-): Promise<MediaActionResult> {
-  const { profile, assertCurrent } = captureAction();
-  return perform(
-    `favorite:${input.id}`,
-    () => {
-      const saved = setMediaFavoriteSafely(profile, input, on);
-      if (saved.status === "error") throw new Error(saved.reason);
-    },
-    [],
-    assertCurrent,
-  );
 }
 
 export async function setContextWatched(

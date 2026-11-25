@@ -126,7 +126,6 @@ function harness() {
     "@/lib/watchlist": { useInWatchlist: () => false },
     "@/lib/media-context-actions": {
       setContextWatchlist: empty,
-      setContextFavorite: empty,
       setContextWatched: empty,
       requireMediaActionSuccess: empty,
     },
@@ -146,7 +145,6 @@ function harness() {
       DropShowConfirmModal: () => null,
     },
     "@/lib/providers/tmdb": { useTmdbImdbId: () => undefined },
-    "@/lib/media-favorites": { useIsFavorite: () => false },
     "@/lib/title-backdrop": { getTitleBackdrop: () => undefined },
     "./context-menu/my-list-submenu": {
       MyListSubmenu: ({ children }: any) => (
@@ -372,13 +370,7 @@ test("rendered movie menu has no toolbar, image/sharing/waiting tools, or orphan
       kind: "meta",
       meta: { id: "fixture", type: "movie", name: "Movie", poster: "fixture.png" },
     });
-    assert.deepEqual(h.labels(), [
-      "View details",
-      "Download",
-      "Add to watchlist",
-      "Add to favorites",
-      "Add to list",
-    ]);
+    assert.deepEqual(h.labels(), ["View details", "Download", "Add to watchlist", "Add to list"]);
     assert.equal(document.querySelector('[role="separator"]') === null, true);
     assert.equal(document.querySelector("[data-context-quick]") === null, true);
     assert.equal(h.reads, 0);

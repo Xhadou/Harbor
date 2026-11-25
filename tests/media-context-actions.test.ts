@@ -66,12 +66,6 @@ function harness() {
       setLocalWatchlistAcknowledged: step("local-watchlist"),
       clearWatchlistAggregate: step("aggregate"),
     },
-    "./media-favorites": {
-      setMediaFavoriteSafely: () => ({
-        status: failures.has("favorite") ? "error" : "added",
-        reason: "storage-failed",
-      }),
-    },
     "./movie-watched": { setMovieWatchedLocalAcknowledged: step("local-movie") },
     "./watched-flag": { setWatchedFlagAcknowledged: step("flag") },
     "./manual-watched": {
@@ -337,13 +331,6 @@ test("conflicting absolute numbers never produce a guessed bulk watched change",
     /conflicting absolute/,
   );
   assert.deepEqual(h.calls, []);
-});
-
-test("favorite reports rejected local persistence", async () => {
-  const h = harness();
-  h.failures.add("favorite");
-  const result = await h.actions.setContextFavorite(movie, true);
-  assert.equal(result.outcomes[0]?.status, "failed");
 });
 
 test("an explicit multi-episode selection never sets the whole-series flag", async () => {

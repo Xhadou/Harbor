@@ -4,7 +4,6 @@ import {
   Bell,
   Check,
   Film,
-  Heart,
   Layers,
   ListVideo,
   Plus,
@@ -19,7 +18,6 @@ import { activeDownloadFor, cancelDownload, useDownloads } from "@/lib/download/
 import type { LibraryItem } from "@/lib/stremio";
 import { useSettings } from "@/lib/settings";
 import { useInWatchlist, toggleWatchlist } from "@/lib/watchlist";
-import { useIsFavorite, useMediaFavorites } from "@/lib/media-favorites";
 import { setMovieWatchedWithConfirmation } from "@/lib/movie-watched-action";
 import { requireMediaActionSuccess, type MediaActionResult } from "@/lib/media-context-actions";
 import { emitListToast } from "@/components/lists/list-toast";
@@ -66,8 +64,6 @@ export function useBpDetailActions(params: {
   const { meta, title, poster, imdbId, isSeries, trailerYtId, libraryItem, trackers } = params;
   const t = useBpT();
   const { settings } = useSettings();
-  const { toggle: toggleFavorite } = useMediaFavorites();
-  const isFav = useIsFavorite(meta.id, [imdbId]);
   const saved = useInWatchlist(meta.id, [imdbId]);
   const reminder = useReminder(isSeries ? meta.id : undefined);
   const rating = useRating(meta.id);
@@ -131,15 +127,6 @@ export function useBpDetailActions(params: {
       },
     });
   }
-
-  out.push({
-    key: "favorite",
-    label: isFav ? t("Favorited") : t("Add to favorites"),
-    icon: Heart,
-    filled: isFav,
-    active: isFav,
-    onPress: () => toggleFavorite(seed),
-  });
 
   if (isSeries) {
     const on = !!reminder;

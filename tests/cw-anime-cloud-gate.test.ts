@@ -183,7 +183,7 @@ test("grouped dismissals delegate to per-source cleanup while single-item behavi
   assert.match(dismiss, /clearLocalCw\(id, options\)/);
 
   const homeDismiss = home.match(
-    /const onDismissCw = useCallback\([\s\S]*?const \{ items: favItems \}/,
+    /const onDismissCw = useCallback\([\s\S]*?const \{ items: localItems \}/,
   )?.[0];
   assert.ok(homeDismiss, "home onDismissCw must exist");
   const homeGroupGuard = homeDismiss.indexOf("item.cwMembers?.length");

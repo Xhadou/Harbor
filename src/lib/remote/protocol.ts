@@ -58,7 +58,6 @@ export type RemoteLibraryItem = {
 export type RemoteLibrary = {
   watchlist: RemoteLibraryItem[];
   history: RemoteLibraryItem[];
-  favorites: RemoteLibraryItem[];
   local: RemoteLibraryItem[];
   mediaServers: RemoteLibraryItem[];
 };
@@ -84,7 +83,6 @@ export type MalWatchStatus = "watching" | "plan_to_watch" | "completed" | "on_ho
 export type RemoteLibraryAction =
   | { kind: "watchlist"; on: boolean }
   | { kind: "watched"; on: boolean }
-  | { kind: "favorite"; on: boolean }
   | { kind: "simkl"; status: SimklWatchStatus | null }
   | { kind: "anilist"; status: AnilistWatchStatus | null }
   | { kind: "mal"; status: MalWatchStatus | null };

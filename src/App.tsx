@@ -152,8 +152,6 @@ import { TogetherProvider, useTogether } from "@/lib/together/provider";
 import { ListenTogetherProvider } from "@/lib/listen-together/provider";
 import { DvrProvider } from "@/lib/dvr/provider";
 import { FavoritesProvider } from "@/lib/iptv/favorites";
-import { MediaFavoritesProvider } from "@/lib/media-favorites";
-import { CharacterFavoritesProvider } from "@/lib/character-favorites";
 import { MangaFavoritesProvider } from "@/lib/manga-favorites";
 import { NoMangaFavorites } from "@/lib/manga-favorites-absent";
 import { LocalWatchlistProvider } from "@/lib/local-watchlist";
@@ -553,123 +551,117 @@ export function App({ onReady }: { onReady?: () => void }) {
                                   <SearchProvider>
                                     <DvrProvider>
                                       <FavoritesProvider>
-                                        <MediaFavoritesProvider>
-                                          <CharacterFavoritesProvider>
-                                            <MangaFavorites>
-                                              <LocalWatchlistProvider>
-                                                <ContextMenuProvider>
-                                                  <TopRankModalProvider>
-                                                    <HarborErrorBoundary>
-                                                      <ProfileIdentitySync />
-                                                      <HarborAvatarSync />
-                                                      <HarborNameSync />
-                                                      <SettingsProfileBridge />
-                                                      <TrackerProfileBridge />
-                                                      <AnilistAvatarSync />
-                                                      <MalAvatarSync />
-                                                      <MiddleClickScroll />
-                                                      <ThemeBackdrop />
-                                                      <Profiled id="startup.watchlist-sync">
-                                                        <WatchlistSync />
-                                                      </Profiled>
-                                                      {isMobileWeb() || isRemoteRoute() ? (
-                                                        <>
-                                                          <Suspense fallback={null}>
-                                                            <MobileShell />
-                                                          </Suspense>
-                                                          <RevealOnMount onReady={onReady} />
-                                                        </>
-                                                      ) : (
-                                                        <Profiled id="shell">
-                                                          <Shell onReady={onReady} />
-                                                        </Profiled>
-                                                      )}
-                                                      {!isMobileWeb() && !isRemoteRoute() && (
-                                                        <Suspense fallback={null}>
-                                                          <OnboardingModal />
-                                                        </Suspense>
-                                                      )}
-                                                      <TogetherInviteToast />
-                                                      <TogetherFloater />
-                                                      <TogetherHostLeavingPrompt />
-                                                      <TogetherSummonToast />
-                                                      <TogetherParticipantLeftToast />
-                                                      <AnilistSyncToast />
-                                                      <MalSyncToast />
-                                                      {HAS_MANGA && (
-                                                        <MangaSyncToast tracker="anilist" />
-                                                      )}
-                                                      {HAS_MANGA && (
-                                                        <MangaSyncToast tracker="mal" />
-                                                      )}
-                                                      <ListToastHost />
-                                                      <DiagnosticsConsentHost />
-                                                      <TogetherLeaveForLiveModal />
-                                                      <AfterFirstPaint>
-                                                        <TogetherLocationPublisher />
-                                                        <IdleAwayRunner />
-                                                        <SessionRefreshRunner />
-                                                        <StremioLeachedExpungeRunner />
-                                                        <NuvioSyncLoopRunner />
-                                                        <RemoteHostMount />
-                                                        <RemoteOpenBridge />
-                                                      </AfterFirstPaint>
-                                                      <AfterFirstPaint delayMs={1500}>
-                                                        <StatsSyncRunner />
-                                                        <FeaturedListsSyncRunner />
-                                                        <RatingsSyncRunner />
-                                                        <ActivitySyncRunner />
-                                                      </AfterFirstPaint>
-                                                      <AfterFirstPaint>
-                                                        <MediaServerSyncRunner />
-                                                        <NuvioMutationRetryRunner />
-                                                        <AutoDownloadRunner />
-                                                        <RemindersRunner />
-                                                        {HAS_GAMES && (
-                                                          <GameDownloadNotificationsRunner />
-                                                        )}
-                                                        {HAS_GAMES && <GameSourceAlertsRunner />}
-                                                        {HAS_MANGA && <MangaTrackingRunner />}
-                                                      </AfterFirstPaint>
-                                                      <PlayOnModal />
-                                                      <GamepadRunner />
-                                                      <ControllerConnectedToast />
-                                                      <AfterFirstPaint>
-                                                        <DiscordPresence />
-                                                        <WatchPresenceRunner />
-                                                      </AfterFirstPaint>
-                                                      <Profiled id="startup.context-menu">
-                                                        <ContextMenu />
-                                                      </Profiled>
-                                                      <PageContextNavigationDialogs />
-                                                      <AnnouncementGlobal />
-                                                      <WatchLocalModal />
-                                                      <LocalEpisodesModal />
-                                                      <LocalVersionsModal />
-                                                      <HoverPreview />
-                                                      <CustomHoverCssMount />
-                                                      <TopRankModal />
-                                                      <ProfilePickerModal />
-                                                      <ConfirmActionModal />
-                                                      <CurfewGuard />
-                                                      <Profiled id="search.overlay">
-                                                        <SearchOverlay />
-                                                      </Profiled>
-                                                      <SearchHotkey />
-                                                      <LinkOutInterstitial />
-                                                      <EmbedViewportRoot />
-                                                      <InstallerViewportRoot />
-                                                      <UpdateRoot />
-                                                      <VoyageRoot />
-                                                    </HarborErrorBoundary>
-                                                    <ErrorView />
-                                                    <DevErrorTrigger />
-                                                  </TopRankModalProvider>
-                                                </ContextMenuProvider>
-                                              </LocalWatchlistProvider>
-                                            </MangaFavorites>
-                                          </CharacterFavoritesProvider>
-                                        </MediaFavoritesProvider>
+                                        <MangaFavorites>
+                                          <LocalWatchlistProvider>
+                                            <ContextMenuProvider>
+                                              <TopRankModalProvider>
+                                                <HarborErrorBoundary>
+                                                  <ProfileIdentitySync />
+                                                  <HarborAvatarSync />
+                                                  <HarborNameSync />
+                                                  <SettingsProfileBridge />
+                                                  <TrackerProfileBridge />
+                                                  <AnilistAvatarSync />
+                                                  <MalAvatarSync />
+                                                  <MiddleClickScroll />
+                                                  <ThemeBackdrop />
+                                                  <Profiled id="startup.watchlist-sync">
+                                                    <WatchlistSync />
+                                                  </Profiled>
+                                                  {isMobileWeb() || isRemoteRoute() ? (
+                                                    <>
+                                                      <Suspense fallback={null}>
+                                                        <MobileShell />
+                                                      </Suspense>
+                                                      <RevealOnMount onReady={onReady} />
+                                                    </>
+                                                  ) : (
+                                                    <Profiled id="shell">
+                                                      <Shell onReady={onReady} />
+                                                    </Profiled>
+                                                  )}
+                                                  {!isMobileWeb() && !isRemoteRoute() && (
+                                                    <Suspense fallback={null}>
+                                                      <OnboardingModal />
+                                                    </Suspense>
+                                                  )}
+                                                  <TogetherInviteToast />
+                                                  <TogetherFloater />
+                                                  <TogetherHostLeavingPrompt />
+                                                  <TogetherSummonToast />
+                                                  <TogetherParticipantLeftToast />
+                                                  <AnilistSyncToast />
+                                                  <MalSyncToast />
+                                                  {HAS_MANGA && (
+                                                    <MangaSyncToast tracker="anilist" />
+                                                  )}
+                                                  {HAS_MANGA && <MangaSyncToast tracker="mal" />}
+                                                  <ListToastHost />
+                                                  <DiagnosticsConsentHost />
+                                                  <TogetherLeaveForLiveModal />
+                                                  <AfterFirstPaint>
+                                                    <TogetherLocationPublisher />
+                                                    <IdleAwayRunner />
+                                                    <SessionRefreshRunner />
+                                                    <StremioLeachedExpungeRunner />
+                                                    <NuvioSyncLoopRunner />
+                                                    <RemoteHostMount />
+                                                    <RemoteOpenBridge />
+                                                  </AfterFirstPaint>
+                                                  <AfterFirstPaint delayMs={1500}>
+                                                    <StatsSyncRunner />
+                                                    <FeaturedListsSyncRunner />
+                                                    <RatingsSyncRunner />
+                                                    <ActivitySyncRunner />
+                                                  </AfterFirstPaint>
+                                                  <AfterFirstPaint>
+                                                    <MediaServerSyncRunner />
+                                                    <NuvioMutationRetryRunner />
+                                                    <AutoDownloadRunner />
+                                                    <RemindersRunner />
+                                                    {HAS_GAMES && (
+                                                      <GameDownloadNotificationsRunner />
+                                                    )}
+                                                    {HAS_GAMES && <GameSourceAlertsRunner />}
+                                                    {HAS_MANGA && <MangaTrackingRunner />}
+                                                  </AfterFirstPaint>
+                                                  <PlayOnModal />
+                                                  <GamepadRunner />
+                                                  <ControllerConnectedToast />
+                                                  <AfterFirstPaint>
+                                                    <DiscordPresence />
+                                                    <WatchPresenceRunner />
+                                                  </AfterFirstPaint>
+                                                  <Profiled id="startup.context-menu">
+                                                    <ContextMenu />
+                                                  </Profiled>
+                                                  <PageContextNavigationDialogs />
+                                                  <AnnouncementGlobal />
+                                                  <WatchLocalModal />
+                                                  <LocalEpisodesModal />
+                                                  <LocalVersionsModal />
+                                                  <HoverPreview />
+                                                  <CustomHoverCssMount />
+                                                  <TopRankModal />
+                                                  <ProfilePickerModal />
+                                                  <ConfirmActionModal />
+                                                  <CurfewGuard />
+                                                  <Profiled id="search.overlay">
+                                                    <SearchOverlay />
+                                                  </Profiled>
+                                                  <SearchHotkey />
+                                                  <LinkOutInterstitial />
+                                                  <EmbedViewportRoot />
+                                                  <InstallerViewportRoot />
+                                                  <UpdateRoot />
+                                                  <VoyageRoot />
+                                                </HarborErrorBoundary>
+                                                <ErrorView />
+                                                <DevErrorTrigger />
+                                              </TopRankModalProvider>
+                                            </ContextMenuProvider>
+                                          </LocalWatchlistProvider>
+                                        </MangaFavorites>
                                       </FavoritesProvider>
                                     </DvrProvider>
                                   </SearchProvider>
