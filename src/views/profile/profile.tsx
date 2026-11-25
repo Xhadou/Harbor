@@ -22,7 +22,7 @@ import {
 } from "@/lib/social/stats-sync";
 import { useProfiles } from "@/lib/profiles";
 import { useSettings } from "@/lib/settings";
-import { useCustomLists } from "@/lib/custom-lists";
+import { extractCollections, type CommunityCollection } from "@/lib/social/collections-sync";
 import { currentAuthor } from "@/lib/theme-auth";
 import { useScrollMemory, useView } from "@/lib/view";
 import { pushBackHandler } from "@/lib/back-intercept";
@@ -55,7 +55,6 @@ import { ScrollToTop } from "./scroll-to-top";
 import { ProfileSkeleton } from "./profile-skeleton";
 import { ProfileEmpty, ProfileError, ProfilePrivate } from "./profile-states";
 import { MyListsShowcase } from "./my-lists-showcase";
-import { MyListsPicker } from "./my-lists-picker";
 import { ProfileViewAll } from "./profile-view-all";
 import { RecentActivity } from "./recent-activity";
 import { Showcase } from "./showcase";
@@ -74,7 +73,7 @@ export function ProfileView({
   onOpenProfile?: (handle: string) => void;
   onOpenMeta?: (metaId: string, kind?: string, hint?: { name?: string; poster?: string }) => void;
 }) {
-  const { goBack } = useView();
+  const { goBack, openCollections } = useView();
   const t = useT();
   const { authKey, user } = useAuth();
   const { activeProfile } = useProfiles();
@@ -103,7 +102,6 @@ export function ProfileView({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [editing, setEditing] = useState(false);
-  const [pickingLists, setPickingLists] = useState(false);
   const [pickingFav, setPickingFav] = useState<FavoriteKind | null>(null);
   const [expanded, setExpanded] = useState<null | "lists" | "badges" | "activity">(null);
   const [showRatings, setShowRatings] = useState(false);
@@ -115,7 +113,6 @@ export function ProfileView({
   const mangaProgress = useMangaProgressList();
   const watchedCount = useWatchedCount();
   const { state, summary, friends, badges, activity, reload, patchSummary } = useProfile(handle);
-  const localLists = useCustomLists();
   const isOwner = summary?.isOwner ?? false;
   const viewerSignedIn = !!currentAuthor();
 
@@ -212,16 +209,15 @@ export function ProfileView({
   }, [quoteSeed]);
 
   useEffect(() => {
-    if (!editing && !arranging && !pickingLists && !pickingFav && expanded == null) return;
+    if (!editing && !arranging && !pickingFav && expanded == null) return;
     return pushBackHandler(() => {
       if (pickingFav) return (setPickingFav(null), true);
-      if (pickingLists) return (setPickingLists(false), true);
       if (expanded != null) return (setExpanded(null), true);
       if (arranging) return (setArranging(false), true);
       if (editing) return (setEditing(false), true);
       return false;
     });
-  }, [editing, arranging, pickingLists, pickingFav, expanded]);
+  }, [editing, arranging, pickingFav, expanded]);
 
   if (state === "loading") return <ProfileSkeleton />;
   if (state === "error") return <ProfileError onRetry={reload} onBack={goBack} />;
@@ -270,13 +266,11 @@ export function ProfileView({
 
   const c = resolveCustomization(summary);
   const theme = c.themeScope;
-  const featuredLists = summary.featuredLists?.map((featured) => {
-    if (!summary.isOwner || featured.description) return featured;
-    const local = localLists.find(
-      (list) => list.name.trim().toLowerCase() === featured.name.trim().toLowerCase(),
-    );
-    return local?.description ? { ...featured, description: local.description } : featured;
-  });
+  // The collections this person shares; the owner's own response also holds
+  // the private ones, which stay off the card.
+  const sharedCollections: CommunityCollection[] = extractCollections(summary)
+    .filter((collection) => collection.shared === true)
+    .map((collection) => ({ ...collection, handle, displayName: summary.alias || handle }));
 
   const layout = sanitizeLayout(summary.cardLayout);
   const hiddenSet = new Set(layout.hidden ?? []);
@@ -333,12 +327,11 @@ export function ProfileView({
     ),
     lists: (
       <MyListsShowcase
-        lists={featuredLists ?? []}
+        collections={sharedCollections}
         isOwner={summary.isOwner}
-        signedIn={viewerSignedIn}
         onOpenMeta={onOpenMeta}
         onViewAll={() => setExpanded("lists")}
-        onManage={() => setPickingLists(true)}
+        onOpenCollections={openCollections}
         handle={handle}
       />
     ),
@@ -556,22 +549,12 @@ export function ProfileView({
           {expanded && (
             <ProfileViewAll
               section={expanded}
-              lists={featuredLists ?? []}
+              lists={sharedCollections}
               badges={badges}
               activity={activity}
-              signedIn={viewerSignedIn}
               isOwner={summary.isOwner}
-              handle={handle}
               onOpenMeta={onOpenMeta}
               onClose={() => setExpanded(null)}
-            />
-          )}
-          {pickingLists && (
-            <MyListsPicker
-              onClose={() => {
-                setPickingLists(false);
-                reload();
-              }}
             />
           )}
           {pickingFav && (

@@ -274,11 +274,8 @@ const library: Record<string, string> = {
   "A short note about this collection": "关于此合集的简短说明",
   "Added to new collection": "已添加到新合集",
   "Add to collection": "添加到合集",
-  "Featured collections": "精选合集",
-  "Pick up to {max} collections to show on your public profile.":
-    "最多选择 {max} 个合集显示在你的公开主页上。",
-  "Make collections on the Collections page to feature them here.":
-    "在“合集”页面创建合集，即可在此展示。",
+  "Share a collection on the Collections page to show it here.":
+    "在“合集”页面分享合集，即可在此显示。",
   "Add a collection": "添加合集",
   "Delete this list?": "删除此列表？",
   'Add titles with the search above, or hit "Add to list" on any movie or show\'s page.':

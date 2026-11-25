@@ -10,6 +10,7 @@ import { isMembershipProfileCurrent, type MembershipProfile } from "@/lib/member
 import { authToken } from "@/lib/theme-auth";
 import {
   notifyCommunityChanged,
+  collectionsForAccount,
   publishCollectionSnapshot,
   readOwnedCollectionMirror,
 } from "@/lib/social/collections-sync";
@@ -35,10 +36,7 @@ export async function setCollectionPublication(request: {
     if (!collection) throw new Error("This collection no longer exists.");
     if (collection.sourceHandle || collection.sourceId)
       throw new Error("Only the original author can publish a saved community collection.");
-    if (
-      snapshot.containers.length > MAX_COLLECTIONS ||
-      snapshot.containers.some((entry) => entry.items.length > MAX_COLLECTION_ITEMS)
-    ) {
+    if (snapshot.containers.some((entry) => entry.items.length > MAX_COLLECTION_ITEMS)) {
       throw new Error(
         "The collections exceed the publication limit. No collections were published.",
       );
@@ -46,7 +44,14 @@ export async function setCollectionPublication(request: {
     const candidate = snapshot.containers.map((entry) =>
       entry.id === collectionId ? { ...entry, shared, updatedAt: Date.now() } : entry,
     );
-    await publishCollectionSnapshot(candidate as unknown as Collection[], token);
+    if (shared && candidate.filter((entry) => entry.shared === true).length > MAX_COLLECTIONS)
+      throw new Error(
+        `You can share up to ${MAX_COLLECTIONS} collections. Stop sharing one to share this.`,
+      );
+    await publishCollectionSnapshot(
+      collectionsForAccount(candidate as unknown as Collection[], collectionId),
+      token,
+    );
     notifyCommunityChanged();
     if (!isMembershipProfileCurrent(profile) || authToken() !== token) {
       throw new Error(

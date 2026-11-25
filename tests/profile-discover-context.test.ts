@@ -229,6 +229,7 @@ test("profile View all list posters keep title context inside their modal", asyn
     const { ProfileViewAll } = componentLoader({
       "./profile-bits": { timeAgo: () => "" },
       "./recent-activity": { ACTIVITY_VERB: {}, ActivityGlyph: () => null },
+      "./my-lists-showcase": { CollectionActions: () => null },
     })("src/views/profile/profile-view-all.tsx");
     await h.render(
       React.createElement(ProfileViewAll, {
@@ -334,7 +335,10 @@ test("expanded public ratings bind both poster and title without changing the di
 test("profile My Lists posters use shared title semantics, preserve manga, and do not inherit another person's membership", async () => {
   const h = await fixture();
   try {
-    const { MyListsShowcase } = componentLoader()("src/views/profile/my-lists-showcase.tsx");
+    const { MyListsShowcase } = componentLoader({
+      "@/views/collections/community-share-button": { CommunityShareButton: () => null },
+      "@/views/collections/community-hub": { SaveCollectionButton: () => null },
+    })("src/views/profile/my-lists-showcase.tsx");
     const items = [
       {
         id: "kitsu:345",
@@ -351,10 +355,18 @@ test("profile My Lists posters use shared title semantics, preserve manga, and d
     ];
     await h.render(
       React.createElement(MyListsShowcase, {
-        lists: [{ id: "other-owner-list", name: "Other list", items }],
+        collections: [
+          {
+            id: "other-owner-collection",
+            name: "Other collection",
+            items,
+            shared: true,
+            handle: "other-owner",
+            displayName: "Other owner",
+          },
+        ],
         handle: "other-owner",
         isOwner: false,
-        signedIn: true,
         onOpenMeta() {},
       }),
     );

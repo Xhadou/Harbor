@@ -8,6 +8,7 @@ export type HomeRowCustomization = {
   numerals: string[];
   heroSource: string | null;
   customSources: SourceRow[];
+  /** Lists pinned to Home before lists became collections; moved to collection rows on load. */
   listRows?: string[];
   playButtonSquare?: boolean;
   secondaryMoreInfo?: boolean;
@@ -118,15 +119,25 @@ export function toggleCwTop(custom: HomeRowCustomization): HomeRowCustomization 
   return { ...custom, cwTop: !custom.cwTop };
 }
 
-export function addListRow(custom: HomeRowCustomization, listId: string): HomeRowCustomization {
-  const cur = custom.listRows ?? [];
-  if (cur.includes(listId)) return custom;
-  return { ...custom, listRows: [...cur, listId] };
-}
-
-export function removeListRow(custom: HomeRowCustomization, listId: string): HomeRowCustomization {
-  const cur = custom.listRows ?? [];
-  return { ...custom, listRows: cur.filter((id) => id !== listId) };
+/**
+ * Moves Home's own list rows to collection rows: clears `listRows` and renames
+ * each `list-<id>` key in the order, hidden, renamed, numbered and hero
+ * settings to the `collection-<id>` key that row now has.
+ */
+export function withoutListRows(custom: HomeRowCustomization): HomeRowCustomization {
+  const rename = (key: string) => (key.startsWith("list-") ? `collection-${key.slice(5)}` : key);
+  const unique = (keys: string[]) => [...new Set(keys.map(rename))];
+  return {
+    ...custom,
+    listRows: [],
+    order: unique(custom.order),
+    hidden: unique(custom.hidden),
+    numerals: unique(custom.numerals),
+    renamed: Object.fromEntries(
+      Object.entries(custom.renamed).map(([key, name]) => [rename(key), name]),
+    ),
+    heroSource: custom.heroSource ? rename(custom.heroSource) : custom.heroSource,
+  };
 }
 
 export function resetHomeRows(): HomeRowCustomization {

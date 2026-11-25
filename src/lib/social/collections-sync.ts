@@ -75,7 +75,7 @@ function normalizeCollection(raw: unknown): Collection | null {
   };
 }
 
-function extractCollections(data: unknown): Collection[] {
+export function extractCollections(data: unknown): Collection[] {
   const list = (data as { collections?: unknown } | null)?.collections;
   if (!Array.isArray(list)) return [];
   const out: Collection[] = [];
@@ -88,6 +88,21 @@ function extractCollections(data: unknown): Collection[] {
 
 function stripDataUrl(u: string | undefined): string | undefined {
   return typeof u === "string" && u.startsWith("data:") ? undefined : u;
+}
+
+/**
+ * The collections the Harbor account keeps: at most MAX_COLLECTIONS, the one
+ * being changed first, then the shared ones (they are public), then the most
+ * recently changed. With more than that on this device (lists became
+ * collections, so there can be), the rest stay on this device only.
+ */
+export function collectionsForAccount<
+  T extends { id: string; shared?: boolean; updatedAt?: number },
+>(collections: T[], first?: string): T[] {
+  const rank = (entry: T) => (entry.id === first ? 0 : entry.shared === true ? 1 : 2);
+  return [...collections]
+    .sort((a, b) => rank(a) - rank(b) || (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+    .slice(0, MAX_COLLECTIONS);
 }
 
 function trimForPublish(collections: Collection[]): Collection[] {
@@ -306,18 +321,12 @@ export function publishCollections(): Promise<Collection[]> {
       throw new Error(
         "Could not read saved collections safely. Resolve pending storage changes and try again.",
       );
-    if (
-      snapshot.containers.length > MAX_COLLECTIONS ||
-      snapshot.containers.some((entry) => entry.items.length > MAX_COLLECTION_ITEMS)
-    )
+    if (snapshot.containers.some((entry) => entry.items.length > MAX_COLLECTION_ITEMS))
       throw new Error(
         "The collections exceed the publication limit. No collections were published.",
       );
-    const result = await publishCollectionSnapshot(
-      snapshot.containers as unknown as Collection[],
-      token,
-      snapshot.containers.length === 0,
-    );
+    const kept = collectionsForAccount(snapshot.containers as unknown as Collection[]);
+    const result = await publishCollectionSnapshot(kept, token, kept.length === 0);
     if (!isMembershipProfileCurrent(profile) || authToken() !== token)
       throw new Error(
         "The server accepted the collection changes, but the local profile or account changed. Reopen the collection to reconcile its state.",

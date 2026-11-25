@@ -498,7 +498,7 @@ function useCommunityCollectionContext(collection: CommunityCollection, onOpen?:
   });
 }
 
-function SaveCollectionButton({ collection }: { collection: CommunityCollection }) {
+export function SaveCollectionButton({ collection }: { collection: CommunityCollection }) {
   const t = useT();
   const [error, setError] = useState("");
   const collections = useCollections();

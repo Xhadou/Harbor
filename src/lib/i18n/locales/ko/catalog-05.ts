@@ -694,11 +694,8 @@ const catalog05: Record<string, string> = {
   "A short note about this collection": "이 컬렉션에 대한 짧은 메모",
   "Added to new collection": "새 컬렉션에 추가됨",
   "Add to collection": "컬렉션에 추가",
-  "Featured collections": "추천 컬렉션",
-  "Pick up to {max} collections to show on your public profile.":
-    "공개 프로필에 표시할 컬렉션을 최대 {max}개 선택하세요.",
-  "Make collections on the Collections page to feature them here.":
-    "여기에 표시하려면 컬렉션 페이지에서 컬렉션을 만드세요.",
+  "Share a collection on the Collections page to show it here.":
+    "여기에 표시하려면 컬렉션 페이지에서 컬렉션을 공유하세요.",
   "Add a collection": "컬렉션 추가",
   "Library sources": "라이브러리 소스",
   "Library, watch progress, and addon collection sync from this account.":

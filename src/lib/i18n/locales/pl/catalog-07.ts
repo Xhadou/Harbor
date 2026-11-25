@@ -247,11 +247,8 @@ const catalog07: Record<string, string> = {
   "A short note about this collection": "Krótka notatka o tej kolekcji",
   "Added to new collection": "Dodano do nowej kolekcji",
   "Add to collection": "Dodaj do kolekcji",
-  "Featured collections": "Wyróżnione kolekcje",
-  "Pick up to {max} collections to show on your public profile.":
-    "Wybierz do {max} kolekcji, które pojawią się w Twoim profilu publicznym.",
-  "Make collections on the Collections page to feature them here.":
-    "Utwórz kolekcje na stronie Kolekcje, aby je tu wyróżnić.",
+  "Share a collection on the Collections page to show it here.":
+    "Udostępnij kolekcję na stronie Kolekcje, aby pokazać ją tutaj.",
   "Add a collection": "Dodaj kolekcję",
   "Library sources": "Źródła biblioteki",
   "Library, watch progress, and addon collection sync from this account.":

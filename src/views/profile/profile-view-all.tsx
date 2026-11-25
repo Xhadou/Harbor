@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Poster } from "@/components/poster";
 import { useT } from "@/lib/i18n";
-import type { FeaturedItem, FeaturedList } from "@/lib/social/featured-lists";
-import { ListHeart } from "./list-heart";
-import { ListShareButton } from "./list-share-button";
+import type { CollectionItem } from "@/lib/collections";
+import type { CommunityCollection } from "@/lib/social/collections-sync";
+import { CollectionActions } from "./my-lists-showcase";
 import { timeAgo } from "./profile-bits";
 import { ACTIVITY_VERB, ActivityGlyph } from "./recent-activity";
 import type { ActivityItem, Badge } from "./profile-types";
@@ -16,7 +16,7 @@ import { useTitleContext } from "@/components/context-menu/use-title-context";
 type Section = "lists" | "badges" | "activity";
 
 const TITLES: Record<Section, string> = {
-  lists: "My lists",
+  lists: "Collections",
   badges: "Badges",
   activity: "Recent activity",
 };
@@ -26,19 +26,15 @@ export function ProfileViewAll({
   lists,
   badges,
   activity,
-  signedIn,
   isOwner,
-  handle,
   onOpenMeta,
   onClose,
 }: {
   section: Section;
-  lists: FeaturedList[];
+  lists: CommunityCollection[];
   badges: Badge[];
   activity: ActivityItem[];
-  signedIn?: boolean;
   isOwner?: boolean;
-  handle?: string;
   onOpenMeta?: (metaId: string, kind?: string, hint?: { name?: string; poster?: string }) => void;
   onClose: () => void;
 }) {
@@ -82,13 +78,7 @@ export function ProfileViewAll({
         </header>
         <div className="flex-1 overflow-y-auto px-7 py-6">
           {section === "lists" && (
-            <ListsSection
-              lists={lists}
-              onOpenMeta={onOpenMeta}
-              signedIn={signedIn}
-              isOwner={isOwner}
-              handle={handle}
-            />
+            <ListsSection lists={lists} onOpenMeta={onOpenMeta} isOwner={isOwner} />
           )}
           {section === "badges" && <BadgesSection badges={badges} />}
           {section === "activity" && (
@@ -112,44 +102,37 @@ function Empty({ label }: { label: string }) {
 function ListsSection({
   lists,
   onOpenMeta,
-  signedIn,
   isOwner,
-  handle,
 }: {
-  lists: FeaturedList[];
+  lists: CommunityCollection[];
   onOpenMeta?: (id: string, kind?: string, hint?: { name?: string; poster?: string }) => void;
-  signedIn?: boolean;
   isOwner?: boolean;
-  handle?: string;
 }) {
   const t = useT();
   const shown = lists.filter((l) => l.items.length > 0);
-  if (shown.length === 0) return <Empty label={t("No lists to show")} />;
+  if (shown.length === 0) return <Empty label={t("No shared collections yet")} />;
   return (
     <div className="space-y-8">
-      {shown.map((list, i) => (
-        <div key={list.id || `${list.name}:${i}`}>
+      {shown.map((collection) => (
+        <div key={collection.id}>
           <div className="mb-3 flex items-center gap-2">
-            <h3 className="font-display text-[18px] text-ink">{list.name || "Untitled list"}</h3>
-            <span className="text-[12px] tabular-nums text-ink-subtle">{list.items.length}</span>
+            <h3 className="font-display text-[18px] text-ink">
+              {collection.name || t("Untitled collection")}
+            </h3>
+            <span className="text-[12px] tabular-nums text-ink-subtle">
+              {collection.items.length}
+            </span>
             <div className="ml-auto flex items-center gap-2">
-              <ListHeart
-                handle={handle ?? ""}
-                listId={list.id}
-                count={list.likeCount ?? 0}
-                liked={!!list.liked}
-                interactive={!!signedIn && !isOwner}
-              />
-              <ListShareButton handle={handle ?? ""} listId={list.id} name={list.name} />
+              <CollectionActions collection={collection} isOwner={isOwner} />
             </div>
           </div>
-          {list.description && (
+          {collection.description && (
             <p className="mb-3 max-w-2xl text-[13px] leading-relaxed text-ink-muted">
-              {list.description}
+              {collection.description}
             </p>
           )}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(104px,1fr))] gap-x-4 gap-y-5">
-            {list.items.map((item) => (
+            {collection.items.map((item) => (
               <ListItem key={item.id} item={item} onOpenMeta={onOpenMeta} />
             ))}
           </div>
@@ -163,7 +146,7 @@ function ListItem({
   item,
   onOpenMeta,
 }: {
-  item: FeaturedItem;
+  item: CollectionItem;
   onOpenMeta?: (id: string, kind?: string, hint?: { name?: string; poster?: string }) => void;
 }) {
   const media = useProfileTitle(item.id, item.name, item.poster, item.type);

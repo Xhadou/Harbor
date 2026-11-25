@@ -500,11 +500,8 @@ const appFill: Record<string, string> = {
   "A short note about this collection": "Ghi chú ngắn về bộ sưu tập này",
   "Added to new collection": "Đã thêm vào bộ sưu tập mới",
   "Add to collection": "Thêm vào bộ sưu tập",
-  "Featured collections": "Bộ sưu tập nổi bật",
-  "Pick up to {max} collections to show on your public profile.":
-    "Chọn tối đa {max} bộ sưu tập để hiển thị trên hồ sơ công khai của bạn.",
-  "Make collections on the Collections page to feature them here.":
-    "Tạo bộ sưu tập ở trang Bộ sưu tập để giới thiệu chúng tại đây.",
+  "Share a collection on the Collections page to show it here.":
+    "Chia sẻ một bộ sưu tập ở trang Bộ sưu tập để hiển thị tại đây.",
   "Add a collection": "Thêm bộ sưu tập",
   "My Lists": "Danh sách của tôi",
   "Heads up: most IPTV providers cap how many streams an account can run at the same time. If other devices or players are using these credentials, close them and try again.":

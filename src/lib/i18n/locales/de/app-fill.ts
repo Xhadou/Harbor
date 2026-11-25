@@ -447,11 +447,8 @@ const appFill: Record<string, string> = {
   "A short note about this collection": "Eine kurze Notiz zu dieser Sammlung",
   "Added to new collection": "Zu neuer Sammlung hinzugefügt",
   "Add to collection": "Zur Sammlung hinzufügen",
-  "Featured collections": "Hervorgehobene Sammlungen",
-  "Pick up to {max} collections to show on your public profile.":
-    "Wähle bis zu {max} Sammlungen für dein öffentliches Profil aus.",
-  "Make collections on the Collections page to feature them here.":
-    "Erstelle Sammlungen auf der Seite „Sammlungen“, um sie hier hervorzuheben.",
+  "Share a collection on the Collections page to show it here.":
+    "Teile eine Sammlung auf der Seite „Sammlungen“, um sie hier zu zeigen.",
   "Add a collection": "Sammlung hinzufügen",
   "List name": "Listenname",
   "List renamed": "Liste umbenannt",

@@ -17,7 +17,6 @@ import { CollectionsRow } from "@/components/collections-row";
 import { TmdbNudge } from "@/components/nudge";
 import { Row, ScrollRootContext } from "@/components/row";
 import {
-  addListRow,
   applyHomeRowCustomization,
   effectiveOrder,
   moveRow,
@@ -29,10 +28,16 @@ import {
   toggleRowHidden,
   toggleRowNumerals,
   toggleSecondaryMoreInfo,
+  withoutListRows,
   type HomeRowCustomization,
 } from "@/lib/home-customization";
 import { useCustomLists } from "@/lib/custom-lists";
-import { useCollectionRowsForPage } from "@/lib/page-collection-rows";
+import {
+  addCollectionToPage,
+  adoptHomeCollectionRows,
+  collectionPageCap,
+  useCollectionRowsForPage,
+} from "@/lib/page-collection-rows";
 import { useHideAnimeRows, useHideAnimeSlides } from "@/lib/anime-hide";
 import { StreamingRail } from "@/components/streaming-rail";
 import { TopRankCard } from "@/components/top-rank-card";
@@ -1196,46 +1201,17 @@ export function Home({
   }, [homeRowsCustom.customSources]);
 
   const homeCollections = useCollectionRowsForPage("home");
-  // Lists are collections now, and a collection can be put on Home from either
-  // side; one already shown as a collection row is not shown again.
+  // Lists are collections, so the collections offered in Customize go on Home
+  // the one way collections do: as collection rows, up to the page's cap.
   const customLists = useCustomLists();
-  const listHomeRows = useMemo<HomeRow[]>(() => {
-    const ids = homeRowsCustom.listRows ?? [];
-    if (ids.length === 0) return [];
-    const byId = new Map(customLists.map((l) => [l.id, l]));
-    const onHome = new Set(homeCollections.map((c) => c.id));
-    const out: HomeRow[] = [];
-    for (const id of ids) {
-      const l = byId.get(id);
-      if (!l || l.items.length === 0 || onHome.has(id)) continue;
-      out.push({
-        key: `list-${l.id}`,
-        type: "movie",
-        name: l.name,
-        metas: l.items.map((it) => ({
-          id: it.id,
-          type: it.type,
-          name: it.name,
-          poster: it.poster,
-        })),
-        page: 1,
-        hasMore: false,
-        noDedup: true,
-      });
-    }
-    return out;
-  }, [customLists, homeRowsCustom.listRows, homeCollections]);
   const availableListRows = useMemo(
     () =>
-      customLists
-        .filter(
-          (l) =>
-            l.items.length > 0 &&
-            !(homeRowsCustom.listRows ?? []).includes(l.id) &&
-            !homeCollections.some((c) => c.id === l.id),
-        )
-        .map((l) => ({ id: l.id, name: l.name })),
-    [customLists, homeRowsCustom.listRows, homeCollections],
+      collectionPageCap("home")
+        ? []
+        : customLists
+            .filter((l) => l.items.length > 0 && !homeCollections.some((c) => c.id === l.id))
+            .map((l) => ({ id: l.id, name: l.name })),
+    [customLists, homeCollections],
   );
 
   const collectionHomeRows = useMemo<HomeRow[]>(
@@ -1262,7 +1238,6 @@ export function Home({
   const pinnedRows = usePinnedRows();
   const filterableRows = useMemo(
     () => [
-      ...listHomeRows,
       ...collectionHomeRows,
       ...pinnedRows,
       ...arabicRows,
@@ -1275,7 +1250,6 @@ export function Home({
       ...animeRows,
     ],
     [
-      listHomeRows,
       collectionHomeRows,
       pinnedRows,
       arabicRows,
@@ -1343,10 +1317,17 @@ export function Home({
     (key: string) => mutateHomeRows(toggleHeroSource(homeRowsCustom, key)),
     [homeRowsCustom, mutateHomeRows],
   );
-  const handleAddListRow = useCallback(
-    (listId: string) => mutateHomeRows(addListRow(homeRowsCustom, listId)),
-    [homeRowsCustom, mutateHomeRows],
-  );
+  const handleAddListRow = useCallback((listId: string) => {
+    addCollectionToPage("home", listId);
+  }, []);
+  // Rows pinned from a list before lists became collections move to collection
+  // rows once, keeping their place, name and settings.
+  useEffect(() => {
+    const listRows = homeRowsCustom.listRows ?? [];
+    if (!listRows.length) return;
+    adoptHomeCollectionRows(listRows);
+    mutateHomeRows(withoutListRows(homeRowsCustom));
+  }, [homeRowsCustom, mutateHomeRows]);
   const handleTogglePlaySquare = useCallback(
     () => mutateHomeRows(togglePlayButtonSquare(homeRowsCustom)),
     [homeRowsCustom, mutateHomeRows],

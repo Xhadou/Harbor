@@ -1,12 +1,12 @@
-import { ListVideo, Plus } from "lucide-react";
+import { Layers } from "lucide-react";
 import { Poster } from "@/components/poster";
 import { Row } from "@/components/row";
 import { useT } from "@/lib/i18n";
 import { SectionHeader } from "./section-header";
-import { ListHeart } from "./list-heart";
-import { ListShareButton } from "./list-share-button";
-import { SaveListButton } from "./save-list-button";
-import type { FeaturedItem, FeaturedList } from "@/lib/social/featured-lists";
+import type { CollectionItem } from "@/lib/collections";
+import type { CommunityCollection } from "@/lib/social/collections-sync";
+import { CommunityShareButton } from "@/views/collections/community-share-button";
+import { SaveCollectionButton } from "@/views/collections/community-hub";
 import { useProfileTitle } from "./use-profile-title";
 import { profileMediaMeta } from "@/lib/social/profile-media-meta";
 import { useTitleContext } from "@/components/context-menu/use-title-context";
@@ -15,7 +15,7 @@ function ListPoster({
   item,
   onOpenMeta,
 }: {
-  item: FeaturedItem;
+  item: CollectionItem;
   onOpenMeta?: (id: string, kind?: string, hint?: { name?: string; poster?: string }) => void;
 }) {
   const media = useProfileTitle(item.id, item.name, item.poster, item.type);
@@ -45,106 +45,96 @@ function ListPoster({
   );
 }
 
-export function MyListsShowcase({
-  lists,
+/** On someone's own profile, sharing; on anyone else's, saving a copy. */
+export function CollectionActions({
+  collection,
   isOwner,
-  signedIn,
+}: {
+  collection: CommunityCollection;
+  isOwner?: boolean;
+}) {
+  return isOwner ? (
+    <CommunityShareButton collectionId={collection.id} variant="icon" />
+  ) : (
+    <SaveCollectionButton collection={collection} />
+  );
+}
+
+/**
+ * The profile's collections card: the collections this person shares. Sharing
+ * a collection (on the Collections page) is the one way to make it public;
+ * it is listed in the community and shown here.
+ */
+export function MyListsShowcase({
+  collections,
+  isOwner,
   onOpenMeta,
   onViewAll,
-  onManage,
+  onOpenCollections,
   handle,
 }: {
-  lists: FeaturedList[];
+  collections: CommunityCollection[];
   isOwner?: boolean;
-  signedIn?: boolean;
   onOpenMeta?: (id: string, kind?: string, hint?: { name?: string; poster?: string }) => void;
   onViewAll?: () => void;
-  onManage?: () => void;
+  onOpenCollections?: () => void;
   handle?: string;
 }) {
   const t = useT();
-  const shown = lists.filter((l) => l.items.length > 0);
-  if (shown.length === 0 && !isOwner) {
-    return (
-      <section
-        aria-label={t("My lists")}
-        className="rounded-lg bg-surface p-5 ring-1 ring-edge-soft"
-      >
-        <SectionHeader icon={<ListVideo size={20} />} label={t("My lists")} />
-        <p className="py-6 text-center text-[13px] text-ink-subtle">
-          {t("This user hasn't featured any lists")}
-        </p>
-      </section>
-    );
-  }
+  const shown = collections.filter((c) => c.items.length > 0);
   return (
-    <section aria-label={t("My lists")} className="rounded-lg bg-surface p-5 ring-1 ring-edge-soft">
+    <section
+      aria-label={t("Collections")}
+      className="rounded-lg bg-surface p-5 ring-1 ring-edge-soft"
+    >
       <SectionHeader
-        icon={<ListVideo size={20} />}
-        label={t("My lists")}
+        icon={<Layers size={20} />}
+        label={t("Collections")}
         onViewAll={shown.length > 0 ? onViewAll : undefined}
       />
       {shown.length > 0 ? (
         <div className="space-y-5">
-          {shown.map((list, i) => (
+          {shown.map((collection) => (
             <Row
-              key={list.id || `${list.name}:${i}`}
-              title={list.name || t("Untitled list")}
+              key={collection.id}
+              title={collection.name || t("Untitled collection")}
               titleExtra={
                 <span className="text-[12px] tabular-nums text-ink-subtle">
-                  {list.items.length}
+                  {collection.items.length}
                 </span>
               }
               headerDescription={
-                list.description && (
+                collection.description && (
                   <p className="max-w-2xl text-[13px] leading-relaxed text-ink-muted">
-                    {list.description}
+                    {collection.description}
                   </p>
                 )
               }
-              headerRight={
-                <div className="flex items-center gap-2.5">
-                  <ListHeart
-                    handle={handle ?? ""}
-                    listId={list.id}
-                    count={list.likeCount ?? 0}
-                    liked={!!list.liked}
-                    interactive={!!signedIn && !isOwner}
-                  />
-                  <ListShareButton handle={handle ?? ""} listId={list.id} name={list.name} />
-                  {!isOwner && <SaveListButton handle={handle ?? ""} listId={list.id} />}
-                </div>
-              }
+              headerRight={<CollectionActions collection={collection} isOwner={isOwner} />}
               min={96}
               shape="portrait"
-              scrollKey={handle ? `profile:${handle}:list:${list.id || i}` : undefined}
+              scrollKey={handle ? `profile:${handle}:collection:${collection.id}` : undefined}
             >
-              {list.items.map((item) => (
+              {collection.items.map((item) => (
                 <ListPoster key={item.id} item={item} onOpenMeta={onOpenMeta} />
               ))}
             </Row>
           ))}
-          {isOwner && onManage && (
-            <button
-              onClick={onManage}
-              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-edge-soft text-[13px] font-medium text-ink-muted transition-colors hover:bg-elevated hover:text-ink"
-            >
-              <ListVideo size={18} /> {t("Choose lists")}
-            </button>
-          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-edge py-10 text-center">
-          <p className="text-[14px] text-ink-muted">{t("No lists featured yet")}</p>
-          <p className="mt-1 text-[12px] text-ink-subtle">
-            {t("Pick lists from your library to show them here")}
-          </p>
-          {onManage && (
+          <p className="text-[14px] text-ink-muted">{t("No shared collections yet")}</p>
+          {isOwner && (
+            <p className="mt-1 text-[12px] text-ink-subtle">
+              {t("Share a collection on the Collections page to show it here.")}
+            </p>
+          )}
+          {isOwner && onOpenCollections && (
             <button
-              onClick={onManage}
+              onClick={onOpenCollections}
               className="mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-md bg-ink px-5 text-[14px] font-semibold text-canvas transition-opacity hover:opacity-90"
             >
-              <Plus size={18} /> {t("Choose lists")}
+              <Layers size={18} /> {t("Collections")}
             </button>
           )}
         </div>

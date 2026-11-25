@@ -557,11 +557,8 @@ const appFill: Record<string, string> = {
   "A short note about this collection": "Короткая заметка об этой коллекции",
   "Added to new collection": "Добавлено в новую коллекцию",
   "Add to collection": "Добавить в коллекцию",
-  "Featured collections": "Избранные коллекции",
-  "Pick up to {max} collections to show on your public profile.":
-    "Выберите до {max} коллекций для показа в публичном профиле.",
-  "Make collections on the Collections page to feature them here.":
-    "Создайте коллекции на странице «Коллекции», чтобы показать их здесь.",
+  "Share a collection on the Collections page to show it here.":
+    "Поделитесь коллекцией на странице «Коллекции», чтобы показать её здесь.",
   "Add a collection": "Добавить коллекцию",
   Stats: "Статистика",
   "My Lists": "Мои списки",

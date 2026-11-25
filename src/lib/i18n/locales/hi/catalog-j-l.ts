@@ -263,11 +263,8 @@ const catalogJL: Record<string, string> = {
   "A short note about this collection": "इस कलेक्शन के बारे में एक छोटा नोट",
   "Added to new collection": "नए कलेक्शन में जोड़ा गया",
   "Add to collection": "कलेक्शन में जोड़ें",
-  "Featured collections": "चुनिंदा कलेक्शन",
-  "Pick up to {max} collections to show on your public profile.":
-    "अपनी सार्वजनिक प्रोफ़ाइल पर दिखाने के लिए अधिकतम {max} कलेक्शन चुनें।",
-  "Make collections on the Collections page to feature them here.":
-    "उन्हें यहाँ दिखाने के लिए कलेक्शन पेज पर कलेक्शन बनाएँ।",
+  "Share a collection on the Collections page to show it here.":
+    "इसे यहाँ दिखाने के लिए कलेक्शन पेज पर कोई कलेक्शन शेयर करें।",
   "Add a collection": "कलेक्शन जोड़ें",
   "Library sources": "लाइब्रेरी स्रोत",
   "Library, watch progress, and addon collection sync from this account.":

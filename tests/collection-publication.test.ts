@@ -432,3 +432,21 @@ test("refreshing the token keeps full-array writes serialized for the same Harbo
   assert.equal(overlapped, false);
   assert.equal(writes, 2);
 });
+
+test("the account keeps the changed collection, then shared ones, then the most recent, up to the limit", () => {
+  const many = Array.from({ length: 30 }, (_, index) => ({
+    id: `c${index}`,
+    updatedAt: index,
+    shared: index === 2 ? true : undefined,
+  }));
+  const kept = sync.collectionsForAccount(many, "c0");
+  assert.equal(kept.length, collections.MAX_COLLECTIONS);
+  assert.deepEqual(
+    kept.slice(0, 4).map((entry: { id: string }) => entry.id),
+    ["c0", "c2", "c29", "c28"],
+  );
+  assert.equal(
+    kept.some((entry: { id: string }) => entry.id === "c1"),
+    false,
+  );
+});

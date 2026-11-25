@@ -92,6 +92,19 @@ export function addCollectionToPage(page: CollectionRowPage, collectionId: strin
   return true;
 }
 
+/**
+ * Home's own list rows became collection rows (lists are collections). The
+ * ones already on Home all come across, past the cap, so none is lost; the
+ * cap applies to what is added after.
+ */
+export function adoptHomeCollectionRows(collectionIds: string[]): void {
+  const missing = collectionIds.filter((id) => id.trim() && !cache.home.includes(id));
+  if (!missing.length) return;
+  const next = clone();
+  next.home.push(...missing);
+  commit(next);
+}
+
 export function setCollectionOnPageWithResult(request: {
   page: CollectionRowPage;
   collectionId: string;

@@ -669,11 +669,8 @@ const audit: Record<string, string> = {
   "A short note about this collection": "Catatan singkat tentang koleksi ini",
   "Added to new collection": "Ditambahkan ke koleksi baru",
   "Add to collection": "Tambahkan ke koleksi",
-  "Featured collections": "Koleksi unggulan",
-  "Pick up to {max} collections to show on your public profile.":
-    "Pilih hingga {max} koleksi untuk ditampilkan di profil publik Anda.",
-  "Make collections on the Collections page to feature them here.":
-    "Buat koleksi di halaman Koleksi untuk menampilkannya di sini.",
+  "Share a collection on the Collections page to show it here.":
+    "Bagikan koleksi di halaman Koleksi untuk menampilkannya di sini.",
   "Add a collection": "Tambahkan koleksi",
   "Library, watch progress, and addon collection sync from this account.":
     "Perpustakaan, progres menonton, dan koleksi addon disinkronkan dari akun ini.",

@@ -894,11 +894,8 @@ const appFill: Record<string, string> = {
   "A short note about this collection": "ملاحظة قصيرة عن هذه المجموعة",
   "Added to new collection": "أُضيف إلى مجموعة جديدة",
   "Add to collection": "إضافة إلى مجموعة",
-  "Featured collections": "المجموعات المميزة",
-  "Pick up to {max} collections to show on your public profile.":
-    "اختر حتى {max} مجموعات لعرضها في ملفك الشخصي العام.",
-  "Make collections on the Collections page to feature them here.":
-    "أنشئ مجموعات في صفحة المجموعات لتمييزها هنا.",
+  "Share a collection on the Collections page to show it here.":
+    "شارك مجموعة من صفحة الكولكشنات لعرضها هنا.",
   "Add a collection": "إضافة مجموعة",
   Stats: "الإحصائيات",
   Local: "محلي",

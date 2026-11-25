@@ -115,7 +115,6 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { listMangaProgress } from "@/lib/manga-progress";
 import { ProfilesProvider, useProfiles } from "@/lib/profiles";
 import { syncProfileStats } from "@/lib/social/stats-sync";
-import { useFeaturedListsSync } from "@/lib/social/use-featured-sync";
 import { useRatingsSync } from "@/lib/social/use-ratings-sync";
 import { useActivitySync } from "@/lib/social/use-activity-sync";
 import { authToken, currentAuthor } from "@/lib/theme-auth";
@@ -610,7 +609,6 @@ export function App({ onReady }: { onReady?: () => void }) {
                                                   </AfterFirstPaint>
                                                   <AfterFirstPaint delayMs={1500}>
                                                     <StatsSyncRunner />
-                                                    <FeaturedListsSyncRunner />
                                                     <RatingsSyncRunner />
                                                     <ActivitySyncRunner />
                                                   </AfterFirstPaint>
@@ -696,11 +694,6 @@ function TogetherFloater() {
 
 function AutoDownloadRunner() {
   useAutoDownloadRunner();
-  return null;
-}
-
-function FeaturedListsSyncRunner() {
-  useFeaturedListsSync();
   return null;
 }
 

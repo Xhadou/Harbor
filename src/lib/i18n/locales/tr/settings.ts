@@ -1614,11 +1614,8 @@ const settings: Record<string, string> = {
   "A short note about this collection": "Bu koleksiyon hakkında kısa bir not",
   "Added to new collection": "Yeni koleksiyona eklendi",
   "Add to collection": "Koleksiyona ekle",
-  "Featured collections": "Öne çıkan koleksiyonlar",
-  "Pick up to {max} collections to show on your public profile.":
-    "Herkese açık profilinizde göstermek için en fazla {max} koleksiyon seçin.",
-  "Make collections on the Collections page to feature them here.":
-    "Burada öne çıkarmak için Koleksiyonlar sayfasında koleksiyon oluşturun.",
+  "Share a collection on the Collections page to show it here.":
+    "Burada göstermek için Koleksiyonlar sayfasında bir koleksiyon paylaşın.",
   "Add a collection": "Koleksiyon ekle",
   "Library, watch progress, and addon collection sync from this account.":
     "Kitaplık, izleme ilerlemesi ve eklenti koleksiyonu bu hesaptan eşzamanlanır.",

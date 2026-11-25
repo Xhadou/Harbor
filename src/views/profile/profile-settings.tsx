@@ -30,7 +30,6 @@ import { setPrivate } from "@/lib/social/privacy";
 import { useSettings } from "@/lib/settings";
 import { useT } from "@/lib/i18n";
 import { saveSettings } from "./profile-api";
-import { MyListsPicker } from "./my-lists-picker";
 import { FavoritesPicker } from "./favorites-picker";
 import { ShownBadgesPicker, pickableBadges } from "./shown-badges-picker";
 import { HeroStatsPicker } from "./hero-stats-picker";
@@ -324,7 +323,6 @@ export function ProfileSettings({
   const [section, setSection] = useState<SectionId>("general");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pickingLists, setPickingLists] = useState(false);
   const [pickingFav, setPickingFav] = useState<FavoriteKind | null>(null);
   const [pickingBadges, setPickingBadges] = useState(false);
   const [pickingStats, setPickingStats] = useState(false);
@@ -634,19 +632,6 @@ export function ProfileSettings({
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <ShowcaseCard
-                        title={t("Featured lists")}
-                        desc={t("Show up to 6 of your lists on your profile")}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setPickingLists(true)}
-                          className={cardBtn}
-                        >
-                          {t("Manage")}
-                        </button>
-                      </ShowcaseCard>
-
-                      <ShowcaseCard
                         title={t("Favourites")}
                         desc={t("Show your favourite games, books and music on your profile")}
                       >
@@ -925,7 +910,6 @@ export function ProfileSettings({
           </div>
         </div>
       </div>
-      {pickingLists && <MyListsPicker onClose={() => setPickingLists(false)} />}
       {pickingFav && (
         <FavoritesPicker
           kind={pickingFav}

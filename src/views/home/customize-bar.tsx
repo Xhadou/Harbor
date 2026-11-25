@@ -71,7 +71,7 @@ export function CustomizeBar({
         <div ref={listRef} className="relative">
           <button onClick={() => setListMenuOpen((v) => !v)} className={pillClass}>
             <ListPlus size={12} strokeWidth={2.2} />
-            {t("Add from lists")}
+            {t("Add a collection")}
           </button>
           {listMenuOpen && (
             <div className="absolute bottom-full end-0 mb-1.5 max-h-60 w-52 overflow-y-auto rounded-lg border border-edge-soft bg-canvas/95 p-1 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.75)] backdrop-blur-md">

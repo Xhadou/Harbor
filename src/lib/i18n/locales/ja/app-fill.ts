@@ -546,11 +546,8 @@ const appFill: Record<string, string> = {
   "A short note about this collection": "このコレクションについての短いメモ",
   "Added to new collection": "新しいコレクションに追加しました",
   "Add to collection": "コレクションに追加",
-  "Featured collections": "注目のコレクション",
-  "Pick up to {max} collections to show on your public profile.":
-    "公開プロフィールに表示するコレクションを最大{max}件選んでください。",
-  "Make collections on the Collections page to feature them here.":
-    "ここに表示するには、コレクションページでコレクションを作成してください。",
+  "Share a collection on the Collections page to show it here.":
+    "ここに表示するには、コレクションページでコレクションを共有してください。",
   "Add a collection": "コレクションを追加",
   Stats: "統計",
   "My Lists": "マイリスト",
