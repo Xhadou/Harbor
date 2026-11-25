@@ -42,6 +42,7 @@ function searchHarness() {
     "@/lib/settings": { useSettings: () => ({ settings: { aiSearchKey: "", aiGroqKey: "" } }) },
     "@/lib/profiles": { useProfiles: () => ({ activeProfile: { id: state.profile } }) },
     "@/lib/use-exit-presence": { useExitPresence: () => state },
+    "@/lib/platform": { isMacDesktop: () => false },
     "@/lib/use-window-fullscreen": { useWindowFullscreen: () => false },
     "@/lib/games/steam-store-search": { steamStoreQuery: () => null },
     "./use-collection-hits": { useCollectionHits: () => [] },

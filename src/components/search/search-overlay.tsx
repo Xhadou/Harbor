@@ -1,4 +1,3 @@
-import { SoftDiv } from "@/components/soft-swap";
 import { X, Loader2, CornerDownLeft, CalendarRange, Tag } from "lucide-react";
 import { Search } from "@/components/icons/search-icon";
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -41,6 +40,7 @@ import { providerTabFor } from "@/lib/ai-models";
 import { getSearchDisplayState } from "@/lib/search-display-state";
 import { AiExampleHint, SEARCH_EXAMPLES } from "@/components/ai-example-hint";
 import { useSettings } from "@/lib/settings";
+import { isMacDesktop } from "@/lib/platform";
 import { useExitPresence } from "@/lib/use-exit-presence";
 import { useWindowFullscreen } from "@/lib/use-window-fullscreen";
 import { isMagnetInput, isDirectVideoUrl } from "@/lib/torrent/magnet";
@@ -54,6 +54,9 @@ const GuideModal = lazy(() =>
 const SteamStoreSearch = lazy(() =>
   import("./steam-store-search").then((module) => ({ default: module.SteamStoreSearch })),
 );
+
+/** How long the overlay's exit takes on macOS: the scrim's fade, the longer of its two (index.css). */
+const MAC_EXIT_MS = 260;
 
 export function SearchOverlay() {
   const {
@@ -94,7 +97,10 @@ export function SearchOverlay() {
   useEffect(() => {
     setMediaFilter("all");
   }, [query]);
-  const { mounted, closing } = useExitPresence(open, 150);
+  // The scrim and the panel fade out by their own styles for this long (index.css), and
+  // the overlay is taken away once they have. It leaves no fading copy besides: a copy
+  // starts those fades again, so the panel went, came back whole, and went a second time.
+  const { mounted, closing } = useExitPresence(open, isMacDesktop() ? MAC_EXIT_MS : 150);
   const fullscreen = useWindowFullscreen();
   // The exit animation unmounts the panel; retain its position outside that DOM.
   const scrollKey = JSON.stringify([activeProfile?.id, query, mediaFilter, aiMode, explore]);
@@ -386,8 +392,7 @@ export function SearchOverlay() {
   };
 
   return createPortal(
-    <SoftDiv
-      data-arrives=""
+    <div
       ref={panelRef}
       className={`fixed inset-0 z-[200] flex flex-col overflow-hidden ${closing ? "pointer-events-none" : ""}`}
       role="dialog"
@@ -737,7 +742,7 @@ export function SearchOverlay() {
           <GuideModal onClose={() => setGuideOpen(false)} />
         </Suspense>
       )}
-    </SoftDiv>,
+    </div>,
     document.body,
   );
 }

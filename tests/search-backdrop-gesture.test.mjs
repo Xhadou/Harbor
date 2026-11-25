@@ -120,6 +120,7 @@ function harness(t, options = {}) {
       useExitPresence: () => ({ mounted: search.open, closing: false }),
     },
     "@/lib/use-window-fullscreen": { useWindowFullscreen: () => fullscreen },
+    "@/lib/platform": { isMacDesktop: () => false },
     "@/lib/search-display-state": {
       getSearchDisplayState: () => ({
         currentResults: null,
