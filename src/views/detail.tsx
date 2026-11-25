@@ -436,6 +436,7 @@ export function DetailView({
     promoteMetaToRoot,
     openMeta,
     openManga,
+    topKind,
   } = useView();
   useTvdbCastFallback(meta, detail, detectedKitsu, setDetail);
   const { snapshot: roomSnapshot, claimHost } = useTogether();
@@ -2738,7 +2739,12 @@ export function DetailView({
             <div className="absolute inset-0 animate-pulse bg-white/[0.02]" />
           )}
           {settings.detailTrailerAutoplay && trailerCandidate && (
-            <DetailHeroTrailer candidateIds={trailerCandidates} paused={trailerOpen} />
+            <DetailHeroTrailer
+              candidateIds={trailerCandidates}
+              // Only for the page in front: kept behind the source picker or the player, a
+              // hidden page's video plays on, sound and all.
+              paused={trailerOpen || topKind !== "meta"}
+            />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-canvas via-canvas/55 via-45% to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r rtl:bg-gradient-to-l from-canvas/85 via-canvas/35 to-transparent" />
