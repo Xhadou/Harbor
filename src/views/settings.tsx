@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { LibraryKey } from "./settings/library-panel";
 import type { RelayMode } from "./settings/relay-section";
@@ -715,7 +716,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                         onOpen={(id) => handleNav(id)}
                       />
                     )}
-                    <div
+                    <SoftDiv
                       key={active}
                       ref={tabEnter}
                       className={`harbor-cascade flex flex-col ${landingGroup ? "hidden" : ""}`}
@@ -811,7 +812,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
 
                       {active === "licenses" && <LicensesPanel />}
                       {active === "icons" && <IconsPanel />}
-                    </div>
+                    </SoftDiv>
                   </Suspense>
                 </div>
                 {pageActions && !chromeHidden && <SettingsFooter reg={pageActions} />}

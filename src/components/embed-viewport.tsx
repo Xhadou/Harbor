@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowUpRight, ExternalLink, Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -81,7 +82,10 @@ function EmbedViewport({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[235] flex flex-col bg-black/82 backdrop-blur-md">
+    <SoftDiv
+      data-arrives=""
+      className="fixed inset-0 z-[235] flex flex-col bg-black/82 backdrop-blur-md"
+    >
       <header
         data-tauri-drag-region
         className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-canvas/60 px-5 text-ink backdrop-blur-md"
@@ -155,7 +159,7 @@ function EmbedViewport({
           allow="clipboard-write; encrypted-media; fullscreen"
         />
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import {
   AudioLines,
   Camera,
@@ -209,7 +210,7 @@ export function MoreMenu({
         </button>
       </Tooltip>
       {open && rows.length > 0 && (
-        <div
+        <SoftDiv
           role="menu"
           aria-label={t("More")}
           className="mac-menu absolute end-0 bottom-[calc(100%+10px)] z-30 flex w-max min-w-[220px] max-w-[min(320px,calc(100vw-32px))] flex-col rounded-md bg-elevated p-1.5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] animate-menu-pop"
@@ -244,7 +245,7 @@ export function MoreMenu({
               </Fragment>
             );
           })}
-        </div>
+        </SoftDiv>
       )}
       {!ctx.editing &&
         PANEL_CONTROLS.filter((control) => controls.includes(control)).map((control) => (

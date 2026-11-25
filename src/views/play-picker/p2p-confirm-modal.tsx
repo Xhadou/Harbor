@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useLeaveSoftly } from "@/lib/soft-leave";
 import { Radio, Users, X } from "lucide-react";
 import { useState } from "react";
 import type { Meta } from "@/lib/cinemeta";
@@ -19,8 +21,14 @@ export function P2pConfirmModal({
   const backdrop = meta.background || meta.poster;
   const title = stream.parsedTitle || stream.title || stream.name || "This source";
   const summary = streamSummaryParts(stream).filter((p) => !/seed/i.test(p));
+  const screenRef = useRef<HTMLElement>(null);
+  useLeaveSoftly(screenRef);
   return (
-    <main className="fixed inset-0 z-[120] overflow-hidden bg-black">
+    <main
+      ref={screenRef}
+      data-arrives=""
+      className="fixed inset-0 z-[120] overflow-hidden bg-black"
+    >
       {backdrop && (
         <img
           src={backdrop}

@@ -204,6 +204,7 @@ function HubGrid({
             <EmptyCollections onCreate={create} />
           ) : (
             <div
+              data-arrives=""
               className="grid gap-5"
               style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
             >
@@ -246,6 +247,7 @@ function HubGrid({
             <CommunityEmpty />
           ) : community.length > 0 ? (
             <div
+              data-arrives=""
               className="grid gap-5"
               style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
             >
@@ -337,6 +339,7 @@ function EmptyCollections({ onCreate }: { onCreate: () => void }) {
 function CommunityLoading() {
   return (
     <div
+      data-arrives=""
       className="grid gap-5"
       style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
     >

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useSubTabs } from "./sub-tabs";
 import { Info } from "./icons";
 import { useEffect, useState } from "react";
@@ -79,7 +80,7 @@ export function ShadersPanel() {
   }
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "anime4k" && (
         <>
           <Section
@@ -144,6 +145,6 @@ export function ShadersPanel() {
           })}
         </Section>
       )}
-    </div>
+    </SoftDiv>
   );
 }

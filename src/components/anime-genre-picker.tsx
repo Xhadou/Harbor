@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -82,7 +83,10 @@ export function AnimeGenrePicker({
   const hiddenCount = origins.size + (hideWatched ? 1 : 0);
 
   return createPortal(
-    <div className="fixed inset-0 z-[210] flex items-center justify-center px-4 py-10">
+    <SoftDiv
+      data-arrives=""
+      className="fixed inset-0 z-[210] flex items-center justify-center px-4 py-10"
+    >
       <button
         aria-label={t("Close")}
         onClick={onClose}
@@ -263,7 +267,7 @@ export function AnimeGenrePicker({
           </div>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { useEffect } from "react";
 import { FileJson, FolderInput, FolderPlus, Images, ShieldCheck, X } from "lucide-react";
@@ -52,7 +53,11 @@ export function AvatarPackHelp({ onClose }: { onClose: () => void }) {
   ];
 
   return createPortal(
-    <div className="fixed inset-0 z-[310] flex items-center justify-center p-4" onClick={onClose}>
+    <SoftDiv
+      data-arrives=""
+      className="fixed inset-0 z-[310] flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <div className="absolute inset-0 animate-in fade-in bg-black/60 duration-150" />
       <div
         onClick={(e) => e.stopPropagation()}
@@ -98,7 +103,7 @@ export function AvatarPackHelp({ onClose }: { onClose: () => void }) {
           </p>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

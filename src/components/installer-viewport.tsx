@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowUpRight, ClipboardCopy, ExternalLink, RotateCw, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -260,7 +261,10 @@ function InstallerViewport({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[240] flex flex-col bg-black/82 backdrop-blur-md">
+    <SoftDiv
+      data-arrives=""
+      className="fixed inset-0 z-[240] flex flex-col bg-black/82 backdrop-blur-md"
+    >
       <header
         data-tauri-drag-region
         className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-canvas/60 px-5 text-ink backdrop-blur-md"
@@ -428,7 +432,7 @@ function InstallerViewport({
           </div>
         )}
       </footer>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

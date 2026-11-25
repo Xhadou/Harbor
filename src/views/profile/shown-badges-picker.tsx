@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { Award, Check, X } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
@@ -126,7 +127,8 @@ export function ShownBadgesPicker({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[185] flex items-center justify-center p-4"
       role="dialog"
       aria-modal
@@ -210,7 +212,7 @@ export function ShownBadgesPicker({
           </div>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

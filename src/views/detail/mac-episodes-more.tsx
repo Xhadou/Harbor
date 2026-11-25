@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Check, MoreHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -107,7 +108,7 @@ export function MacEpisodesMore({
       </HoverTooltip>
       {menu &&
         createPortal(
-          <div
+          <SoftDiv
             role="menu"
             style={{ left: menu.x, top: menu.y, width: MENU_WIDTH }}
             onMouseDown={(e) => e.stopPropagation()}
@@ -142,7 +143,7 @@ export function MacEpisodesMore({
               />
             )}
             <Row label={t("Play a random episode")} onClick={pick(random)} />
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
     </>

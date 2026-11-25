@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { X } from "lucide-react";
 import { useRef } from "react";
 import { useTipOnce } from "@/lib/use-tip-once";
@@ -23,7 +24,7 @@ export function PlayModeHint({ children }: { children: React.ReactNode }) {
     >
       {children}
       {visible && (
-        <div
+        <SoftDiv
           ref={popoverRef}
           className="pointer-events-none absolute bottom-full start-0 z-30 mb-3 flex w-[320px]"
         >
@@ -61,7 +62,7 @@ export function PlayModeHint({ children }: { children: React.ReactNode }) {
             </button>
             <div className="absolute start-10 top-full -mt-1.5 h-3 w-3 rotate-45 border-b border-e border-edge-soft bg-elevated/95" />
           </div>
-        </div>
+        </SoftDiv>
       )}
     </span>
   );

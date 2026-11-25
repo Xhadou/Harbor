@@ -76,6 +76,7 @@ test("root Refresh and the original File menu reload the same window without nav
   const parental = { locked: false, hiddenTabs: {} };
   const dependencies = {
     react: React,
+    "@/components/soft-swap": { SoftDiv: "div", SoftSwap: "div" },
     "react/jsx-runtime": jsxRuntime,
     "react-dom": ReactDOM,
     "lucide-react": icons,
@@ -203,6 +204,7 @@ test("person and eBook page sharing follows the captured page and preserves navi
   };
   const page = load("src/chrome/context-page-navigation.tsx", {
     react: React,
+    "@/components/soft-swap": { SoftDiv: "div", SoftSwap: "div" },
     "react/jsx-runtime": jsxRuntime,
     "lucide-react": icons,
     "@/components/ui-icon": { UiIcon: empty },

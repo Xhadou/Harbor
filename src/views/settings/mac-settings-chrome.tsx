@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   buildSettingsResults,
@@ -198,7 +199,7 @@ export function MacSettingsTabs({ reg }: { reg: SubTabReg }) {
   const t = useT();
   if (!isMacDesktop() || !reg || reg.tabs.length < 2) return null;
   return (
-    <div className="hset-mac-tabs" role="tablist" aria-label={t("Sections")}>
+    <SoftDiv data-arrives="" className="hset-mac-tabs" role="tablist" aria-label={t("Sections")}>
       {reg.tabs.map((tab) => (
         <button
           key={tab.id}
@@ -212,7 +213,7 @@ export function MacSettingsTabs({ reg }: { reg: SubTabReg }) {
           {tab.dot && <span className="hset-mac-tab-dot" aria-hidden />}
         </button>
       ))}
-    </div>
+    </SoftDiv>
   );
 }
 

@@ -194,6 +194,8 @@ function LazyChild({
   return (
     <div
       ref={ref}
+      // The card fades in over the placeholder it replaces; the attribute is only there once it has.
+      data-arrives={visible ? "" : undefined}
       data-row-card-index={expansion?.index}
       data-poster-card-cell={expansion ? "" : undefined}
       data-tv-nav-base-width={expansion?.baseWidth}
@@ -1142,6 +1144,8 @@ export function Row({
 
   return (
     <div
+      // A row that is added to a page already on screen (its titles came in later) fades in.
+      data-arrives=""
       className={`harbor-row-shell flex min-w-0 flex-col gap-5 ps-[9px] ${shellRoom} ${className}`}
     >
       {hasHeader && (

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { BadgeCheck, FileText, Loader2, Lock, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -78,7 +79,8 @@ export function DiagnosticsConsentModal({
   const ticket = summary?.ticket ?? "";
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[240] grid place-items-center bg-canvas/60 p-4"
       style={{ animation: "diag-scrim-in 160ms ease both" }}
       onClick={onClose}
@@ -187,7 +189,7 @@ export function DiagnosticsConsentModal({
           @keyframes diag-pop-in { from { opacity: 0; transform: translateY(10px) scale(0.98) } to { opacity: 1; transform: none } }
         `}</style>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

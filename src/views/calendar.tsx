@@ -392,7 +392,7 @@ export function CalendarView({
           {showAllControls && (
             <>
               <span className="mx-1 h-5 w-px bg-edge-soft" />
-              <div className="flex flex-wrap items-center gap-2">
+              <div data-arrives="" className="flex flex-wrap items-center gap-2">
                 {filters.map((f) => {
                   const active = filter === f.id;
                   const count =

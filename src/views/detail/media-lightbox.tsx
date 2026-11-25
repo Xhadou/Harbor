@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, ImagePlus, X } from "lucide-react";
 import { HoverTooltip } from "@/components/hover-tooltip";
@@ -42,7 +43,8 @@ export function MediaLightbox({
   const multi = images.length > 1;
 
   return (
-    <div
+    <SoftDiv
+      data-arrives=""
       onClick={onClose}
       className="fixed inset-0 z-[120] flex cursor-zoom-out items-center justify-center"
       style={{
@@ -146,6 +148,6 @@ export function MediaLightbox({
           {i + 1} / {images.length}
         </span>
       )}
-    </div>
+    </SoftDiv>
   );
 }

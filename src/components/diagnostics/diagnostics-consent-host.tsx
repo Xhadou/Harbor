@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { subscribeDiagnosticsOpen } from "@/lib/social/diagnostics-open";
@@ -23,7 +24,8 @@ function ProgressShell({
   const t = useT();
   const run = useDiagnosticsRun(requestId, ticket);
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[240] grid place-items-center bg-canvas/60 p-4"
       style={{ animation: "diag-scrim-in 160ms ease both" }}
     >
@@ -48,7 +50,7 @@ function ProgressShell({
         @keyframes diag-scrim-in { from { opacity: 0 } to { opacity: 1 } }
         @keyframes diag-pop-in { from { opacity: 0; transform: translateY(10px) scale(0.98) } to { opacity: 1; transform: none } }
       `}</style>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

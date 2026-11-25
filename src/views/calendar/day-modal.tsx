@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Clock, X } from "lucide-react";
@@ -31,7 +32,7 @@ export function DayModal({
   }, [onClose]);
 
   return createPortal(
-    <div
+    <SoftDiv
       onClick={onClose}
       className="fixed inset-0 z-[185] flex animate-fade-in items-center justify-center bg-canvas/80 backdrop-blur-md"
     >
@@ -67,7 +68,7 @@ export function DayModal({
           ))}
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

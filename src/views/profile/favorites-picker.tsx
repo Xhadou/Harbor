@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -272,7 +273,8 @@ export function FavoritesPicker({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[185] flex items-center justify-center p-4"
       role="dialog"
       aria-modal
@@ -436,7 +438,7 @@ export function FavoritesPicker({
           </div>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

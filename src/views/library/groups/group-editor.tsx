@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Dropdown } from "@/components/dropdown";
 import { Switch } from "@/views/settings/plugins-panel/bits";
 import { useEffect, useRef, useState } from "react";
@@ -81,7 +82,8 @@ export function GroupEditor({
     }
   };
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[230] flex items-center justify-center bg-canvas/80 p-5"
       onClick={onCancel}
     >
@@ -252,7 +254,7 @@ export function GroupEditor({
           </button>
         </footer>
       </form>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

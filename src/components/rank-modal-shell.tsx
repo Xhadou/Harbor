@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowUp, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -55,7 +56,8 @@ export function RankModalShell({
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[175] flex items-stretch justify-center bg-canvas/85 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
@@ -93,7 +95,7 @@ export function RankModalShell({
           <ArrowUp size={14} strokeWidth={2.2} />
         </button>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, BookOpen, Loader2, UploadCloud, X } from "../../icons";
@@ -131,7 +132,8 @@ export function ThemeUpdateFlow({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       ref={rootRef}
       className="fixed inset-0 z-[300] flex flex-col bg-canvas"
       role="dialog"
@@ -258,7 +260,7 @@ export function ThemeUpdateFlow({
         </footer>
       )}
       {sheetOpen && <CheatSheet onClose={() => setSheetOpen(false)} />}
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

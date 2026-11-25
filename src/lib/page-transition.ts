@@ -1,5 +1,4 @@
 import { flushSync } from "react-dom";
-import { PAGE_CHANGING } from "./one-frame-changes";
 import { isMacDesktop } from "./platform";
 
 /**
@@ -33,6 +32,15 @@ export type CarriedPicture = {
 
 type Batch = { commits: Commit[]; ran: boolean };
 let held: Batch | null = null;
+let changingPage = false;
+
+/**
+ * True while a change of page is being rendered. What unmounts then is leaving
+ * with its page, which this change pictures as a whole; it has no exit of its own.
+ */
+export function isChangingPage(): boolean {
+  return changingPage;
+}
 
 function canTransition(): boolean {
   return (
@@ -96,17 +104,18 @@ export function commitWithPageTransition(
     if (batch.ran) return false;
     batch.ran = true;
     if (held === batch) held = null;
-    flushSync(() => {
-      for (const each of batch.commits) each();
-    });
+    changingPage = true;
+    try {
+      flushSync(() => {
+        for (const each of batch.commits) each();
+      });
+    } finally {
+      changingPage = false;
+    }
     return true;
   };
   // If the picture never comes (the window went behind another), go without it.
   const withoutPicture = window.setTimeout(run, 250);
-  // What mounts and unmounts while one page becomes another is this change's to animate.
-  const root = document.documentElement;
-  root.setAttribute(PAGE_CHANGING, "");
-  const settled = () => root.removeAttribute(PAGE_CHANGING);
   try {
     carried?.leave();
     const transition = document.startViewTransition(async () => {
@@ -120,16 +129,12 @@ export function commitWithPageTransition(
     });
     // A skipped transition rejects these; that is not an error here.
     transition.ready.catch(() => {});
-    const over = () => {
-      carried?.done();
-      settled();
-    };
+    const over = () => carried?.done();
     transition.finished.then(over, over);
     transition.updateCallbackDone.catch(() => {});
   } catch {
     window.clearTimeout(withoutPicture);
     carried?.done();
-    settled();
     run();
   }
 }

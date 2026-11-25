@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowDownToLine, CalendarClock, Check, Download, SlidersHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -80,7 +81,7 @@ export function EpisodeDownloadsMenu({ meta, episodes }: { meta: Meta; episodes:
       </HoverTooltip>
       {menu &&
         createPortal(
-          <div
+          <SoftDiv
             role="menu"
             style={{ left: menu.x, top: menu.y }}
             onMouseDown={(e) => e.stopPropagation()}
@@ -123,7 +124,7 @@ export function EpisodeDownloadsMenu({ meta, episodes }: { meta: Meta; episodes:
                 }}
               />
             )}
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
     </>

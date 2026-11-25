@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Download, Minus, Plus, RotateCcw, X } from "lucide-react";
@@ -178,7 +179,8 @@ export function ContextImageViewer({
   const buttonClass =
     "flex h-10 w-10 items-center justify-center rounded-full bg-canvas/90 text-ink shadow-lg hover:bg-elevated focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-40";
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       ref={dialog}
       role="dialog"
       data-bp-overlay
@@ -327,7 +329,7 @@ export function ContextImageViewer({
           {notice}
         </p>
       )}
-    </div>,
+    </SoftDiv>,
     document.fullscreenElement ?? document.body,
   );
 }

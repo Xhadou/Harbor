@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useLeaveSoftly } from "@/lib/soft-leave";
 import type { Meta } from "@/lib/cinemeta";
 import { useView, type PlayEpisode } from "@/lib/view";
 import { parseKitsuId } from "@/lib/providers/kitsu";
@@ -40,8 +42,14 @@ export function AutoExhaustedModal({
     `\nWhat happened: Harbor could not find a working stream automatically.\n` +
     `\n(Add any extra detail here)`;
   const reportUrl = `https://github.com/harborstremio/harbor/issues/new?title=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const screenRef = useRef<HTMLElement>(null);
+  useLeaveSoftly(screenRef);
   return (
-    <main className="fixed inset-0 z-[120] flex items-center justify-center overflow-hidden bg-black px-6">
+    <main
+      ref={screenRef}
+      data-arrives=""
+      className="fixed inset-0 z-[120] flex items-center justify-center overflow-hidden bg-black px-6"
+    >
       <div className="w-full max-w-md rounded-2xl bg-elevated p-8 ring-1 ring-edge-soft">
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-ink-subtle">
           Harbor

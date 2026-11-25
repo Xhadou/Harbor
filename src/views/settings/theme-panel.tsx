@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { AppWindow, Frame, Move, PanelTop, PanelTopDashed } from "./icons";
 import { useEffect, useState, type ReactNode, useRef } from "react";
 import { getCustomThemes, subscribeCustomThemes } from "@/lib/custom-themes";
@@ -99,7 +100,7 @@ export function ThemePanel() {
 
   return (
     <>
-      <div key={active} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={active} className="harbor-cascade flex flex-col gap-10">
         {HAS_THEMES && active === "theme" && <ThemeTab />}
         {HAS_THEMES && active === "library" && <LibraryTab />}
         {HAS_THEMES && active === "mylibrary" && <LibraryTab startOpenTab="library" />}
@@ -108,7 +109,7 @@ export function ThemePanel() {
         {active === "interface" && <DisplaySection />}
         {active === "ambience" && <AmbienceSection />}
         {active === "window" && <WindowTab />}
-      </div>
+      </SoftDiv>
     </>
   );
 }

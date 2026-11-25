@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFocusTrap } from "@/components/modal-shell";
 import { DoneStep } from "@/components/onboarding/done-step";
@@ -47,7 +48,8 @@ export function MacSetup({ onFinish }: { onFinish: () => void }) {
   const next = () => setIdx((i) => Math.min(i + 1, STEPS.length - 1));
 
   return (
-    <div
+    <SoftDiv
+      data-arrives=""
       // One above the page header (z-55), whose buttons would otherwise stay
       // bright and clickable over the dimmed page.
       className={`fixed inset-0 z-[56] flex items-center justify-center bg-canvas/85 backdrop-blur-md ${
@@ -116,6 +118,6 @@ export function MacSetup({ onFinish }: { onFinish: () => void }) {
           </div>
         </div>
       </div>
-    </div>
+    </SoftDiv>
   );
 }

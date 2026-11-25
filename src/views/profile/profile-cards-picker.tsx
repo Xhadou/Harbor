@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { ArrowDown, ArrowUp, Check, Eye, EyeOff, X } from "lucide-react";
 import { useState } from "react";
@@ -113,7 +114,8 @@ export function ProfileCardsPicker({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[185] flex items-center justify-center p-4"
       role="dialog"
       aria-modal
@@ -175,7 +177,7 @@ export function ProfileCardsPicker({
           </div>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

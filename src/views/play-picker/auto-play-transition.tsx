@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLeaveSoftly } from "@/lib/soft-leave";
 import { HarborLoader } from "@/components/harbor-loader";
 import type { Meta } from "@/lib/cinemeta";
 import { consumeRecentStubEvent } from "@/lib/dead-streams";
@@ -77,8 +78,12 @@ export function AutoPlayTransition({
         ? `S${partSeason} · E${String(episode.episode).padStart(2, "0")}`
         : `S${episode.imdbSeason ?? episode.season} · E${String(episode.imdbEpisode ?? episode.episode).padStart(2, "0")}`
       : null;
+  const screenRef = useRef<HTMLElement>(null);
+  useLeaveSoftly(screenRef);
   return (
     <main
+      ref={screenRef}
+      data-arrives=""
       className={`harbor-connecting fixed inset-0 z-[120] overflow-hidden ${kid ? "bg-[#0c4a6e]" : "bg-black"}`}
     >
       <div data-tauri-drag-region className="absolute inset-x-0 top-0 z-20 h-16" />

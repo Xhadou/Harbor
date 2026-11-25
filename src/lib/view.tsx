@@ -33,7 +33,6 @@ import { useTogether } from "./together/provider";
 import { beginMarathonAdvance } from "./fullscreen-state";
 import { consumeBack } from "./back-intercept";
 import { commitWithPageTransition, pageTransitionsSupported } from "./page-transition";
-import { watchOneFrameChanges } from "./one-frame-changes";
 import { pageOpening, watchOpeningPresses } from "./page-opening";
 import { useSectionBackActive } from "./section-back";
 import type { SubtitleLoadMetadata } from "./subtitles/types";
@@ -789,7 +788,6 @@ export function ViewProvider({ children }: { children: ReactNode }) {
     if (!pageTransitionsSupported()) return;
     document.documentElement.classList.add("mac-page-vt");
     watchOpeningPresses();
-    watchOneFrameChanges();
   }, []);
 
   const pop = useCallback(() => {

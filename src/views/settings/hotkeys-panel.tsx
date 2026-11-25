@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useSubTabs } from "./sub-tabs";
 import { Keyboard, RotateCcw } from "./icons";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -139,7 +140,7 @@ export function HotkeysPanel() {
   );
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       <SettingsModal
         open={resetOpen}
         onClose={() => setResetOpen(false)}
@@ -304,7 +305,7 @@ export function HotkeysPanel() {
           </Section>
         </>
       )}
-    </div>
+    </SoftDiv>
   );
 }
 

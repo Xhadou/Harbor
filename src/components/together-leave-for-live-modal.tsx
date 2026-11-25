@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { useEffect } from "react";
 import { Tv } from "lucide-react";
@@ -22,7 +23,7 @@ export function TogetherLeaveForLiveModal() {
   const name = pendingLiveSrc.title || t("this channel");
 
   return createPortal(
-    <div
+    <SoftDiv
       className="fixed inset-0 z-[175] flex items-center justify-center bg-black/60 px-6 animate-fade-in"
       onClick={cancelLeavePartyForLive}
     >
@@ -61,7 +62,7 @@ export function TogetherLeaveForLiveModal() {
           </button>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

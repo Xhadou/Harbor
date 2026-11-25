@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { AlertCircle, Check, Loader2, Tv, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
@@ -171,7 +172,7 @@ function PairPanel({ instance }: { instance: HarborInstance }) {
   const where = `${platformLabel(instance.platform)} / ${instance.host}`;
 
   return createPortal(
-    <div
+    <SoftDiv
       className="fixed inset-0 z-[250] flex items-center justify-center bg-canvas/75 p-6 backdrop-blur-[3px] animate-fade-in motion-reduce:animate-none"
       role="dialog"
       aria-modal="true"
@@ -216,7 +217,7 @@ function PairPanel({ instance }: { instance: HarborInstance }) {
           />
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

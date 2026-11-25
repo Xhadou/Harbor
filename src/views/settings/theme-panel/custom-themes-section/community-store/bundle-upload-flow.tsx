@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -127,7 +128,8 @@ export function BundleUploadFlow({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       ref={rootRef}
       className="fixed inset-0 z-[300] flex flex-col bg-canvas"
       role="dialog"
@@ -280,7 +282,7 @@ export function BundleUploadFlow({
           )}
         </footer>
       )}
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

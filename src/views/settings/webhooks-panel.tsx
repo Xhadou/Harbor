@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useSubTabs } from "./sub-tabs";
 import { Globe, Library, Star } from "./icons";
 import { useRef, useState } from "react";
@@ -150,7 +151,7 @@ export function WebhooksPanel() {
   );
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "destinations" && (
         <Section
           title={t("Where alerts go")}
@@ -237,7 +238,7 @@ export function WebhooksPanel() {
           canDesktop={settings.webhooks.desktopEnabled}
         />
       )}
-    </div>
+    </SoftDiv>
   );
 }
 

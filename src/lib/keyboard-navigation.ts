@@ -1,5 +1,6 @@
 import { useEffect, useRef, type RefObject } from "react";
 import { shouldHandleGlobalKeyboardEvent } from "@/lib/hotkeys";
+import { isMacDesktop } from "@/lib/platform";
 import { SFX } from "@/lib/sfx";
 import { isModalOverlayOpen, modalOverlayClose } from "@/lib/modal-overlay";
 import { stableCardNavigationRect } from "@/lib/poster-backdrop-expansion";
@@ -176,6 +177,16 @@ let lastPointerMoveY: number | null = null;
 function reflectModalityAttr() {
   if (typeof document === "undefined" || !inputModality) return;
   document.documentElement.setAttribute("data-input-modality", inputModality);
+}
+
+/** Whether this is a platform used with a pointer from the start (the Mac app). */
+function startsWithPointer(): boolean {
+  try {
+    return isMacDesktop();
+  } catch {
+    // Asked where there is no app to answer; leave the modality undecided.
+    return false;
+  }
 }
 
 function setKeysModality() {
@@ -1237,6 +1248,14 @@ export function useKeyboardNavigation(options: TVNavigationOptions = {}) {
 
   // Focus styling needs input modality even when TV navigation is disabled.
   useEffect(() => {
+    // A Mac is used with a pointer until a key says otherwise. Left undecided (the
+    // TV default, which keeps the ring on from start), the accent outline was drawn
+    // on whatever took focus before the pointer first moved over the window: the
+    // card a title page closes back into, a menu's field when the menu closes.
+    if (inputModality === null && startsWithPointer()) {
+      inputModality = "pointer";
+      reflectModalityAttr();
+    }
     const onPointerDown = () => setPointerModality();
     const onPointerMove = (e: PointerEvent) => notePointerMove(e.screenX, e.screenY);
     const onWheel = () => setPointerModality();

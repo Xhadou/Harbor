@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useRef, useState } from "react";
 import { observe, usePageVisible } from "@/lib/visibility";
 import { useReducedMotion } from "@/lib/use-reduced-motion";
@@ -128,7 +129,7 @@ export function HeroCarousel({
 
   if (slides.length === 0) {
     return (
-      <div
+      <SoftDiv
         className={`harbor-hero-stage mac-zoom-fixed animate-pulse border border-edge-soft bg-elevated/30 ${full ? `${HERO_FULL_HEIGHT} min-h-[640px] rounded-none` : "min-h-[560px] rounded-2xl"}`}
       />
     );
@@ -260,6 +261,7 @@ export function HeroCarousel({
       <div
         ref={viewportRef}
         dir="ltr"
+        data-arrives=""
         onPointerDown={billboard ? undefined : onPointerDown}
         onPointerMove={billboard ? undefined : onPointerMove}
         onPointerUp={billboard ? undefined : endDrag}

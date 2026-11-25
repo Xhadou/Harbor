@@ -23,7 +23,7 @@ export function HeroDots({
   className?: string;
 }) {
   return (
-    <div className={`mac-hero-dots ${className}`}>
+    <div data-arrives="" className={`mac-hero-dots ${className}`}>
       {Array.from({ length: count }, (_, i) => (
         <button
           key={i}

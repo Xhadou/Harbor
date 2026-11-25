@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -29,7 +30,8 @@ export function VoyageModal() {
   });
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[200] flex items-center justify-center bg-canvas/80 p-4 sm:p-6"
       style={{
         animation: closing
@@ -92,7 +94,7 @@ export function VoyageModal() {
         }
         @keyframes voyage-pop-out { from { opacity: 1; transform: none } to { opacity: 0; transform: scale(0.99) translateY(3px) } }
       `}</style>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

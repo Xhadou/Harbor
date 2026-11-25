@@ -118,7 +118,10 @@ function SpotlightCard({
   };
 
   return (
-    <section className="relative min-h-[300px] overflow-hidden rounded-2xl border border-edge-soft bg-elevated/30">
+    <section
+      data-arrives=""
+      className="relative min-h-[300px] overflow-hidden rounded-2xl border border-edge-soft bg-elevated/30"
+    >
       {background ? (
         <img
           src={background}

@@ -11,6 +11,7 @@ import ts from "typescript";
 
 const dependencies = {
   react: React,
+  "@/components/soft-swap": { SoftDiv: "div", SoftSwap: "div" },
   "react-dom": ReactDOM,
   "react/jsx-runtime": jsxRuntime,
   "lucide-react": icons,

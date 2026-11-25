@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useSubTabs } from "./sub-tabs";
 import { fillStyle, SliderReset } from "@/components/slider";
@@ -50,7 +51,7 @@ export function ControllersPanel() {
   );
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "setup" && (
         <>
           <Section
@@ -173,7 +174,7 @@ export function ControllersPanel() {
           </Section>
         </>
       )}
-    </div>
+    </SoftDiv>
   );
 }
 

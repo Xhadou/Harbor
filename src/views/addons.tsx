@@ -1,3 +1,5 @@
+import { SoftDiv } from "@/components/soft-swap";
+import { SoftSwap } from "@/components/soft-swap";
 import { Check, ChevronRight, Library, Sparkles, Star, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AgeGateModal } from "@/components/age-gate-modal";
@@ -417,6 +419,7 @@ export function AddonsView({ active = true }: { active?: boolean }) {
             </button>
             {tab === "browse" && (
               <button
+                data-arrives=""
                 onClick={() => setFiltersOpen((v) => !v)}
                 className="flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-edge-soft px-3 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-ink-subtle transition-colors hover:border-edge hover:text-ink-muted"
               >
@@ -431,7 +434,8 @@ export function AddonsView({ active = true }: { active?: boolean }) {
           </div>
         </div>
         {tab === "browse" && (
-          <div
+          <SoftDiv
+            data-arrives=""
             className={`grid transition-[grid-template-rows,opacity,margin-top] duration-300 ease-out ${
               filtersOpen ? "mt-4 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
             }`}
@@ -488,57 +492,62 @@ export function AddonsView({ active = true }: { active?: boolean }) {
                 })}
               </div>
             </div>
-          </div>
+          </SoftDiv>
         )}
       </header>
 
       <ScrollToTop scrollRef={scrollRef} />
 
       <div ref={scrollRef} className="mac-pad flex-1 overflow-y-auto px-12 pb-20 pt-6">
-        {loading && allAddons.length === 0 ? (
-          <div className="flex h-full items-center justify-center py-24">
-            <HarborLoader size="lg" caption={t("Loading the catalog")} keyed />
-          </div>
-        ) : tab === "discover" ? (
-          <DiscoverPane
-            installedIds={installedIds}
-            onOpen={openAddonDetail}
-            onCategorySelect={goToCategory}
-            authKey={authKey}
-            onRefetch={refetch}
-          />
-        ) : tab === "browse" ? (
-          <BrowsePane
-            mode={browseMode}
-            category={trimmedQuery ? null : categoryFilter}
-            search={trimmedQuery || null}
-            allowAdult={settings.showAdultAddons}
-            installedIds={installedIds}
-            onOpen={openAddonDetail}
-            onRefetch={refetch}
-          />
-        ) : (
-          <InstalledPane
-            installed={installed}
-            search={trimmedQuery || null}
-            onOpen={openAddonDetail}
-            onUninstall={onUninstall}
-            onReorder={() => setReorderOpen(true)}
-            onManage={(r) => {
-              const id = r.manifest?.id ?? r.curated?.id;
-              if (!id) return;
-              setInstallModal({
-                kind: "manage",
-                existing: {
-                  id,
-                  name: r.manifest?.name ?? id,
-                  logo: r.manifest?.logo ?? null,
-                  transportUrl: r.transportUrl,
-                },
-              });
-            }}
-          />
-        )}
+        <SoftSwap
+          swapKey={loading && allAddons.length === 0 ? "loading" : tab}
+          className={loading && allAddons.length === 0 ? "h-full" : undefined}
+        >
+          {loading && allAddons.length === 0 ? (
+            <div className="flex h-full items-center justify-center py-24">
+              <HarborLoader size="lg" caption={t("Loading the catalog")} keyed />
+            </div>
+          ) : tab === "discover" ? (
+            <DiscoverPane
+              installedIds={installedIds}
+              onOpen={openAddonDetail}
+              onCategorySelect={goToCategory}
+              authKey={authKey}
+              onRefetch={refetch}
+            />
+          ) : tab === "browse" ? (
+            <BrowsePane
+              mode={browseMode}
+              category={trimmedQuery ? null : categoryFilter}
+              search={trimmedQuery || null}
+              allowAdult={settings.showAdultAddons}
+              installedIds={installedIds}
+              onOpen={openAddonDetail}
+              onRefetch={refetch}
+            />
+          ) : (
+            <InstalledPane
+              installed={installed}
+              search={trimmedQuery || null}
+              onOpen={openAddonDetail}
+              onUninstall={onUninstall}
+              onReorder={() => setReorderOpen(true)}
+              onManage={(r) => {
+                const id = r.manifest?.id ?? r.curated?.id;
+                if (!id) return;
+                setInstallModal({
+                  kind: "manage",
+                  existing: {
+                    id,
+                    name: r.manifest?.name ?? id,
+                    logo: r.manifest?.logo ?? null,
+                    transportUrl: r.transportUrl,
+                  },
+                });
+              }}
+            />
+          )}
+        </SoftSwap>
       </div>
       <Toaster toast={toast} />
       {installModal && (

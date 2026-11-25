@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { HelpCircle, Plus, X } from "lucide-react";
 import { useState } from "react";
@@ -45,7 +46,8 @@ export function AdReportModal({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[200] grid place-items-center bg-black/60 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
@@ -132,7 +134,7 @@ export function AdReportModal({
           )}
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import {
   createContext,
   useContext,
@@ -398,7 +399,7 @@ export function MenuSurface({
   }, []);
 
   return createPortal(
-    <div
+    <SoftDiv
       ref={ref}
       role="menu"
       tabIndex={-1}
@@ -439,7 +440,7 @@ export function MenuSurface({
           {children}
         </ExecutionContext.Provider>
       </div>
-    </div>,
+    </SoftDiv>,
     document.fullscreenElement ?? document.body,
   );
 }

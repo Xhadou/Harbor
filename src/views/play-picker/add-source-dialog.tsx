@@ -1,4 +1,5 @@
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef } from "react";
+import { useLeaveSoftly } from "@/lib/soft-leave";
 import { ModalShell, useModalExit } from "@/components/modal-shell";
 import { StreamSourceSetup } from "@/components/stream-source-setup";
 import { useAuth } from "@/lib/auth";
@@ -33,8 +34,14 @@ export function AddSourceDialog({
     document.getElementById(titleId)?.focus({ preventScroll: true });
   }, [titleId]);
 
+  const screenRef = useRef<HTMLElement>(null);
+  useLeaveSoftly(screenRef);
   return (
-    <main className="absolute inset-0 z-60 overflow-hidden bg-canvas">
+    <main
+      ref={screenRef}
+      data-arrives=""
+      className="absolute inset-0 z-60 overflow-hidden bg-canvas"
+    >
       <BackdropLayer src={backdropSrc} />
       <ModalShell closing={closing} onDismiss={close} width={440} labelledBy={titleId}>
         <div className="p-6">

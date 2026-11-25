@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Film, Maximize, Minimize, Plus, Save, Tv, Users, X } from "../icons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -251,7 +252,8 @@ export function EditorOverlay({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       ref={rootRef}
       role="dialog"
       aria-modal="true"
@@ -402,7 +404,7 @@ export function EditorOverlay({
           )}
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

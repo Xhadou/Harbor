@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { lazy, Suspense, useState } from "react";
 import anilistLogo from "@/assets/anilist.png";
 import malLogo from "@/assets/mal.png";
@@ -107,7 +108,7 @@ export function TrackersPanel() {
         </p>
       )}
 
-      <div key={active} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={active} className="harbor-cascade flex flex-col gap-10">
         <Suspense
           fallback={
             <div className="h-40 rounded-[10px] bg-elevated" aria-label={t("Loading settings")} />
@@ -120,7 +121,7 @@ export function TrackersPanel() {
           {active === "letterboxd" && <LetterboxdPanel />}
           {active === "publicmetadb" && <PublicMetaDbPanel />}
         </Suspense>
-      </div>
+      </SoftDiv>
     </>
   );
 }

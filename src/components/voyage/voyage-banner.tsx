@@ -120,6 +120,7 @@ export function VoyageBanner({ pool }: { pool: Meta[] }) {
           collapse();
         }
       }}
+      data-arrives="rise"
       className={`voyage-card group relative min-h-[172px] w-full overflow-hidden rounded-2xl bg-canvas ring-1 ring-edge-soft ${expanded ? "is-expanded" : ""} ${closing ? "is-closing" : ""}`}
     >
       <div ref={contentRef}>

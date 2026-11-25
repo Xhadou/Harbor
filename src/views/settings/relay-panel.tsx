@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useSubTabs } from "./sub-tabs";
 import {
   Activity,
@@ -405,7 +406,7 @@ export function TogetherRelayPanel({
   }
 
   return (
-    <div key={tab} className="harbor-cascade">
+    <SoftDiv key={tab} className="harbor-cascade">
       {tab === "status" && (
         <>
           <SettingGroup label={t("Connection")}>
@@ -597,6 +598,6 @@ export function TogetherRelayPanel({
           <DocsGroup onOpenDocs={onOpenDocs} />
         </>
       )}
-    </div>
+    </SoftDiv>
   );
 }

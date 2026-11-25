@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -31,7 +32,8 @@ export function AnnouncementModal({
   });
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[170] flex items-center justify-center bg-canvas/70 p-6 backdrop-blur-sm"
       style={{
         animation: closing
@@ -111,7 +113,7 @@ export function AnnouncementModal({
       @keyframes ann-scrim-out { from { opacity: 1 } to { opacity: 0 } }
       @keyframes ann-dialog-in { from { opacity: 0; transform: scale(0.96) translateY(8px) } to { opacity: 1; transform: none } }
       @keyframes ann-dialog-out { from { opacity: 1; transform: none } to { opacity: 0; transform: scale(0.985) translateY(2px) } }`}</style>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

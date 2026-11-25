@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
@@ -136,7 +137,8 @@ export function ModalShell({
   const shared = !backdropClassName || /^bg-black\/\d+$/.test(backdropClassName);
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className={`fixed inset-0 z-[240] grid place-items-center p-8 ${backdropClassName ?? ""} ${
         shared ? "mac-scrim" : ""
       } ${closing ? "animate-scrim-out" : "animate-scrim-in"}`}
@@ -159,7 +161,7 @@ export function ModalShell({
       >
         {children}
       </div>
-    </div>,
+    </SoftDiv>,
     portalTarget ?? document.body,
   );
 }

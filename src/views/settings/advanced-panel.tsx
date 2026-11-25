@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useSubTabs } from "./sub-tabs";
@@ -27,13 +28,13 @@ export function AdvancedPanel() {
   return (
     <>
       {!isTauri && tab === "about" && <WebBuildBanner />}
-      <div key={tab} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
         {tab === "system" && <SystemTab />}
         {tab === "privacy" && <PrivacyTab />}
         {tab === "repair" && <RepairTab />}
         {tab === "code" && <CustomCodeCard />}
         {tab === "about" && <AboutTab />}
-      </div>
+      </SoftDiv>
     </>
   );
 }

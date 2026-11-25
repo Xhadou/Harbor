@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Pencil, Trash2, PanelTopOpen, Share2, UserRound } from "lucide-react";
 import { UiIcon } from "@/components/ui-icon";
 import { useRef, useState } from "react";
@@ -212,7 +213,8 @@ export function CommunityCollectionCard({
       )}
       {confirming &&
         createPortal(
-          <div
+          <SoftDiv
+            data-arrives=""
             className="fixed inset-0 z-[230] flex items-center justify-center bg-canvas/85 p-4 backdrop-blur-md"
             onClick={() => !deleting && setConfirming(false)}
             onKeyDown={(event) => {
@@ -281,7 +283,7 @@ export function CommunityCollectionCard({
                 </button>
               </div>
             </div>
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
     </div>

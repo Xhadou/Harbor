@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useSubTabs } from "./sub-tabs";
@@ -53,7 +54,7 @@ export function StreamingSourcesPanel({
   if (tab === "home-servers") sessionStorage.removeItem("harbor.settings.streaming.home-servers");
   return (
     <>
-      <div key={tab} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
         {tab === "services" && (
           <DebridTab
             rdDraft={rdDraft}
@@ -74,7 +75,7 @@ export function StreamingSourcesPanel({
         {tab === "filters" && <FiltersTab />}
         {tab === "sorting" && <SortingTab />}
         {tab === "picker" && <PickerTab />}
-      </div>
+      </SoftDiv>
     </>
   );
 }

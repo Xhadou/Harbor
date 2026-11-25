@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Calendar as CalendarIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import type { CalendarFilter } from "@/lib/calendar";
@@ -16,12 +17,15 @@ function EmptyShell({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-edge-soft bg-canvas/30 px-8 py-16 text-center">
+    <SoftDiv
+      data-arrives=""
+      className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-edge-soft bg-canvas/30 px-8 py-16 text-center"
+    >
       <CalendarIcon size={28} strokeWidth={1.6} className="text-ink-subtle" />
       <h2 className="text-[16px] font-semibold text-ink">{heading}</h2>
       <p className="max-w-md text-[13.5px] leading-relaxed text-ink-muted">{body}</p>
       {action}
-    </div>
+    </SoftDiv>
   );
 }
 
@@ -129,9 +133,12 @@ export function EmptyState({
 export function ErrorState({ message }: { message: string }) {
   const t = useT();
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-300/30 bg-rose-400/[0.06] px-8 py-14 text-center">
+    <SoftDiv
+      data-arrives=""
+      className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-rose-300/30 bg-rose-400/[0.06] px-8 py-14 text-center"
+    >
       <p className="text-[14px] font-semibold text-rose-100">{t("Couldn't load the calendar")}</p>
       <p className="text-[12.5px] text-rose-100/85">{message}</p>
-    </div>
+    </SoftDiv>
   );
 }

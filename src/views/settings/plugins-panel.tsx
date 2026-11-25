@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useState } from "react";
 import { Info } from "./icons";
 import { useT } from "@/lib/i18n";
@@ -45,12 +46,12 @@ export function PluginsPanel() {
   }
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "plugins" ? (
         <InstalledTab onAddRepository={() => setTab("repositories")} />
       ) : (
         <RepositoriesTab />
       )}
-    </div>
+    </SoftDiv>
   );
 }

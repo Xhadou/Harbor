@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Check, ChevronDown } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -242,7 +243,7 @@ export function Dropdown({
       </button>
       {open &&
         createPortal(
-          <div
+          <SoftDiv
             ref={listRef}
             role="listbox"
             aria-multiselectable={selectedValues ? true : undefined}
@@ -304,7 +305,7 @@ export function Dropdown({
                 </button>
               );
             })}
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
     </div>

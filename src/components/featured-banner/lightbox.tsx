@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -40,7 +41,8 @@ export function Lightbox({
   }, []);
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[170] flex items-center justify-center bg-canvas/95 p-10"
       role="dialog"
       aria-modal="true"
@@ -124,7 +126,7 @@ export function Lightbox({
           ))}
         </div>
       )}
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

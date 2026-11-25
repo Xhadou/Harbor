@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowDownToLine, Ban, Bookmark, Check, MoreHorizontal, RotateCw, X } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
@@ -203,7 +204,7 @@ export function HeroActionOverflow({
       </HoverTooltip>
       {menu &&
         createPortal(
-          <div
+          <SoftDiv
             role="menu"
             style={{ left: menu.x, top: menu.y }}
             onMouseDown={(e) => e.stopPropagation()}
@@ -362,7 +363,7 @@ export function HeroActionOverflow({
                 )}
               </>
             )}
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
       {rate && rating && <RatingModal target={rate} onClose={() => setRating(false)} />}

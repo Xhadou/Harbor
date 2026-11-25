@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, ChevronUp, ListVideo, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -395,7 +396,8 @@ export function MyListsPicker({ onClose }: { onClose?: () => void }) {
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[185] flex items-center justify-center p-4"
       role="dialog"
       aria-modal
@@ -493,7 +495,7 @@ export function MyListsPicker({ onClose }: { onClose?: () => void }) {
           </div>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

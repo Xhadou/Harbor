@@ -8522,6 +8522,15 @@ html[data-os="macos"]
 html[data-os="macos"] .harbor-settings-shell :is(input, textarea):focus-visible {
   outline-offset: 0;
 }
+/* The accent outline is for finding your place with the keyboard. A menu hands
+   focus back to its field when it closes, and the web view counts that as
+   keyboard focus, so after a click the outline stayed on the box that had just
+   been used. With the pointer in use it is not drawn; a key press brings it
+   back. */
+html[data-os="macos"][data-input-modality="pointer"] .harbor-settings-shell :focus-visible,
+html[data-os="macos"][data-input-modality="pointer"] [aria-haspopup="listbox"]:focus-visible {
+  outline: none;
+}
 /* A tag on a row (Active, Experimental, New) is written as it is spoken, not
    in spaced capitals: it says what a thing is and does not compete with the
    row's title. */
@@ -9099,6 +9108,45 @@ html.mac-open-vt[data-open-vt="close"]::view-transition-old(root) {
 /* The frame is the title page's entrance; its own fade would run inside it. */
 html.mac-page-vt[data-os="macos"] .harbor-detail-enter {
   animation: none;
+}
+
+/* Entrances on macOS for things that are mounted the moment they are wanted.
+   A component opts in with `data-arrives` (a fade), `data-arrives="rise"` (a
+   fade with a short rise, for a block of content) or `data-arrives="pop"` (a
+   menu or popover). The exit that goes with it is `SoftDiv` / `SoftSwap`
+   (src/components/soft-swap.tsx), which leaves a fading copy behind. */
+@keyframes mac-arrive {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes mac-arrive-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes mac-arrive-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+html[data-os="macos"] [data-arrives] {
+  animation: mac-arrive 220ms var(--ease-out) backwards;
+}
+html[data-os="macos"] [data-arrives="rise"] {
+  animation-name: mac-arrive-rise;
+  animation-duration: 260ms;
+}
+html[data-os="macos"] [data-arrives="pop"] {
+  animation-name: mac-arrive-pop;
+  animation-duration: 150ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-os="macos"] [data-arrives] {
+    animation: none;
+  }
 }
 
 /* The poster as a wash of colour behind a title page's top section until the

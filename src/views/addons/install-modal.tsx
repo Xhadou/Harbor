@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { Check, Loader2, Settings2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -141,7 +142,7 @@ export function AddonInstallModal({
   const isUpdate = resolved && resolved.matchKind !== "fresh";
 
   return createPortal(
-    <div
+    <SoftDiv
       className="fixed inset-0 z-[185] flex items-center justify-center bg-black/72 backdrop-blur-md animate-in fade-in duration-150"
       onClick={(e) => {
         if (!installStage && !done && e.target === e.currentTarget) onClose();
@@ -268,7 +269,7 @@ export function AddonInstallModal({
           </footer>
         )}
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

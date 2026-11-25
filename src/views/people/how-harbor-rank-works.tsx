@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -31,7 +32,7 @@ export function HowHarborRankWorks({ open, onClose }: { open: boolean; onClose: 
   if (!open) return null;
 
   return createPortal(
-    <div
+    <SoftDiv
       className="fixed inset-0 z-[185] flex items-end justify-center bg-canvas/85 backdrop-blur-sm animate-in fade-in duration-150 motion-reduce:animate-none sm:items-center"
       role="dialog"
       aria-modal="true"
@@ -92,7 +93,7 @@ export function HowHarborRankWorks({ open, onClose }: { open: boolean; onClose: 
           )}
         </p>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

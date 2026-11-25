@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Clock } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
@@ -241,7 +242,8 @@ export function HistoryTab() {
       )}
       {clearTarget &&
         createPortal(
-          <div
+          <SoftDiv
+            data-arrives=""
             className="fixed inset-0 z-[230] flex items-center justify-center bg-canvas/80"
             onClick={() => !clearBusy && setClearTarget(null)}
           >
@@ -292,7 +294,7 @@ export function HistoryTab() {
                 </button>
               </div>
             </div>
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
     </section>

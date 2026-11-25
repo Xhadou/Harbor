@@ -55,7 +55,6 @@ function harness() {
       commitWithPageTransition: (commit: () => void) => commit(),
       pageTransitionsSupported: () => false,
     },
-    "./one-frame-changes": { watchOneFrameChanges: () => {} },
     "./page-opening": {
       pageOpening: () => undefined,
       watchOpeningPresses: () => {},

@@ -61,6 +61,8 @@ async function fixture(
   let releaseRequest: (() => void) | undefined;
   const dependencies: Record<string, any> = {
     react: React,
+    "@/components/soft-swap": { SoftDiv: "div", SoftSwap: "div" },
+    "@/lib/platform": { isMacDesktop: () => false },
     "react-dom": ReactDOM,
     "react/jsx-runtime": jsxRuntime,
     "lucide-react": icons,

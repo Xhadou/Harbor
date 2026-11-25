@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useState } from "react";
 import { useProfiles } from "@/lib/profiles";
 import { useT } from "@/lib/i18n";
@@ -49,7 +50,7 @@ export function TvPanel() {
   return (
     <>
       <TvStatusHeader />
-      <div key={tab} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
         {tab === "devices" && (
           <>
             <TvDevicesSection />
@@ -71,7 +72,7 @@ export function TvPanel() {
             profileId={profileId}
           />
         ))}
-      </div>
+      </SoftDiv>
     </>
   );
 }

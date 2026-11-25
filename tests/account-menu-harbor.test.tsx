@@ -79,6 +79,7 @@ async function fixture(harborSignedIn = false, stremioSignedIn = false, kid = fa
   let signOuts = 0;
   const dependencies: Record<string, any> = {
     react: React,
+    "@/components/soft-swap": { SoftDiv: "div", SoftSwap: "div" },
     "react/jsx-runtime": jsxRuntime,
     "react-dom": ReactDOM,
     "lucide-react": icons,

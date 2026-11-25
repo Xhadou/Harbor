@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Cast, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -92,7 +93,8 @@ export function TrailerOverlay({
   }, [dismiss]);
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       onClick={dismiss}
       role="dialog"
       aria-modal="true"
@@ -168,7 +170,7 @@ export function TrailerOverlay({
       >
         {t("Esc or click outside to close")}
       </span>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

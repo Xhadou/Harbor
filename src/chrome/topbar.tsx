@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowLeft } from "lucide-react";
 import { WindowControlButton as Control, WindowControlGlyph } from "./window-control-button";
 import { Search } from "@/components/icons/search-icon";
@@ -240,7 +241,8 @@ function CloseConfirmKids({
 }) {
   const t = useT();
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[290] flex items-center justify-center bg-black/60 px-8 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
@@ -274,7 +276,7 @@ function CloseConfirmKids({
           </button>
         </div>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

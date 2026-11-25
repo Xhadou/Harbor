@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -46,7 +47,7 @@ export function DvrModal({
   if (!open) return null;
 
   return createPortal(
-    <div
+    <SoftDiv
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -80,7 +81,7 @@ export function DvrModal({
           />
         )}
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

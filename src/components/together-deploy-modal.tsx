@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowRight, Check, Copy, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import cfTokenTutorial from "@/assets/cf-token-tutorial.png";
@@ -355,7 +356,8 @@ export function TogetherDeployModal({
   }
 
   return (
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[60] flex items-center justify-center bg-canvas/70 backdrop-blur-md"
       onClick={onClose}
     >
@@ -365,7 +367,7 @@ export function TogetherDeployModal({
       >
         {body}
       </div>
-    </div>
+    </SoftDiv>
   );
 }
 

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useSubTabs } from "./sub-tabs";
@@ -21,12 +22,12 @@ export function SubtitlesPanel() {
   ];
   useSubTabs(tabs, tab, (id) => setTab(id as Tab));
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "languages" && <SubtitlesLanguageTab />}
       {tab === "sources" && <SubSourcesPanel />}
       {tab === "sync" && <AutoSyncPanel />}
       {tab === "look" && <LookTab />}
-    </div>
+    </SoftDiv>
   );
 }
 

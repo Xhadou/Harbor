@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useLeaveSoftly } from "@/lib/soft-leave";
 import type { Meta } from "@/lib/cinemeta";
 
 export function DebridDownModal({
@@ -10,8 +12,14 @@ export function DebridDownModal({
   onBack: () => void;
 }) {
   const backdrop = meta.background || meta.poster;
+  const screenRef = useRef<HTMLElement>(null);
+  useLeaveSoftly(screenRef);
   return (
-    <main className="fixed inset-0 z-[120] overflow-hidden bg-black">
+    <main
+      ref={screenRef}
+      data-arrives=""
+      className="fixed inset-0 z-[120] overflow-hidden bg-black"
+    >
       {backdrop && (
         <img
           src={backdrop}

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useMemo, useState } from "react";
 import { listAddons, type SAAddon } from "@/lib/providers/stremio-addons";
 
@@ -62,7 +63,8 @@ export function AddonsMosaicBackdrop() {
   );
 
   return (
-    <div
+    <SoftDiv
+      data-arrives=""
       aria-hidden
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       style={{ contain: "strict" }}
@@ -90,7 +92,7 @@ export function AddonsMosaicBackdrop() {
         ))}
       </div>
       <div className="absolute inset-0" style={{ background: fade }} />
-    </div>
+    </SoftDiv>
   );
 }
 

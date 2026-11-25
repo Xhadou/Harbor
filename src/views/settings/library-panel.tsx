@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useSubTabs } from "./sub-tabs";
@@ -52,7 +53,7 @@ export function LibraryPanel({
   useSubTabs(tabs, tab, (id) => setTab(id as Tab));
   return (
     <>
-      <div key={tab} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
         {tab === "home" && <HomeTab />}
         {tab === "cards" && <CardsTab />}
         {tab === "detail" && <DetailTab />}
@@ -74,7 +75,7 @@ export function LibraryPanel({
         )}
         {tab === "ai" && <AiTab />}
         {tab === "library" && <LibraryTab />}
-      </div>
+      </SoftDiv>
     </>
   );
 }

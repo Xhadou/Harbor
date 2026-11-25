@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ChevronRight } from "lucide-react";
 import {
   useEffect,
@@ -467,7 +468,7 @@ function Submenu({
       </HoverTooltip>
       {open &&
         createPortal(
-          <div
+          <SoftDiv
             ref={panel}
             role="menu"
             tabIndex={-1}
@@ -573,7 +574,7 @@ function Submenu({
                 pendingCount={pendingCount}
               />
             </div>
-          </div>,
+          </SoftDiv>,
           document.fullscreenElement ?? document.body,
         )}
     </div>

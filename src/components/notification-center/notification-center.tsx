@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ArrowLeft, Loader2, X } from "lucide-react";
 import { UiIcon } from "@/components/ui-icon";
 import { useEffect, useRef, useState } from "react";
@@ -112,7 +113,8 @@ export function NotificationCenter({ trigger = true }: { trigger?: boolean } = {
 
       {open &&
         createPortal(
-          <div
+          <SoftDiv
+            data-arrives=""
             className="fixed inset-0 z-[210] bg-canvas/40"
             style={{ animation: "nc-scrim-in 160ms ease both" }}
             onClick={() => setOpen(false)}
@@ -245,7 +247,7 @@ export function NotificationCenter({ trigger = true }: { trigger?: boolean } = {
             <style>{`
               @keyframes nc-scrim-in { from { opacity: 0 } to { opacity: 1 } }
             `}</style>
-          </div>,
+          </SoftDiv>,
           document.body,
         )}
     </>

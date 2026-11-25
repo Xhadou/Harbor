@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useT, useUiLanguage } from "@/lib/i18n";
@@ -549,7 +550,7 @@ export function AgeGateModal({
   };
 
   return createPortal(
-    <div
+    <SoftDiv
       onClick={(e) => {
         if (e.target === e.currentTarget && !verified) onClose();
       }}
@@ -652,7 +653,7 @@ export function AgeGateModal({
           </div>
         </div>
       )}
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { ListPlus, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -231,7 +232,7 @@ function PlayOnPanel({ request, themeId }: { request: PlayOnRequest; themeId: st
     .join(" / ");
 
   return createPortal(
-    <div
+    <SoftDiv
       className="fixed inset-0 z-[240] flex items-center justify-center bg-canvas/75 p-6 backdrop-blur-[3px] animate-fade-in motion-reduce:animate-none"
       role="dialog"
       aria-modal="true"
@@ -348,7 +349,7 @@ function PlayOnPanel({ request, themeId }: { request: PlayOnRequest; themeId: st
           </button>
         </footer>
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

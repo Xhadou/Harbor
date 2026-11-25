@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { X, Loader2, CornerDownLeft, CalendarRange, Tag } from "lucide-react";
 import { Search } from "@/components/icons/search-icon";
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -385,7 +386,8 @@ export function SearchOverlay() {
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       ref={panelRef}
       className={`fixed inset-0 z-[200] flex flex-col overflow-hidden ${closing ? "pointer-events-none" : ""}`}
       role="dialog"
@@ -735,7 +737,7 @@ export function SearchOverlay() {
           <GuideModal onClose={() => setGuideOpen(false)} />
         </Suspense>
       )}
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

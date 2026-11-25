@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useCallback, useEffect, useRef, useState } from "react";
 import snip404 from "@/assets/snip404.svg";
 import { HarborMark } from "@/components/icons/harbor-mark";
@@ -173,7 +174,8 @@ export function ErrorView() {
           : error.message;
 
   return (
-    <div
+    <SoftDiv
+      data-arrives=""
       className="fixed inset-0 z-[200] flex flex-col items-stretch overflow-y-auto bg-canvas lg:flex-row lg:items-center lg:overflow-hidden"
       style={{ animation: "harbor-fade-in 280ms cubic-bezier(0.32, 0.72, 0.24, 1) both" }}
     >
@@ -274,7 +276,7 @@ export function ErrorView() {
           )}
         </p>
       </div>
-    </div>
+    </SoftDiv>
   );
 }
 

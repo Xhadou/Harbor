@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useSubTabs } from "./sub-tabs";
@@ -18,11 +19,11 @@ export function StreamBadgesPanel() {
   useSubTabs(tabs, tab, (id) => setTab(id as Tab));
   return (
     <>
-      <div key={tab} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
         {tab === "badges" && <BadgesTab />}
         {tab === "rules" && <RulesTab />}
         {tab === "packs" && <PacksTab />}
-      </div>
+      </SoftDiv>
     </>
   );
 }

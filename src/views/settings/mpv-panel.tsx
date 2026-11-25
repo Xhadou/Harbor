@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Info } from "./icons";
 import { useState } from "react";
 import { useSettings } from "@/lib/settings";
@@ -49,7 +50,7 @@ export function MpvPanel() {
   }
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "quality" && (
         <>
           <Section
@@ -136,6 +137,6 @@ export function MpvPanel() {
       )}
       {tab === "network" && <BufferSizeSection />}
       {tab === "advanced" && <AdvancedMpvSection />}
-    </div>
+    </SoftDiv>
   );
 }

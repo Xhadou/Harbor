@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useSubTabs } from "./sub-tabs";
 import { StreamCacheSection } from "./player-panel/p2p-advanced-section";
 import { Check, Database, HardDrive, Trash2 } from "./icons";
@@ -286,7 +287,7 @@ export function StoragePanel() {
   );
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "overview" && (
         <>
           <Section
@@ -482,6 +483,6 @@ export function StoragePanel() {
           </p>
         </Section>
       )}
-    </div>
+    </SoftDiv>
   );
 }

@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { useSubTabs } from "./sub-tabs";
@@ -41,7 +42,7 @@ export function QualityPanel() {
   ];
   useSubTabs(tabs, tab, (id) => setTab(id as Tab));
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "play" && <PlayTab />}
       {tab === "engine" && <EngineTab />}
       {tab === "aspect" && <AspectTab />}
@@ -52,6 +53,6 @@ export function QualityPanel() {
       {tab === "intros" && <IntrosTab />}
       {tab === "upnext" && <UpNextTab />}
       {tab === "trailers" && <TrailersTab />}
-    </div>
+    </SoftDiv>
   );
 }

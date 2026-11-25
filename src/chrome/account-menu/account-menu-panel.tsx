@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useState } from "react";
 import {
   Bell,
@@ -137,7 +138,8 @@ export function AccountMenuPanel({
 
   return (
     <>
-      <div
+      <SoftDiv
+        data-arrives="pop"
         className={`harbor-profile-dropdown absolute z-40 overflow-hidden rounded-md bg-elevated ring-1 ring-edge shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] ${positionClass}`}
       >
         {showHeader && (
@@ -363,7 +365,7 @@ export function AccountMenuPanel({
             ) : null}
           </div>
         )}
-      </div>
+      </SoftDiv>
     </>
   );
 }

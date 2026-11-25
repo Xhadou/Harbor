@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Link2, Loader2, Star, Tv, X } from "lucide-react";
 import { Search } from "@/components/icons/search-icon";
@@ -90,7 +91,10 @@ export function ChannelPicker({
   const showLoading = loading && scopedChannels.length === 0;
 
   return (
-    <div className="fixed inset-0 z-[300] flex animate-[mvpicker-in_180ms_ease-out] flex-col bg-canvas">
+    <SoftDiv
+      data-arrives=""
+      className="fixed inset-0 z-[300] flex animate-[mvpicker-in_180ms_ease-out] flex-col bg-canvas"
+    >
       <style>{MVPICKER_KEYFRAMES}</style>
       <header className="flex shrink-0 items-center gap-3 border-b border-edge-soft/60 px-7 py-4">
         <span className="font-display text-[18px] font-medium tracking-tight text-ink">
@@ -233,7 +237,7 @@ export function ChannelPicker({
           {t("Add")}
         </button>
       </footer>
-    </div>
+    </SoftDiv>
   );
 }
 

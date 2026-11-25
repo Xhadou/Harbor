@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { Info } from "./icons";
 import { useState } from "react";
 import { useSettings } from "@/lib/settings";
@@ -46,7 +47,7 @@ export function AnimePanel() {
   const svpDriving = settings.playerSvp && !!settings.svpVpyPath;
 
   return (
-    <div key={tab} className="harbor-cascade flex flex-col gap-10">
+    <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
       {tab === "smooth" && (
         <>
           <Section title={t("Smooth motion")}>
@@ -71,6 +72,6 @@ export function AnimePanel() {
         </>
       )}
       {tab === "svp" && <SvpSection />}
-    </div>
+    </SoftDiv>
   );
 }

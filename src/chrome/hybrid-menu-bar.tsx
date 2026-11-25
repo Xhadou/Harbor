@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { HarborMark } from "@/components/icons/harbor-mark";
@@ -119,7 +120,11 @@ export function HybridMenuBar() {
       ))}
       {openId &&
         createPortal(
-          <div className="fixed inset-0 z-[135] bg-black/35" onClick={() => setOpenId(null)} />,
+          <SoftDiv
+            data-arrives=""
+            className="fixed inset-0 z-[135] bg-black/35"
+            onClick={() => setOpenId(null)}
+          />,
           document.body,
         )}
     </div>

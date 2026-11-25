@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { useCoverNativeChrome } from "@/chrome/mac/use-native-chrome-cover";
 import { ChevronDown, Plus, X } from "@/views/settings/icons";
 import { Lock, Pencil } from "lucide-react";
@@ -199,7 +200,8 @@ export function ProfilePickerModal() {
   };
 
   return createPortal(
-    <div
+    <SoftDiv
+      data-arrives=""
       data-tauri-drag-region
       className={`fixed inset-0 z-[180] flex items-center justify-center transition-opacity duration-[340ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
         bg.image ? "bg-black" : "bg-black/85 backdrop-blur-2xl"
@@ -479,7 +481,7 @@ export function ProfilePickerModal() {
           />
         )}
       </div>
-    </div>,
+    </SoftDiv>,
     document.body,
   );
 }

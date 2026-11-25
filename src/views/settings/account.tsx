@@ -1,3 +1,4 @@
+import { SoftDiv } from "@/components/soft-swap";
 import { SettingGroup } from "./kit";
 import { useSettings } from "@/lib/settings";
 import { useEffect, useState } from "react";
@@ -174,14 +175,14 @@ export function AccountStub() {
 
   return (
     <>
-      <div key={tab} className="harbor-cascade flex flex-col gap-10">
+      <SoftDiv key={tab} className="harbor-cascade flex flex-col gap-10">
         {tab === "provider" && <AccountProviderPanel />}
         {tab === "you" && <IdentityTab />}
         {tab === "profiles" && <ProfilesTab />}
         {tab === "harbor" && <HarborAccountPanel />}
         {tab === "stremio" && <StremioTab />}
         {tab === "nuvio" && <NuvioTab />}
-      </div>
+      </SoftDiv>
 
       {restrictedModal && (
         <SettingsModal
