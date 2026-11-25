@@ -661,8 +661,9 @@ const audit: Record<string, string> = {
   "Let your graphics card do the heavy lifting of decoding video. It saves battery and keeps the CPU cool. Auto is right for almost everyone; only switch if playback looks wrong or won't start.":
     "Biarkan kartu grafis Anda menangani beban berat dalam mendekode video. Ini menghemat baterai dan menjaga CPU tetap dingin. Otomatis cocok untuk hampir semua orang; ubah hanya jika pemutaran tampak bermasalah atau tidak dapat dimulai.",
   "Library intelligence": "Fitur pintar perpustakaan",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Perpustakaan mencakup semua konten dari Stremio, Trakt, dan perangkat ini. Daftar tontonan hanya berisi judul yang belum Anda tonton. Riwayat berisi yang sudah Anda tonton. Lokal berisi file di komputer Anda.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Perpustakaan mencakup semua dari Stremio, Trakt, dan perangkat ini; “Sembunyikan yang ditonton” hanya menyisakan judul yang belum Anda tonton. Riwayat berisi yang sudah Anda tonton. Lokal berisi file di komputer Anda.",
+  "Hide watched": "Sembunyikan yang ditonton",
   "Library, watch progress, and addon collection sync from this account.":
     "Perpustakaan, progres menonton, dan koleksi addon disinkronkan dari akun ini.",
   "Library, watch progress, and addons are syncing.":

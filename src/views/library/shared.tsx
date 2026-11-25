@@ -11,7 +11,6 @@ export { hydrateLibraryMeta, loadLocalIds } from "./hydrate-meta";
 
 export type Tab =
   | "library"
-  | "watchlist"
   | "history"
   | "local"
   | "media-servers"

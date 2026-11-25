@@ -538,8 +538,9 @@ const appFill: Record<string, string> = {
   "Create your first list": "最初のリストを作成",
   "Group the movies and shows you love. Rewatch shelf, weekend picks, whatever keeps them close.":
     "お気に入りの映画や番組をまとめましょう。もう一度観たい作品、週末に観たい作品など、いつでもすぐ見られるように整理できます。",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "ライブラリには、Stremio、Trakt、このデバイスのすべての作品が含まれます。ウォッチリストには未視聴の作品のみ、履歴には視聴済みの作品、ローカルにはパソコン上のファイルが表示されます。",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "ライブラリには、Stremio、Trakt、このデバイスのすべての作品が含まれます。「視聴済みを隠す」をオンにすると未視聴の作品だけが残ります。履歴には視聴済みの作品、ローカルにはパソコン上のファイルが表示されます。",
+  "Hide watched": "視聴済みを隠す",
   Stats: "統計",
   "My Lists": "マイリスト",
   "Heads up: most IPTV providers cap how many streams an account can run at the same time. If other devices or players are using these credentials, close them and try again.":

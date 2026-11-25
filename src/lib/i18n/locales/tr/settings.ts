@@ -1606,8 +1606,9 @@ const settings: Record<string, string> = {
   "Letterboxd username": "Letterboxd kullanıcı adı",
   "Library & metadata": "Kütüphane ve meta veriler",
   "Library is empty. Nothing to repair.": "Kitaplık boş. Onarılacak bir şey yok.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Kütüphane; Stremio, Trakt ve bu cihazdaki her şeyi içerir. İzleme listesinde yalnızca henüz izlemediğiniz yapımlar bulunur. Geçmiş, izlediklerinizi gösterir. Yerel, bilgisayarınızdaki dosyalardır.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Kütüphane; Stremio, Trakt ve bu cihazdaki her şeyi içerir. “İzlenenleri gizle” yalnızca henüz izlemediğiniz yapımları bırakır. Geçmiş, izlediklerinizi gösterir. Yerel, bilgisayarınızdaki dosyalardır.",
+  "Hide watched": "İzlenenleri gizle",
   "Library, watch progress, and addon collection sync from this account.":
     "Kitaplık, izleme ilerlemesi ve eklenti koleksiyonu bu hesaptan eşzamanlanır.",
   "Lifts shadows so the pitch-black scenes are actually watchable.":

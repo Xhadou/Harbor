@@ -391,8 +391,8 @@ const catalog: Record<string, string> = {
     "Perpustakaan dan addon akan disinkronkan setelah Anda menyelesaikan penyiapan.",
   "Library intelligence": "Kecerdasan perpustakaan",
   "Library is empty. Nothing to repair.": "Perpustakaan kosong. Tidak ada yang perlu diperbaiki.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Perpustakaan mencakup semua dari Stremio, Trakt, dan perangkat ini. Daftar tontonan hanya berisi judul yang belum Anda tonton. Riwayat berisi yang sudah Anda tonton. Lokal berisi file di komputer Anda.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Perpustakaan mencakup semua dari Stremio, Trakt, dan perangkat ini; “Sembunyikan yang ditonton” hanya menyisakan judul yang belum Anda tonton. Riwayat berisi yang sudah Anda tonton. Lokal berisi file di komputer Anda.",
   "Library sources": "Sumber perpustakaan",
   "Library, watch progress, and addon collection sync from this account.":
     "Perpustakaan, progres tontonan, dan koleksi addon disinkronkan dari akun ini.",

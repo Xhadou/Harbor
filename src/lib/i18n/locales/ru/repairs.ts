@@ -153,8 +153,8 @@ const repairs: Record<string, string> = {
   "Keeping Harbor's backend online costs real money, and ElfHosted covers it so the community does not have to. Becoming a subscriber is the best way to keep that going, and it is not a donation. You get proper infrastructure for your own setup, and Harbor stays funded at the same time.":
     "Поддержание бэкенда Harbor в сети стоит реальных денег, и ElfHosted берёт это на себя, чтобы сообществу не пришлось. Оформить подписку – лучший способ сохранить это, и это не пожертвование. Вы получаете полноценную инфраструктуру для собственной настройки, и при этом Harbor остаётся профинансированным.",
   "Keyboard size": "Размер клавиатуры",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Библиотека – это всё из Stremio, Trakt и с этого устройства. Список к просмотру – только названия, которые вы ещё не смотрели. История – то, что уже просмотрено. Локальные – файлы на вашем компьютере.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Библиотека – это всё из Stremio, Trakt и с этого устройства; «Скрыть просмотренное» оставляет только то, что вы ещё не смотрели. История – то, что уже просмотрено. Локальные – файлы на вашем компьютере.",
   "Library, watch progress, and addon collection sync from this account.":
     "Библиотека, прогресс просмотра и набор дополнений синхронизируются с этим аккаунтом.",
   "Live web": "Поиск в интернете",

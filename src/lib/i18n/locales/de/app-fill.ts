@@ -439,8 +439,9 @@ const appFill: Record<string, string> = {
   "Leave the show?": "Wiedergabe verlassen?",
   "Letterboxd Reviews": "Letterboxd-Rezensionen",
   "Letterboxd unavailable right now.": "Letterboxd ist derzeit nicht verfügbar.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Die Mediathek enthält alles aus Stremio, Trakt und von diesem Gerät. Die Merkliste enthält nur Titel, die du noch nicht angesehen hast. Im Verlauf siehst du, was du angesehen hast. Unter „Lokal“ findest du Dateien auf deinem Computer.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Die Mediathek enthält alles aus Stremio, Trakt und von diesem Gerät; mit „Gesehenes ausblenden“ bleiben nur Titel, die du noch nicht angesehen hast. Im Verlauf siehst du, was du angesehen hast. Unter „Lokal“ findest du Dateien auf deinem Computer.",
+  "Hide watched": "Gesehenes ausblenden",
   "List name": "Listenname",
   "List renamed": "Liste umbenannt",
   "List settings": "Listeneinstellungen",

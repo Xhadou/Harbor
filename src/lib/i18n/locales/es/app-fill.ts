@@ -313,8 +313,9 @@ const appFill: Record<string, string> = {
   "Know More": "Saber más",
   "Label the subfolders inside the folder you pick, and each one becomes its own set (like Heroes or Cats). Loose images in the folder go to Uploads.":
     "Asigna una etiqueta a las subcarpetas de la carpeta que elijas, y cada una se convertirá en su propio conjunto (como Héroes o Gatos). Las imágenes sueltas de la carpeta irán a Cargas.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "La biblioteca incluye todo lo de Stremio, Trakt y este dispositivo. La lista para ver solo incluye títulos que aún no has visto. El historial contiene lo que has visto. Local contiene los archivos de tu computadora.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "La biblioteca incluye todo lo de Stremio, Trakt y este dispositivo; con «Ocultar vistos» solo quedan los títulos que aún no has visto. El historial contiene lo que has visto. Local contiene los archivos de tu computadora.",
+  "Hide watched": "Ocultar vistos",
   "List name": "Nombre de la lista",
   "List renamed": "Lista renombrada",
   "List settings": "Configuración de la lista",

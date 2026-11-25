@@ -15,16 +15,15 @@ import { MyListsTab } from "@/views/library/my-lists-tab";
 import { SimklTab } from "@/views/library/simkl-tab";
 import { TabBtn, type Tab } from "@/views/library/shared";
 import { TraktTab } from "@/views/library/trakt-tab";
-import { WatchlistTab } from "@/views/library/watchlist-tab";
+import { adoptWatchlistTab, WatchlistTab } from "@/views/library/watchlist-tab";
 
 const TAB_KEY = "harbor.library.tab";
 
 function readSavedTab(): Tab {
   try {
-    const v = localStorage.getItem(TAB_KEY);
+    const v = adoptWatchlistTab(localStorage.getItem(TAB_KEY));
     const known: Tab[] = [
       "library",
-      "watchlist",
       "history",
       "local",
       "lists",
@@ -74,9 +73,6 @@ export function LibraryPanel() {
         <TabBtn active={tab === "library"} onClick={() => setTab("library")}>
           {t("Library")}
         </TabBtn>
-        <TabBtn active={tab === "watchlist"} onClick={() => setTab("watchlist")}>
-          {t("Watchlist")}
-        </TabBtn>
         <TabBtn active={tab === "history"} onClick={() => setTab("history")}>
           {t("History")}
         </TabBtn>
@@ -116,8 +112,7 @@ export function LibraryPanel() {
         )}
       </div>
 
-      {tab === "library" && <WatchlistTab mode="library" />}
-      {tab === "watchlist" && <WatchlistTab mode="watchlist" />}
+      {tab === "library" && <WatchlistTab />}
       {tab === "history" && <HistoryTab />}
       {tab === "local" && <LocalTab />}
       {tab === "lists" && <MyListsTab />}

@@ -239,8 +239,9 @@ const catalog07: Record<string, string> = {
     "Biblioteka i dodatki zsynchronizują się po zakończeniu konfiguracji.",
   "Library intelligence": "Inteligentna biblioteka",
   "Library is empty. Nothing to repair.": "Biblioteka jest pusta. Nie ma czego naprawiać.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Biblioteka obejmuje wszystko ze Stremio, Trakt i tego urządzenia. Lista do obejrzenia zawiera tylko tytuły, których jeszcze nie obejrzano. Historia zawiera obejrzane tytuły. Pliki lokalne znajdują się na komputerze.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Biblioteka obejmuje wszystko ze Stremio, Trakt i tego urządzenia; „Ukryj obejrzane” pozostawia tylko tytuły, których jeszcze nie obejrzano. Historia zawiera obejrzane tytuły. Pliki lokalne znajdują się na komputerze.",
+  "Hide watched": "Ukryj obejrzane",
   "Library sources": "Źródła biblioteki",
   "Library, watch progress, and addon collection sync from this account.":
     "Biblioteka, postęp oglądania i kolekcja dodatków są synchronizowane z tego konta.",

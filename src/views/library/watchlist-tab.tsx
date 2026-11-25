@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EyeOff } from "lucide-react";
+import { SoftSwap } from "@/components/soft-swap";
 import { useAuth } from "@/lib/auth";
 import { useSettings } from "@/lib/settings";
 import { type Meta } from "@/lib/cinemeta";
@@ -52,13 +54,22 @@ import {
 } from "./shared";
 import { useReportFeatured } from "./featured-context";
 
-export function WatchlistTab({
-  mode,
-  scrollRef,
-}: {
-  mode: "library" | "watchlist";
-  scrollRef?: React.RefObject<HTMLElement | null>;
-}) {
+/** Whether the Library tab hides what has been watched or started. */
+export const HIDE_WATCHED_KEY = "harbor.library.hide-watched";
+
+/**
+ * The Watchlist tab became the Library tab with watched titles hidden. A saved
+ * "watchlist" tab opens Library with that switched on.
+ */
+export function adoptWatchlistTab(saved: string | null): string | null {
+  if (saved !== "watchlist") return saved;
+  try {
+    localStorage.setItem(HIDE_WATCHED_KEY, "1");
+  } catch {}
+  return "library";
+}
+
+export function WatchlistTab({ scrollRef }: { scrollRef?: React.RefObject<HTMLElement | null> }) {
   const tr = useT();
   const { authKey } = useAuth();
   const { settings } = useSettings();
@@ -151,7 +162,7 @@ export function WatchlistTab({
             return;
           }
           setRawCount(items.filter((i) => !i.removed).length);
-          setStremio(filterLibrary(items, settings.libraryBookmarkedOnly, mode));
+          setStremio(items);
           setStremioAggregate(items.filter((i) => !i.removed && !i.temp).map((i) => i._id));
         })
         .catch(() => {});
@@ -170,7 +181,7 @@ export function WatchlistTab({
       window.removeEventListener("storage", onChange);
       unsub();
     };
-  }, [authKey, settings.libraryBookmarkedOnly, mode, refreshSeq, isNuvio]);
+  }, [authKey, refreshSeq, isNuvio]);
 
   const handleRemove = useCallback(
     async (stremioId: string) => {
@@ -288,7 +299,7 @@ export function WatchlistTab({
       };
       revalidate();
     },
-    [authKey, settings.libraryBookmarkedOnly, mode, stremio, trakt, traktConnected],
+    [authKey, settings.libraryBookmarkedOnly, stremio, trakt, traktConnected],
   );
 
   const handleRemoveLocal = useCallback(
@@ -375,13 +386,35 @@ export function WatchlistTab({
     };
   }, [traktConnected, refreshSeq]);
 
-  const merged = useMemo(
-    () => mergeWatchlist(localEntries, stremio, trakt, isNuvio ? nuvioItems : undefined),
-    [localEntries, stremio, trakt, isNuvio, nuvioItems],
+  const [hideWatched, setHideWatched] = useState(
+    () => localStorage.getItem(HIDE_WATCHED_KEY) === "1",
   );
+  useEffect(() => {
+    try {
+      localStorage.setItem(HIDE_WATCHED_KEY, hideWatched ? "1" : "0");
+    } catch {}
+  }, [hideWatched]);
+  const everyStremio = useMemo(
+    () => filterLibrary(stremio, settings.libraryBookmarkedOnly, "library"),
+    [stremio, settings.libraryBookmarkedOnly],
+  );
+  const shownStremio = useMemo(
+    () =>
+      hideWatched
+        ? filterLibrary(stremio, settings.libraryBookmarkedOnly, "watchlist")
+        : everyStremio,
+    [stremio, settings.libraryBookmarkedOnly, hideWatched, everyStremio],
+  );
+  const watchedHidden = everyStremio.length - shownStremio.length;
+  const merged = useMemo(
+    () => mergeWatchlist(localEntries, shownStremio, trakt, isNuvio ? nuvioItems : undefined),
+    [localEntries, shownStremio, trakt, isNuvio, nuvioItems],
+  );
+  // With everything watched and hidden, the toolbar stays so the switch can be turned off.
+  const hasTitles = merged.length > 0 || watchedHidden > 0;
 
-  const [type, setType] = useSessionState<TypeKey>(`library.${mode}.type`, "all");
-  const [query, setQuery] = useSessionState<string>(`library.${mode}.query`, "");
+  const [type, setType] = useSessionState<TypeKey>("library.library.type", "all");
+  const [query, setQuery] = useSessionState<string>("library.library.query", "");
   const [flat, setFlat] = useState(() => localStorage.getItem("harbor.watchlist.flat") === "1");
   useEffect(() => {
     try {
@@ -424,7 +457,7 @@ export function WatchlistTab({
 
   return (
     <section className="flex flex-col gap-4">
-      {merged.length > 0 && (
+      {hasTitles && (
         <FilterBar
           type={type}
           setType={setType}
@@ -433,6 +466,7 @@ export function WatchlistTab({
           counts={counts}
           trailing={
             <>
+              <HideWatchedToggle on={hideWatched} onToggle={() => setHideWatched((v) => !v)} />
               <SortControl />
               {settings.librarySort === "recent" && (
                 <ViewModeToggle flat={flat} onToggle={toggleFlat} />
@@ -444,35 +478,43 @@ export function WatchlistTab({
       <div className="flex items-center justify-between">
         <span className="text-[12px] text-ink-muted">{subtitle}</span>
       </div>
-      {merged.length === 0 ? (
-        <EmptyWatchlist connected={traktConnected} mode={mode} />
-      ) : visible.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-edge-soft bg-canvas/30 px-6 py-10 text-center text-[13px] text-ink-muted">
-          {tr("No matches for these filters.")}
-        </p>
-      ) : settings.librarySort !== "recent" ? (
-        <GroupedGrid
-          groups={groups}
-          onRemove={handleRemove}
-          onRemoveLocal={handleRemoveLocal}
-          scrollRef={scrollRef}
-        />
-      ) : flat ? (
-        <GroupedGrid
-          groups={groups}
-          onRemove={handleRemove}
-          onRemoveLocal={handleRemoveLocal}
-          scrollRef={scrollRef}
-        />
-      ) : (
-        <GroupedGrid
-          groups={groups}
-          onRemove={handleRemove}
-          onRemoveLocal={handleRemoveLocal}
-          scrollRef={scrollRef}
-        />
-      )}
+      {/* Hiding or showing watched titles fades one grid into the other. */}
+      <SoftSwap swapKey={hideWatched ? "unwatched" : "all"}>
+        {!hasTitles ? (
+          <EmptyWatchlist connected={traktConnected} mode="library" />
+        ) : visible.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-edge-soft bg-canvas/30 px-6 py-10 text-center text-[13px] text-ink-muted">
+            {tr("No matches for these filters.")}
+          </p>
+        ) : (
+          <GroupedGrid
+            groups={groups}
+            onRemove={handleRemove}
+            onRemoveLocal={handleRemoveLocal}
+            scrollRef={scrollRef}
+          />
+        )}
+      </SoftSwap>
     </section>
+  );
+}
+
+function HideWatchedToggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onToggle}
+      className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold ring-1 transition-colors ${
+        on
+          ? "bg-ink text-canvas ring-transparent"
+          : "bg-elevated/40 text-ink-muted ring-edge-soft/60 hover:bg-raised hover:text-ink"
+      }`}
+    >
+      <EyeOff size={13} strokeWidth={2.2} />
+      {t("Hide watched")}
+    </button>
   );
 }
 

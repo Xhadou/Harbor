@@ -36,7 +36,7 @@ test("the Library tab cannot be hidden", () => {
 
 test("only hidden tabs that are currently available count as hidden", () => {
   const hidden = hiddenLibraryTabs(["trakt"]);
-  assert.equal(hasHiddenAvailableTab(["library", "watchlist", "trakt"], hidden), true);
-  assert.equal(hasHiddenAvailableTab(["library", "watchlist"], hidden), false);
+  assert.equal(hasHiddenAvailableTab(["library", "history", "trakt"], hidden), true);
+  assert.equal(hasHiddenAvailableTab(["library", "history"], hidden), false);
   assert.equal(hasHiddenAvailableTab(["library"], hiddenLibraryTabs([])), false);
 });

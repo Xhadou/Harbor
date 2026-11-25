@@ -29,16 +29,11 @@ test("grouped library grids virtualize per group when given a scroll ref", () =>
   );
 });
 
-test("library view wires the scroll ref into watchlist tabs", () => {
+test("library view wires the scroll ref into the library tab", () => {
   assert.match(
     library,
-    /<WatchlistTab mode="library" scrollRef=\{scrollRef\} \/>/,
+    /<WatchlistTab scrollRef=\{scrollRef\} \/>/,
     "library tab must pass scrollRef",
-  );
-  assert.match(
-    library,
-    /<WatchlistTab mode="watchlist" scrollRef=\{scrollRef\} \/>/,
-    "watchlist tab must pass scrollRef",
   );
 });
 

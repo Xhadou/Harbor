@@ -686,8 +686,9 @@ const catalog05: Record<string, string> = {
     "설정을 마치면 보관함과 애드온이 동기화됩니다.",
   "Library intelligence": "라이브러리 지능형 기능",
   "Library is empty. Nothing to repair.": "라이브러리가 비어 있습니다. 복구할 항목이 없습니다.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "라이브러리에는 Stremio, Trakt 및 이 기기의 모든 항목이 포함됩니다. 시청 목록에는 아직 보지 않은 작품만, 기록에는 시청한 작품이 표시됩니다. 로컬에는 컴퓨터의 파일이 표시됩니다.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "라이브러리에는 Stremio, Trakt 및 이 기기의 모든 항목이 포함되며, '시청한 항목 숨기기'를 켜면 아직 보지 않은 작품만 남습니다. 기록에는 시청한 작품이 표시됩니다. 로컬에는 컴퓨터의 파일이 표시됩니다.",
+  "Hide watched": "시청한 항목 숨기기",
   "Library sources": "라이브러리 소스",
   "Library, watch progress, and addon collection sync from this account.":
     "이 계정에서 라이브러리, 시청 진행 상황, 애드온 컬렉션을 동기화합니다.",

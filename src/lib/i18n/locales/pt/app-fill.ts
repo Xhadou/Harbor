@@ -551,8 +551,9 @@ const appFill: Record<string, string> = {
   "Create your first list": "Crie sua primeira lista",
   "Group the movies and shows you love. Rewatch shelf, weekend picks, whatever keeps them close.":
     "Agrupe os filmes e séries que você ama. Prateleira para rever, escolhas de fim de semana, o que os mantiver por perto.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "A Biblioteca é tudo do Stremio, do Trakt e deste dispositivo. A Lista para assistir traz apenas os títulos que você ainda não assistiu. O Histórico é o que você já assistiu. Local são os arquivos no seu computador.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "A Biblioteca é tudo do Stremio, do Trakt e deste dispositivo; “Ocultar assistidos” deixa apenas os títulos que você ainda não assistiu. O Histórico é o que você já assistiu. Local são os arquivos no seu computador.",
+  "Hide watched": "Ocultar assistidos",
   Stats: "Estatísticas",
   "My Lists": "Minhas listas",
   "Heads up: most IPTV providers cap how many streams an account can run at the same time. If other devices or players are using these credentials, close them and try again.":

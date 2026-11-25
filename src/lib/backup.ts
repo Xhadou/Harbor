@@ -83,6 +83,7 @@ export const BACKUP_SECTIONS: readonly BackupSection[] = [
       "harbor.discover.libImported",
       "harbor.detailLayout",
       "harbor.library.tab",
+      "harbor.library.hide-watched",
       "harbor.scroll.v1",
     ],
   },

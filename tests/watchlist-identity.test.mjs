@@ -201,7 +201,7 @@ test("removing a known film also removes its local IMDb/TMDB twin", () => {
 test("all library groupings retain virtualization and local removal wiring", () => {
   const source = read("src/views/library/watchlist-tab.tsx");
   const grids = source.match(/<GroupedGrid\b[\s\S]*?\/>/g);
-  assert.equal(grids.length, 3);
+  assert.equal(grids.length, 1);
   for (const grid of grids) {
     assert.match(grid, /onRemoveLocal=\{handleRemoveLocal\}/);
     assert.match(grid, /scrollRef=\{scrollRef\}/);

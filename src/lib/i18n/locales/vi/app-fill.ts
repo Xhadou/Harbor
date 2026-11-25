@@ -492,8 +492,9 @@ const appFill: Record<string, string> = {
   "Create your first list": "Tạo danh sách đầu tiên",
   "Group the movies and shows you love. Rewatch shelf, weekend picks, whatever keeps them close.":
     "Nhóm các phim và phim bộ yêu thích. Danh sách xem lại, lựa chọn cuối tuần hoặc bất cứ nội dung nào bạn muốn giữ gần bên.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "Thư viện gồm mọi nội dung từ Stremio, Trakt và thiết bị này. Danh sách xem chỉ gồm các tựa phim bạn chưa xem. Lịch sử là nội dung bạn đã xem. Nội bộ là các tệp trên máy tính.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "Thư viện gồm mọi nội dung từ Stremio, Trakt và thiết bị này; “Ẩn đã xem” chỉ giữ lại các tựa bạn chưa xem. Lịch sử là nội dung bạn đã xem. Nội bộ là các tệp trên máy tính.",
+  "Hide watched": "Ẩn đã xem",
   "My Lists": "Danh sách của tôi",
   "Heads up: most IPTV providers cap how many streams an account can run at the same time. If other devices or players are using these credentials, close them and try again.":
     "Lưu ý: hầu hết nhà cung cấp IPTV giới hạn số luồng mà một tài khoản có thể phát cùng lúc. Nếu thiết bị hoặc trình phát khác đang dùng thông tin đăng nhập này, hãy đóng chúng rồi thử lại.",

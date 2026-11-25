@@ -2,7 +2,6 @@ import type { Tab } from "./shared";
 
 // A Record rather than a list, so adding a Tab without deciding here fails to compile.
 const HIDEABLE: Record<Exclude<Tab, "library">, true> = {
-  watchlist: true,
   history: true,
   local: true,
   "media-servers": true,

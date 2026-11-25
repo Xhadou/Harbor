@@ -886,8 +886,9 @@ const appFill: Record<string, string> = {
     "اجمع الأفلام والمسلسلات التي تحبها. رفّ لإعادة المشاهدة، اختيارات نهاية الأسبوع، أي شيء يبقيها قريبة منك.",
   Recent: "الأحدث",
   "A-Z": "أ-ي",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "المكتبة هي كل شيء من Stremio وTrakt وهذا الجهاز. قائمة المشاهدة تضم فقط العناوين التي لم تشاهدها بعد. السجل هو ما شاهدته. المحلي هو الملفات الموجودة على حاسوبك.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "المكتبة هي كل شيء من Stremio وTrakt وهذا الجهاز؛ ويُبقي «إخفاء ما شوهد» العناوين التي لم تشاهدها بعد فقط. السجل هو ما شاهدته. المحلي هو الملفات الموجودة على حاسوبك.",
+  "Hide watched": "إخفاء ما شوهد",
   Stats: "الإحصائيات",
   Local: "محلي",
   "My Lists": "قوائمي",

@@ -266,8 +266,9 @@ const library: Record<string, string> = {
   "Point Harbor at your self-hosted library to browse and install sources":
     "将 Harbor 连接到你的自托管媒体库，以浏览和安装源",
   "Create your first list": "创建你的第一个列表",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "媒体库包含来自 Stremio、Trakt 和此设备的所有内容。待看列表仅包含你尚未观看的片名。观看历史包含你看过的内容。本地内容是你电脑上的文件。",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "媒体库包含来自 Stremio、Trakt 和此设备的所有内容；开启“隐藏已看”后只保留你尚未观看的片名。观看历史包含你看过的内容。本地内容是你电脑上的文件。",
+  "Hide watched": "隐藏已看",
   "Delete this list?": "删除此列表？",
   'Add titles with the search above, or hit "Add to list" on any movie or show\'s page.':
     "使用上方的搜索添加片名，或在任意电影或剧集页面点击“添加到列表”。",

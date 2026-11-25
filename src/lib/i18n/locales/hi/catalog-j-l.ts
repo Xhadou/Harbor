@@ -255,8 +255,9 @@ const catalogJL: Record<string, string> = {
     "सेटअप पूरा होने के बाद लाइब्रेरी और ऐडऑन सिंक हो जाएँगे।",
   "Library intelligence": "लाइब्रेरी इंटेलिजेंस",
   "Library is empty. Nothing to repair.": "लाइब्रेरी खाली है। ठीक करने के लिए कुछ नहीं है।",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "लाइब्रेरी में Stremio, Trakt और इस डिवाइस का सारा कंटेंट होता है। वॉचलिस्ट में केवल वे शीर्षक होते हैं जिन्हें आपने अभी तक नहीं देखा है। हिस्ट्री में वह होता है जो आपने देखा है। लोकल में आपके कंप्यूटर की फ़ाइलें होती हैं।",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "लाइब्रेरी में Stremio, Trakt और इस डिवाइस का सारा कंटेंट होता है; “देखे गए छिपाएँ” से केवल वे शीर्षक बचते हैं जिन्हें आपने अभी तक नहीं देखा है। हिस्ट्री में वह होता है जो आपने देखा है। लोकल में आपके कंप्यूटर की फ़ाइलें होती हैं।",
+  "Hide watched": "देखे गए छिपाएँ",
   "Library sources": "लाइब्रेरी स्रोत",
   "Library, watch progress, and addon collection sync from this account.":
     "इस अकाउंट से लाइब्रेरी, देखने की प्रगति और ऐडऑन संग्रह सिंक होते हैं।",

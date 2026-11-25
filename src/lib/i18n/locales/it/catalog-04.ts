@@ -1151,8 +1151,9 @@ const catalog04: Record<string, string> = {
     "La Libreria e gli Add-on verranno sincronizzati al termine della configurazione.",
   "Library intelligence": "Analisi della raccolta",
   "Library is empty. Nothing to repair.": "La Libreria è vuota. Nulla da riparare.",
-  "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.":
-    "La Libreria include tutto ciò che proviene da Stremio, Trakt e da questo dispositivo. La Lista contiene solo i titoli che non hai ancora visto. La Cronologia mostra ciò che hai guardato. La sezione Locale contiene i file sul computer.",
+  "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.":
+    "La Libreria include tutto ciò che proviene da Stremio, Trakt e da questo dispositivo; «Nascondi visti» lascia solo i titoli che non hai ancora visto. La Cronologia mostra ciò che hai guardato. La sezione Locale contiene i file del tuo computer.",
+  "Hide watched": "Nascondi visti",
   "Library sources": "Fonti della raccolta",
   "Library, watch progress, and addon collection sync from this account.":
     "La Libreria, l'avanzamento di visione e la raccolta di Add-on vengono sincronizzati da questo account.",

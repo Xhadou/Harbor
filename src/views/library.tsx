@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  Bookmark,
   Check,
   Clock,
   Eye,
@@ -55,7 +54,7 @@ import { isBackKey } from "@/lib/keyboard-navigation/geometry";
 import { SimklTab } from "./library/simkl-tab";
 import { PublicMetaDbTab } from "./library/publicmetadb-tab";
 import { TraktTab } from "./library/trakt-tab";
-import { WatchlistTab } from "./library/watchlist-tab";
+import { adoptWatchlistTab, WatchlistTab } from "./library/watchlist-tab";
 import { LetterboxdTab } from "./library/letterboxd-tab";
 import { MediaServersTab } from "./library/media-servers-tab";
 import { TorboxTab } from "./library/torbox-tab";
@@ -78,9 +77,9 @@ function readSavedTab(): Tab {
         v = "library";
       }
     }
+    v = adoptWatchlistTab(v);
     if (
       v === "library" ||
-      v === "watchlist" ||
       v === "history" ||
       v === "local" ||
       v === "media-servers" ||
@@ -151,21 +150,19 @@ export function LibraryView({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) return;
     const label =
-      tab === "watchlist"
-        ? "Browsing their watchlist"
-        : tab === "history"
-          ? "Browsing their watch history"
-          : tab === "lists"
-            ? "Browsing their lists"
-            : tab === "trakt"
-              ? "Browsing their Trakt library"
-              : tab === "simkl"
-                ? "Browsing their Simkl library"
-                : tab === "letterboxd"
-                  ? "Browsing their Letterboxd library"
-                  : tab === "mal"
-                    ? "Browsing their MyAnimeList library"
-                    : "Browsing their Stremio library";
+      tab === "history"
+        ? "Browsing their watch history"
+        : tab === "lists"
+          ? "Browsing their lists"
+          : tab === "trakt"
+            ? "Browsing their Trakt library"
+            : tab === "simkl"
+              ? "Browsing their Simkl library"
+              : tab === "letterboxd"
+                ? "Browsing their Letterboxd library"
+                : tab === "mal"
+                  ? "Browsing their MyAnimeList library"
+                  : "Browsing their Stremio library";
     return pushActivityHint({ details: label, state: "Library" });
   }, [active, tab]);
 
@@ -194,12 +191,7 @@ export function LibraryView({ active }: { active: boolean }) {
           <SoftSwap swapKey={tab}>
             {tab === "library" && (
               <Profiled id="library.collection">
-                <WatchlistTab mode="library" scrollRef={scrollRef} />
-              </Profiled>
-            )}
-            {tab === "watchlist" && (
-              <Profiled id="library.watchlist">
-                <WatchlistTab mode="watchlist" scrollRef={scrollRef} />
+                <WatchlistTab scrollRef={scrollRef} />
               </Profiled>
             )}
             {tab === "history" && (
@@ -321,7 +313,6 @@ function Header({
   };
   const tabs: { id: Tab; label: string; icon: ReactNode }[] = [
     { id: "library", label: t("Library"), icon: <Library size={14} strokeWidth={2.2} /> },
-    { id: "watchlist", label: t("Watchlist"), icon: <Bookmark size={14} strokeWidth={2.2} /> },
     { id: "history", label: t("History"), icon: <Clock size={14} strokeWidth={2.2} /> },
     { id: "local", label: t("Local"), icon: <HardDrive size={14} strokeWidth={2.2} /> },
     {
@@ -390,7 +381,7 @@ function Header({
           </h1>
           <p className="mac-page-sub text-[14px] leading-snug text-ink-muted">
             {t(
-              "Library is everything from Stremio, Trakt, and this device. Watchlist is only titles you haven't watched yet. History is what you've watched. Local is files on your computer.",
+              "Library is everything from Stremio, Trakt, and this device; Hide watched leaves only what you haven't watched yet. History is what you've watched. Local is files on your computer.",
             )}
           </p>
         </div>
