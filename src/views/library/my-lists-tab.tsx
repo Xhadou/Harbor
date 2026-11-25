@@ -5,6 +5,7 @@ import { useT } from "@/lib/i18n";
 import { CreateListModal } from "@/components/lists/create-list-modal";
 import { ListCard } from "@/components/lists/list-card";
 import { ListDetail } from "./list-detail";
+import { SoftSwap } from "@/components/soft-swap";
 
 export function MyListsTab({
   store = sharedLists,
@@ -74,101 +75,106 @@ export function MyListsTab({
     setDropTarget(null);
   };
 
+  // Opening a list and going back from it fade one into the other, as the tabs do.
   if (selectedListId) {
     return (
-      <ListDetail
-        listId={selectedListId}
-        store={store}
-        showSearch={showSearch}
-        initialSettingsAction={initialListAction}
-        onBack={() => {
-          setSelectedListId(null);
-          setInitialListAction(undefined);
-        }}
-      />
+      <SoftSwap swapKey={selectedListId}>
+        <ListDetail
+          listId={selectedListId}
+          store={store}
+          showSearch={showSearch}
+          initialSettingsAction={initialListAction}
+          onBack={() => {
+            setSelectedListId(null);
+            setInitialListAction(undefined);
+          }}
+        />
+      </SoftSwap>
     );
   }
 
   const atMax = lists.length >= MAX_LISTS;
 
   return (
-    <section className="flex flex-col gap-6">
-      {lists.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <span className="text-[12px] tabular-nums text-ink-muted">
-            {t("{n} / {max} lists", { n: lists.length, max: MAX_LISTS })}
-          </span>
-          <button
-            type="button"
-            disabled={atMax}
-            onClick={() => setCreating(true)}
-            className="flex h-10 items-center gap-2 rounded-full border border-edge bg-canvas/80 px-4 text-[13.5px] font-semibold text-ink transition-colors hover:border-ink-subtle hover:bg-canvas/95 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus size={16} strokeWidth={2.2} />
-            {t("Create new list")}
-          </button>
-        </div>
-      )}
-
-      {lists.length === 0 ? (
-        <EmptyLists
-          onCreate={() => setCreating(true)}
-          title={emptyCopy?.title}
-          body={emptyCopy?.body}
-          action={emptyCopy?.action}
-        />
-      ) : (
-        <div
-          className="grid gap-5"
-          style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}
-        >
-          {lists.map((l) => (
-            <div
-              key={l.id}
-              ref={(el) => {
-                if (el) rowRefs.current.set(l.id, el);
-                else rowRefs.current.delete(l.id);
-              }}
-              onPointerDown={(e) => onDown(e, l.id)}
-              data-tauri-drag-region="false"
-              onPointerMove={onMove}
-              onPointerUp={onUp}
-              onPointerCancel={onUp}
-              onClickCapture={(e) => {
-                if (suppressClick.current) {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  suppressClick.current = false;
-                }
-              }}
-              className={`cursor-grab touch-none rounded-2xl transition-[opacity,box-shadow] active:cursor-grabbing ${dragId === l.id ? "opacity-40" : ""} ${
-                dropTarget === l.id && dragId !== l.id
-                  ? "ring-2 ring-accent ring-offset-2 ring-offset-canvas"
-                  : ""
-              }`}
+    <SoftSwap swapKey="">
+      <section className="flex flex-col gap-6">
+        {lists.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <span className="text-[12px] tabular-nums text-ink-muted">
+              {t("{n} / {max} lists", { n: lists.length, max: MAX_LISTS })}
+            </span>
+            <button
+              type="button"
+              disabled={atMax}
+              onClick={() => setCreating(true)}
+              className="flex h-10 items-center gap-2 rounded-full border border-edge bg-canvas/80 px-4 text-[13.5px] font-semibold text-ink transition-colors hover:border-ink-subtle hover:bg-canvas/95 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <ListCard
-                store={store}
-                list={l}
-                onOpen={setSelectedListId}
-                onManage={(id, action) => {
-                  setInitialListAction(action);
-                  setSelectedListId(id);
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+              <Plus size={16} strokeWidth={2.2} />
+              {t("Create new list")}
+            </button>
+          </div>
+        )}
 
-      {creating && (
-        <CreateListModal
-          store={store}
-          onClose={() => setCreating(false)}
-          onCreated={(id) => setSelectedListId(id)}
-        />
-      )}
-    </section>
+        {lists.length === 0 ? (
+          <EmptyLists
+            onCreate={() => setCreating(true)}
+            title={emptyCopy?.title}
+            body={emptyCopy?.body}
+            action={emptyCopy?.action}
+          />
+        ) : (
+          <div
+            className="grid gap-5"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" }}
+          >
+            {lists.map((l) => (
+              <div
+                key={l.id}
+                ref={(el) => {
+                  if (el) rowRefs.current.set(l.id, el);
+                  else rowRefs.current.delete(l.id);
+                }}
+                onPointerDown={(e) => onDown(e, l.id)}
+                data-tauri-drag-region="false"
+                onPointerMove={onMove}
+                onPointerUp={onUp}
+                onPointerCancel={onUp}
+                onClickCapture={(e) => {
+                  if (suppressClick.current) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    suppressClick.current = false;
+                  }
+                }}
+                className={`cursor-grab touch-none rounded-2xl transition-[opacity,box-shadow] active:cursor-grabbing ${dragId === l.id ? "opacity-40" : ""} ${
+                  dropTarget === l.id && dragId !== l.id
+                    ? "ring-2 ring-accent ring-offset-2 ring-offset-canvas"
+                    : ""
+                }`}
+              >
+                <ListCard
+                  store={store}
+                  list={l}
+                  onOpen={setSelectedListId}
+                  onManage={(id, action) => {
+                    setInitialListAction(action);
+                    setSelectedListId(id);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {creating && (
+          <CreateListModal
+            store={store}
+            onClose={() => setCreating(false)}
+            onCreated={(id) => setSelectedListId(id)}
+          />
+        )}
+      </section>
+    </SoftSwap>
   );
 }
 

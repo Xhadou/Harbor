@@ -62,9 +62,11 @@ export function AnilistEntryCard({
   };
 
   return (
-    <div className="group relative flex flex-col gap-2 text-start">
+    <div data-opens-page-card className="group relative flex flex-col gap-2 text-start">
       <button
         type="button"
+        data-opens-page
+        data-opens-page-picture
         onClick={open}
         className="relative aspect-[2/3] overflow-hidden rounded-xl bg-elevated shadow-[0_2px_8px_-2px_rgba(0,0,0,0.4)] transition-transform duration-200 group-hover:scale-[1.02]"
       >
@@ -97,6 +99,7 @@ export function AnilistEntryCard({
 
       <button
         type="button"
+        data-opens-page
         onClick={open}
         className="truncate text-start text-[13px] font-medium text-ink"
       >

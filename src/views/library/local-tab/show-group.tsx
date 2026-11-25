@@ -113,10 +113,16 @@ function ShowGroupCardImpl({
     else context.run("open");
   };
   return (
-    <div className="group relative flex flex-col gap-2 text-start" ref={context.ref}>
+    <div
+      className="group relative flex flex-col gap-2 text-start"
+      ref={context.ref}
+      data-opens-page-card
+    >
       <div
         role="button"
         tabIndex={0}
+        data-opens-page
+        data-opens-page-picture
         onClick={(e) => onActivate(e.shiftKey)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -170,7 +176,11 @@ function ShowGroupCardImpl({
             </span>
             <div className="absolute end-2 top-2 flex flex-col gap-1.5">
               {(head.tmdbId != null || head.imdbId) && (
-                <CardIconButton title={t("Open details")} onClick={() => onOpenDetail(head)}>
+                <CardIconButton
+                  title={t("Open details")}
+                  opensPage
+                  onClick={() => onOpenDetail(head)}
+                >
                   <Info size={11} strokeWidth={2.2} />
                 </CardIconButton>
               )}
@@ -198,6 +208,7 @@ function ShowGroupCardImpl({
       <div className="flex items-start gap-1">
         <button
           type="button"
+          data-opens-page
           onClick={(e) => onActivate(e.shiftKey)}
           className="min-w-0 flex-1 text-start"
         >

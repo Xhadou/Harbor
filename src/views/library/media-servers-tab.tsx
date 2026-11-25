@@ -1275,10 +1275,12 @@ const ServerCard = memo(function ServerCard({
     );
   };
   return (
-    <article ref={contextRef} className="group flex flex-col gap-2 text-start">
+    <article ref={contextRef} data-opens-page-card className="group flex flex-col gap-2 text-start">
       <div
         role="button"
         tabIndex={0}
+        data-opens-page
+        data-opens-page-picture
         onClick={runOpen}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
@@ -1309,6 +1311,7 @@ const ServerCard = memo(function ServerCard({
         <button
           type="button"
           aria-label={t("Play")}
+          data-opens-page
           onClick={(event) => {
             event.stopPropagation();
             runOpen();
@@ -1322,7 +1325,7 @@ const ServerCard = memo(function ServerCard({
           {card.title.kind === "series" ? card.title.episodeCount : card.title.versionCount}
         </span>
         <div className="absolute end-2 top-2 flex flex-col gap-1.5">
-          <CardIconButton title={t("Open details")} onClick={onOpen}>
+          <CardIconButton title={t("Open details")} opensPage onClick={onOpen}>
             <Info size={11} />
           </CardIconButton>
           <CardIconButton title={t("Fix match")} onClick={onReview}>
@@ -1334,7 +1337,7 @@ const ServerCard = memo(function ServerCard({
         </div>
       </div>
       <div className="flex items-start gap-1">
-        <button onClick={runOpen} className="min-w-0 flex-1 text-start">
+        <button onClick={runOpen} data-opens-page className="min-w-0 flex-1 text-start">
           <p className="truncate text-[13px] font-medium text-ink">{card.meta.name}</p>
           <p className="truncate text-[11.5px] text-ink-subtle">
             {card.meta.releaseInfo ?? ""}

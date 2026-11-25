@@ -49,6 +49,7 @@ function harness() {
     "@/lib/view": {
       useView: () => ({ openPlayer: (value) => players.push(value), openSettings() {} }),
     },
+    "@/components/soft-swap": { SoftSwap: "div" },
     "@/lib/debrid/torbox-cloud": {
       listTorboxCloud: (_key, signal) => pending(lists, signal),
       torboxCloudLink: (_key, _item, _file, signal) => pending(links, signal),

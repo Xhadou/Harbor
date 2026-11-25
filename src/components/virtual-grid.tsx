@@ -1,4 +1,4 @@
-import { defaultRangeExtractor, useVirtualizer } from "@tanstack/react-virtual";
+import { defaultRangeExtractor, observeElementRect, useVirtualizer } from "@tanstack/react-virtual";
 import { observeWithin } from "@/lib/visibility";
 import {
   useCallback,
@@ -9,6 +9,15 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+
+/**
+ * A page parked behind another (a title page opened from it) is not drawn: its
+ * scroller measures nothing, every row measures nothing and the grid reads as
+ * far from view, and each of those would unmount the rows. While parked the
+ * grid keeps what it had, so Back shows the page as it was left, with the card
+ * that was pressed there to close into.
+ */
+const isParked = (el: Element | null | undefined) => !!el?.closest("[data-layer-inactive]");
 
 /**
  * Multi-column CSS-grid style virtualizer for large poster grids.
@@ -49,7 +58,15 @@ export function VirtualGrid<T>({
     const el = containerRef.current;
     const scroller = scrollRef.current;
     if (!el || !scroller || paused) return;
-    return observeWithin(el, "1200px 0px", (entry) => setNear(entry.isIntersecting), scroller);
+    return observeWithin(
+      el,
+      "1200px 0px",
+      (entry) => {
+        if (!entry.isIntersecting && isParked(el)) return;
+        setNear(entry.isIntersecting);
+      },
+      scroller,
+    );
   }, [scrollRef, paused]);
 
   useEffect(() => {
@@ -75,12 +92,13 @@ export function VirtualGrid<T>({
     if (paused) return;
     const el = containerRef.current;
     const scroller = scrollRef.current;
-    if (!el || !scroller) return;
+    if (!el || !scroller || isParked(el)) return;
     const offset =
       el.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
     setScrollMargin((previous) => (Math.abs(previous - offset) > 0.5 ? offset : previous));
   }, [scrollRef, paused]);
 
+  const rowHeights = useRef(new WeakMap<Element, number>());
   const rowCount = Math.max(1, Math.ceil(items.length / cols));
   const rowVirtualizer = useVirtualizer({
     enabled: !paused,
@@ -92,13 +110,24 @@ export function VirtualGrid<T>({
     // still selects its first/last row plus overscan; do not mount those distant cards.
     rangeExtractor: near && !paused ? defaultRangeExtractor : () => [],
     getScrollElement: () => scrollRef.current,
+    observeElementRect: (instance, report) =>
+      observeElementRect(instance, (rect) => {
+        if (rect.height === 0 && isParked(instance.scrollElement)) return;
+        report(rect);
+      }),
     scrollMargin,
     estimateSize: () => estimateRowHeight + gapY,
     // Each virtual item contains exactly one CSS-grid row, so `rowGap` would
     // not create spacing between virtual rows. Include the gap in measurement
     // as well as the estimate, otherwise measured rows stack flush together.
-    measureElement: (element, entry) =>
-      (entry?.borderBoxSize?.[0]?.blockSize ?? element.getBoundingClientRect().height) + gapY,
+    measureElement: (element, entry) => {
+      const known = rowHeights.current.get(element);
+      if (known !== undefined && isParked(element)) return known;
+      const height =
+        (entry?.borderBoxSize?.[0]?.blockSize ?? element.getBoundingClientRect().height) + gapY;
+      rowHeights.current.set(element, height);
+      return height;
+    },
     overscan,
   });
 

@@ -62,9 +62,13 @@ export function MangaFavCard({ entry }: { entry: MangaFavEntry }) {
       type="button"
       onClick={() => void open()}
       disabled={busy}
+      data-opens-page
       className="group flex w-full min-w-0 flex-col gap-2.5 text-start"
     >
-      <div className="relative w-full transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] group-hover:will-change-transform group-hover:[transform:translate3d(0,-0.5rem,0)]">
+      <div
+        data-opens-page-picture
+        className="relative w-full transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0.24,1)] group-hover:will-change-transform group-hover:[transform:translate3d(0,-0.5rem,0)]"
+      >
         <Poster
           src={entry.cover}
           seed={entry.id}

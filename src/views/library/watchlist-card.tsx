@@ -144,6 +144,7 @@ export const WatchlistCard = memo(function WatchlistCard({
       ref={(element) => {
         cardRef.current = element;
       }}
+      data-opens-page-card
       className="group relative flex flex-col gap-2 text-start"
       onMouseLeave={() => setConfirm(false)}
     >
@@ -151,6 +152,8 @@ export const WatchlistCard = memo(function WatchlistCard({
         ref={contextRef}
         role="button"
         tabIndex={0}
+        data-opens-page
+        data-opens-page-picture
         onClick={open}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -197,7 +200,13 @@ export const WatchlistCard = memo(function WatchlistCard({
           </button>
         )}
       </div>
-      <button ref={titleContextRef} type="button" onClick={open} className="text-start">
+      <button
+        ref={titleContextRef}
+        type="button"
+        data-opens-page
+        onClick={open}
+        className="text-start"
+      >
         <p className="truncate text-[13px] font-medium text-ink transition-colors hover:text-accent">
           {display.name || meta.id}
         </p>

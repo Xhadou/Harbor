@@ -241,15 +241,19 @@ export type LocalCardProps = {
 export function CardIconButton({
   title,
   onClick,
+  opensPage,
   children,
 }: {
   title: string;
   onClick: () => void;
+  /** It opens a title's page, which then grows out of the card's picture. */
+  opensPage?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
+      data-opens-page={opensPage || undefined}
       onClick={(e) => {
         e.stopPropagation();
         onClick();

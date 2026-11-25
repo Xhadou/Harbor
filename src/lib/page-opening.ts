@@ -48,7 +48,16 @@ const STEPS = 40;
 const ORIGIN =
   "[data-media-card], .mac-cw-root, .harbor-service-tile, .harbor-hero-stage, [data-opens-page]";
 /** The part of it that is the picture, where it is not the whole thing. */
-const ORIGIN_PICTURE = "[data-preview-anchor], [data-continue-card-trigger]";
+const ORIGIN_PICTURE =
+  "[data-preview-anchor], [data-continue-card-trigger], [data-opens-page-picture]";
+/**
+ * A card made of several `data-opens-page` parts (its poster, its title, an
+ * "Open details" button). Whichever is pressed, the page opens out of the
+ * card's picture.
+ */
+const ORIGIN_CARD = "[data-opens-page-card]";
+/** Something pressable inside a `data-opens-page` part that does not open the page (remove, fix match). */
+const CONTROL = "button, [role='button'], a[href]";
 /** Of those, the ones a page has only one of. A hero redraws itself, so the one pressed may be gone on the way back. */
 const ORIGIN_ONLY_ONE = ".harbor-hero-stage";
 /** The whole web page: always the window's size, and it does not scroll. */
@@ -90,10 +99,18 @@ export function watchOpeningPresses(): void {
   document.addEventListener(
     "click",
     (event) => {
-      const origin = (event.target as Element | null)?.closest?.<HTMLElement>(ORIGIN);
+      const target = event.target as Element | null;
+      const origin = target?.closest?.<HTMLElement>(ORIGIN);
       if (!origin) return;
+      if (origin.matches("[data-opens-page]")) {
+        const control = target?.closest(CONTROL);
+        if (control && control !== origin && origin.contains(control)) return;
+      }
       pressed = {
-        picture: origin.querySelector<HTMLElement>(ORIGIN_PICTURE) ?? origin,
+        picture:
+          origin.querySelector<HTMLElement>(ORIGIN_PICTURE) ??
+          origin.closest(ORIGIN_CARD)?.querySelector<HTMLElement>(ORIGIN_PICTURE) ??
+          origin,
         again: origin.matches(ORIGIN_ONLY_ONE) ? ORIGIN_ONLY_ONE : null,
         at: performance.now(),
       };

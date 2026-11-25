@@ -65,10 +65,16 @@ function OwnedCardImpl({
     else context.run("open");
   };
   return (
-    <div className="group relative flex flex-col gap-2 text-start" ref={context.ref}>
+    <div
+      className="group relative flex flex-col gap-2 text-start"
+      ref={context.ref}
+      data-opens-page-card
+    >
       <div
         role="button"
         tabIndex={0}
+        data-opens-page
+        data-opens-page-picture
         onClick={(e) => onActivate(e.shiftKey)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -124,7 +130,11 @@ function OwnedCardImpl({
             </span>
             <div className="absolute end-2 top-2 flex flex-col gap-1.5">
               {(entry.tmdbId != null || entry.imdbId) && (
-                <CardIconButton title={t("Open details")} onClick={() => onOpenDetail(entry)}>
+                <CardIconButton
+                  title={t("Open details")}
+                  opensPage
+                  onClick={() => onOpenDetail(entry)}
+                >
                   <Info size={11} strokeWidth={2.2} />
                 </CardIconButton>
               )}
@@ -152,6 +162,7 @@ function OwnedCardImpl({
       <div className="flex items-start gap-1">
         <button
           type="button"
+          data-opens-page
           onClick={(e) => onActivate(e.shiftKey)}
           className="min-w-0 flex-1 text-start"
         >

@@ -10,6 +10,7 @@ import {
 } from "@/lib/debrid/torbox-cloud";
 import { useSettings } from "@/lib/settings";
 import { useView } from "@/lib/view";
+import { SoftSwap } from "@/components/soft-swap";
 
 const formatSize = (bytes: number) => (bytes ? `${(bytes / 1024 ** 3).toFixed(2)} GB` : "");
 
@@ -171,7 +172,11 @@ export function TorboxTab() {
           {selected ? "No playable video files in this download." : "No completed downloads found."}
         </p>
       )}
-      <div className="flex flex-col gap-2">
+      {/* Opening a download's files and going back fade one list into the other. */}
+      <SoftSwap
+        swapKey={selected ? `${selected.kind}:${selected.id}` : ""}
+        className="flex flex-col gap-2"
+      >
         {visible.map((entry) => {
           const item = selected || (entry as CloudItem);
           const file = selected ? (entry as CloudFile) : null;
@@ -200,7 +205,7 @@ export function TorboxTab() {
             </button>
           );
         })}
-      </div>
+      </SoftSwap>
     </section>
   );
 }
