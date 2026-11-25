@@ -9,6 +9,8 @@ export function ThemeBackdrop() {
   const { player, view } = useView();
   const preview = useThemePreview();
 
+  // Back as soon as the player is closed, under a player still leaving: the page fades in
+  // with it (lib/player-leave.ts), so it must not stand over the video before that.
   if (player) return null;
 
   const preset = settings.theme.preset !== "custom" ? getThemeById(settings.theme.preset) : null;
@@ -22,7 +24,7 @@ export function ThemeBackdrop() {
   if (!img) {
     return (
       <>
-        <div className="pointer-events-none fixed inset-0 -z-30 bg-canvas" />
+        <div data-theme-backdrop className="pointer-events-none fixed inset-0 -z-30 bg-canvas" />
         {wantsBokeh && <AuroraBokeh />}
       </>
     );
@@ -36,16 +38,19 @@ export function ThemeBackdrop() {
   return (
     <>
       <div
+        data-theme-backdrop
         className="pointer-events-none fixed inset-0 -z-30 bg-cover bg-center"
         style={isGradient ? { background: img } : { backgroundImage: `url(${img})` }}
       />
       {!presetGradient && (
         <div
+          data-theme-backdrop
           className="pointer-events-none fixed inset-0 -z-20"
           style={{ background: "black", opacity: 0.45 }}
         />
       )}
       <div
+        data-theme-backdrop
         className="pointer-events-none fixed inset-0 -z-10 bg-canvas"
         style={{ opacity: presetGradient ? 0 : dim }}
       />

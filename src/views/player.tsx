@@ -132,15 +132,16 @@ import { exitAnyFullscreen } from "@/lib/fullscreen-state";
 
 let hdrFallbackNoticeShown = false;
 
-export function PlayerView({ src }: { src: PlayerSrc }) {
+/** `leaving`: closed, and kept a moment to fade out over the page (lib/player-leave.ts). */
+export function PlayerView({ src, leaving = false }: { src: PlayerSrc; leaving?: boolean }) {
   return src.officialBroadcast ? (
     <EmbeddedBroadcastPlayer src={src} stream={src.officialBroadcast} />
   ) : (
-    <NativePlayerView src={src} />
+    <NativePlayerView src={src} leaving={leaving} />
   );
 }
 
-function NativePlayerView({ src }: { src: PlayerSrc }) {
+function NativePlayerView({ src, leaving }: { src: PlayerSrc; leaving: boolean }) {
   const {
     setChromeHidden: setAppChromeHidden,
     topPath,
@@ -211,6 +212,13 @@ function NativePlayerView({ src }: { src: PlayerSrc }) {
   );
   const videoMountRef = useRef<HTMLDivElement>(null);
   const bridgeRef = useRef<PlayerBridge | null>(null);
+  // Closed: silent at once, the last frame held under the page coming in, and the window's
+  // chrome (hidden with the controls) given back now rather than when the player goes.
+  useEffect(() => {
+    if (!leaving) return;
+    bridgeRef.current?.pause("leaving");
+    setAppChromeHidden(false);
+  }, [leaving, setAppChromeHidden]);
   const selfFrameReadyRef = useRef(false);
   const { fullscreen, toggleFullscreen } = useFullscreen();
   const { snap, engine, bridgeReady, bridgeKey, embedActive, svpActive } = usePlayerBridge({
@@ -666,15 +674,17 @@ function NativePlayerView({ src }: { src: PlayerSrc }) {
     }
     await closePlayer();
   }, [src, replacePlayerSrc, closePlayer]);
-  useLocalBackCapability(true);
+  // A player on its way out has given Back to the page it leaves for.
+  useLocalBackCapability(!leaving);
   useEffect(() => {
+    if (leaving) return;
     const onLocalBack = (e: Event) => {
       e.preventDefault();
       void backFromPlayer();
     };
     window.addEventListener("harbor:local-back", onLocalBack);
     return () => window.removeEventListener("harbor:local-back", onLocalBack);
-  }, [backFromPlayer]);
+  }, [backFromPlayer, leaving]);
 
   useKeyboardNavigation({
     // TV focus navigation intentionally owns arrows and Space while enabled.
@@ -1641,7 +1651,8 @@ function NativePlayerView({ src }: { src: PlayerSrc }) {
       ref={stageRef}
       data-harbor-player
       data-detached={src.pipDocked || undefined}
-      inert={src.pipDocked || undefined}
+      data-leaving={leaving || undefined}
+      inert={src.pipDocked || leaving || undefined}
       data-docked={docked}
       data-native-dock={nativeDock}
       data-audio-only={docked && dockMinimized}

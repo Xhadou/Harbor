@@ -427,6 +427,10 @@ export function Row({
     const el = containerRef.current;
     if (!el) return;
     const onNear = (e: IntersectionObserverEntry) => {
+      // A page parked behind another (a title page opened from it) is not drawn, so every row
+      // in it reads as far away and lets its cards go 15 s on. The row keeps what it had:
+      // Back shows the page as it was left, with the card pressed there to close into.
+      if (!e.isIntersecting && el.closest("[data-layer-inactive]")) return;
       startTransition(() => setNear(e.isIntersecting));
     };
     return pageScrollRoot

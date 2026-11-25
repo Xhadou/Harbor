@@ -29,10 +29,13 @@ import {
 export function NativeSidebarBridge({
   visible: wanted,
   pickerTop,
+  playerLeaving = false,
 }: {
   visible: boolean;
   /** The source picker is in front: a page with no sidebar, where the player is not a page. */
   pickerTop: boolean;
+  /** The player has been closed and is fading out over the page it left for. */
+  playerLeaving?: boolean;
 }) {
   // Read on every render: skipping the hook while `wanted` is false changes the
   // hook order the first time the sidebar hides, which crashes the app.
@@ -61,10 +64,11 @@ export function NativeSidebarBridge({
     customOrder: customization.order.length > 0,
   });
   // Going to the source picker and coming back from it are changes of page, and the
-  // sidebar slides away and back with them. Everything else that takes the sidebar (the
-  // player, a dialog over the whole window) takes it at once.
+  // sidebar slides away and back with them; so does leaving the player, which fades into
+  // the page it left for. Everything else that takes the sidebar (the player, a dialog over
+  // the whole window) takes it at once.
   const [pickerTopSent, setPickerTopSent] = useState(pickerTop);
-  const slide = pickerTopSent !== pickerTop;
+  const slide = pickerTopSent !== pickerTop || playerLeaving;
   useEffect(() => setPickerTopSent(pickerTop), [pickerTop]);
   // In the render that changes page, so the new page is laid out where it will stay.
   useLayoutEffect(() => {

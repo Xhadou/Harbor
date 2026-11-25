@@ -47,7 +47,7 @@ export function AuroraBokeh() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div data-theme-backdrop className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       {orbs.map((o, i) => (
         <span
           key={i}

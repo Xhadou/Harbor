@@ -6,6 +6,7 @@ import { GameLibraryDock } from "@/views/games/game-library-dock";
 import { GameDockWelcome } from "@/views/games/game-dock-welcome";
 import { GameRouteLoading } from "@/views/games/game-route-loading";
 import { hasBackHandlers } from "@/lib/back-intercept";
+import { useLeavingPlayer } from "@/lib/player-leave";
 import { useSportsEnabled } from "@/lib/sports/enabled";
 import { usePlaylists } from "@/lib/iptv/playlists-store";
 import { SportsAccessGate } from "@/views/sports/access-gate";
@@ -510,19 +511,25 @@ function AfterFirstPaint({ children, delayMs = 0 }: { children: ReactNode; delay
   return ready ? <>{children}</> : null;
 }
 
-function useIdleEvict(active: boolean, pin = false): boolean {
+/**
+ * `hold`: the section is what Back leads to (the bottom of the stack), so it stays while
+ * pages are open over it and Back closes into it instead of rebuilding it. Memory pressure
+ * still drops it; `pin` keeps it even then.
+ */
+function useIdleEvict(active: boolean, pin = false, hold = false): boolean {
   const [alive, setAlive] = useState(active);
   const [pressure, setPressure] = useState(false);
   useEffect(() => subscribeMemoryPressure(setPressure), []);
+  const held = hold && !pressure;
   useEffect(() => {
     if (active || pin) {
       setAlive(true);
       return;
     }
-    if (!alive) return;
+    if (!alive || held) return;
     const t = setTimeout(() => setAlive(false), pressure ? PRESSURE_EVICT_MS : IDLE_EVICT_MS);
     return () => clearTimeout(t);
-  }, [active, alive, pressure, pin]);
+  }, [active, alive, pressure, pin, held]);
   return alive || active || pin;
 }
 
@@ -1549,6 +1556,8 @@ function Shell({ onReady }: { onReady?: () => void }) {
   }, [activeProfile?.id]);
 
   const playerActive = !!player && !player.sportsDocked && !player.pipDocked;
+  const leavingPlayer = useLeavingPlayer(player, playerActive);
+  const shownPlayer = player ?? leavingPlayer;
   useEffect(() => setNativeMemoryActive(playerActive), [playerActive]);
   useEffect(() => {
     if (!playerActive) void exitWindowFullscreenOnPlayerClose();
@@ -1706,29 +1715,33 @@ function Shell({ onReady }: { onReady?: () => void }) {
   }, [musicEnabled, activeProfileForMusic]);
 
   const overlayPinned = useOverlayPinned();
-  const homeAlive = useIdleEvict(homeTop);
+  // The section at the bottom of the stack is the one Back returns to (see useIdleEvict). Held
+  // on macOS, where Back closes the page into the card it opened from on that section.
+  const stackRoot = isMacDesktop() ? stackKinds[0] : undefined;
+  const homeAlive = useIdleEvict(homeTop, false, stackRoot === "home");
   const settingsAlive = useIdleEvict(settingsTop, overlayPinned);
-  const animeAlive = useIdleEvict(animeTop);
-  const discoverAlive = useIdleEvict(discoverTop);
-  const musicAlive = useIdleEvict(musicTop);
+  const animeAlive = useIdleEvict(animeTop, false, stackRoot === "anime");
+  const discoverAlive = useIdleEvict(discoverTop, false, stackRoot === "discover");
+  const musicAlive = useIdleEvict(musicTop, false, stackRoot === "music");
   const gamesAlive = useIdleEvict(gamesTop, stackKinds.includes("games"));
-  const catalogsAlive = useIdleEvict(catalogsTop);
-  const pluginsAlive = useIdleEvict(pluginsTop);
-  const addonsAlive = useIdleEvict(addonsTop);
+  const catalogsAlive = useIdleEvict(catalogsTop, false, stackRoot === "catalogs");
+  const pluginsAlive = useIdleEvict(pluginsTop, false, stackRoot === "plugins");
+  const addonsAlive = useIdleEvict(addonsTop, false, stackRoot === "addons");
   const calendarAlive = useIdleEvict(
     calendarTop,
     stackKinds.includes("calendar") && stackKinds.includes("games"),
+    stackRoot === "calendar",
   );
-  const wrappedAlive = useIdleEvict(wrappedTop);
+  const wrappedAlive = useIdleEvict(wrappedTop, false, stackRoot === "wrapped");
   const queueAlive = useKeepAlive(queueTop, queueTop);
   const serviceAlive = useKeepAlive(serviceTop, serviceTop && !!service);
-  // Keep a detail page mounted while Settings or its own source picker is open. Otherwise
-  // the keep-alive timer drops it after 1.5s, and returning refetches the whole title from
-  // its addons and draws its top section in again.
+  // Keep a detail page mounted while Settings, its own source picker or the player is open.
+  // Otherwise the keep-alive timer drops it after 1.5s, and returning refetches the whole
+  // title from its addons and draws its top section in again.
   const detailAlive = useKeepAlive(
     detailTop,
     !!meta,
-    topKind === "settings" || topKind === "picker",
+    topKind === "settings" || topKind === "picker" || topKind === "player",
   );
   const personAlive = useKeepAlive(personTop, personId !== null);
   const profileAlive = useKeepAlive(profileTop, profileHandle !== null);
@@ -1761,18 +1774,22 @@ function Shell({ onReady }: { onReady?: () => void }) {
   const animeAwardAlive = useKeepAlive(animeAwardTop, animeAwardTop && !!animeAwardSource);
   const curatedListAlive = useKeepAlive(curatedListTop, curatedListTop && !!curatedListId);
   const pickerAlive = useKeepAlive(pickerTop, !!picker);
-  const moviesAlive = useIdleEvict(moviesTop);
-  const kidsAlive = useIdleEvict(kidsTop);
-  const showsAlive = useIdleEvict(showsTop);
-  const libraryAlive = useIdleEvict(libraryTop);
-  const collectionsHubAlive = useIdleEvict(collectionsHubTop);
-  const sportsAlive = useIdleEvict(sportsTop);
-  const liveAlive = useIdleEvict(liveTop);
-  const vodAlive = useIdleEvict(vodTop);
+  const moviesAlive = useIdleEvict(moviesTop, false, stackRoot === "movies");
+  const kidsAlive = useIdleEvict(kidsTop, false, stackRoot === "kids");
+  const showsAlive = useIdleEvict(showsTop, false, stackRoot === "shows");
+  const libraryAlive = useIdleEvict(libraryTop, false, stackRoot === "library");
+  const collectionsHubAlive = useIdleEvict(
+    collectionsHubTop,
+    false,
+    stackRoot === "collections-hub",
+  );
+  const sportsAlive = useIdleEvict(sportsTop, false, stackRoot === "sports");
+  const liveAlive = useIdleEvict(liveTop, false, stackRoot === "live");
+  const vodAlive = useIdleEvict(vodTop, false, stackRoot === "vod");
   const downloadsAlive = useIdleEvict(downloadsTop);
-  const mangaAlive = useIdleEvict(mangaTop);
-  const ebookAlive = useIdleEvict(ebookTop);
-  const peopleAlive = useIdleEvict(peopleTop);
+  const mangaAlive = useIdleEvict(mangaTop, false, stackRoot === "manga");
+  const ebookAlive = useIdleEvict(ebookTop, false, stackRoot === "ebook");
+  const peopleAlive = useIdleEvict(peopleTop, false, stackRoot === "people");
 
   const quickLibraryVisible =
     !kid && !kidsTop && !playerActive && !pickerTop && !bigPicture && !immersive && !chromeHidden;
@@ -1911,6 +1928,7 @@ function Shell({ onReady }: { onReady?: () => void }) {
               <WindowClosedBridge />
               <NativeSidebarBridge
                 pickerTop={pickerTop}
+                playerLeaving={leavingPlayer !== null}
                 visible={sidebarVisible({
                   playerActive,
                   standaloneLive,
@@ -2431,11 +2449,16 @@ function Shell({ onReady }: { onReady?: () => void }) {
           </div>
         </div>
         {HAS_GAMES && <GameLibraryDock visible={quickLibraryVisible && !gamesTop} />}
-        {player && (
+        {shownPlayer && (
           <Suspense fallback={null}>
             <PlayerView
-              key={player.meta.id.startsWith("iptv:") ? "player-live" : `player-${player.meta.id}`}
-              src={player}
+              key={
+                shownPlayer.meta.id.startsWith("iptv:")
+                  ? "player-live"
+                  : `player-${shownPlayer.meta.id}`
+              }
+              src={shownPlayer}
+              leaving={!player}
             />
           </Suspense>
         )}
