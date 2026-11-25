@@ -4,6 +4,7 @@
  */
 
 import { safeFetch as fetch } from "@/lib/safe-fetch";
+import { secretKeys } from "@/lib/secret-store";
 import { openUrl } from "@/lib/window";
 import {
   NUVIO_ANON_KEY,
@@ -379,9 +380,13 @@ export async function signOutNuvio(): Promise<void> {
 
   try {
     const keysToRemove: string[] = [];
+    // Nuvio's own state and its Harbor account session are kept in the secret store.
+    const allKeys = secretKeys();
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
-      if (!k) continue;
+      if (k) allKeys.push(k);
+    }
+    for (const k of allKeys) {
       if (
         k.startsWith("harbor.nuvio.") ||
         k.startsWith("harbor.newEpisodes.dismissed.nuvio.") ||

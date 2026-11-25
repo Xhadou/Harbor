@@ -1,6 +1,7 @@
 import { loadStoredSettings, parseStoredSettings } from "./load";
 import { setItemWithRecovery, setItemWithRecoveryDetailed } from "@/lib/storage-recovery";
 import type { Settings } from "./types";
+import { copySettingsSecrets, takeSecrets, writeSettingsSecrets } from "./secret-fields";
 
 export const MIRROR_KEY = "harbor.settings";
 export const SHARED_KEY = "harbor.settings.shared";
@@ -24,7 +25,10 @@ export function seedSharedFromLegacy(): void {
   try {
     if (localStorage.getItem(SHARED_KEY)) return;
     const legacy = localStorage.getItem(MIRROR_KEY);
-    if (legacy) localStorage.setItem(SHARED_KEY, legacy);
+    if (legacy) {
+      localStorage.setItem(SHARED_KEY, legacy);
+      copySettingsSecrets(MIRROR_KEY, SHARED_KEY);
+    }
   } catch {
     return;
   }
@@ -61,17 +65,26 @@ function readActiveSourceForRecovery(): { profileId: string; linked: boolean } {
 export function applyLegacyToActive(): boolean {
   const blob = recoverableLegacyBlob();
   if (blob == null) return false;
+  const from = localStorage.getItem(SHARED_KEY) != null ? SHARED_KEY : MIRROR_KEY;
   const { profileId, linked } = readActiveSourceForRecovery();
-  const ok = setItemWithRecovery(sourceKeyFor(profileId, linked), blob);
+  const source = sourceKeyFor(profileId, linked);
+  const ok = setItemWithRecovery(source, blob);
   setItemWithRecovery(MIRROR_KEY, blob);
+  if (source !== from) copySettingsSecrets(from, source);
+  if (from !== MIRROR_KEY) copySettingsSecrets(from, MIRROR_KEY);
   return ok;
 }
 
 export function persistEffective(settings: Settings, profileId: string, linked: boolean): string {
   const source = sourceKeyFor(profileId, linked);
   lastSavedAt = Math.max(Date.now(), lastSavedAt + 1);
+  const stored = JSON.parse(serializeSettings(settings)) as Record<string, unknown>;
+  // Keys and tokens are kept apart, in the secret store; every stored copy leaves them out.
+  const secrets = takeSecrets(stored);
+  writeSettingsSecrets(source, secrets);
+  writeSettingsSecrets(MIRROR_KEY, secrets);
   const json = JSON.stringify({
-    ...JSON.parse(serializeSettings(settings)),
+    ...stored,
     _savedAt: lastSavedAt,
     _savedSource: source,
   });
@@ -104,7 +117,7 @@ export function recoverSettingsFile(
       if (!(typeof disk._savedAt === "number" && disk._savedAt > (local?._savedAt ?? 0)))
         return null;
     }
-    const { settings } = parseStoredSettings(raw);
+    const { settings } = parseStoredSettings(raw, source);
     setItemWithRecoveryDetailed(source, raw);
     setItemWithRecoveryDetailed(MIRROR_KEY, raw);
     // Hydrate directly even if browser storage is still full.
@@ -116,12 +129,18 @@ export function recoverSettingsFile(
 
 export function forkToProfile(profileId: string): void {
   const shared = localStorage.getItem(SHARED_KEY) ?? localStorage.getItem(MIRROR_KEY);
-  if (shared != null) setItemWithRecovery(profileKey(profileId), shared);
+  if (shared == null) return;
+  setItemWithRecovery(profileKey(profileId), shared);
+  copySettingsSecrets(
+    localStorage.getItem(SHARED_KEY) != null ? SHARED_KEY : MIRROR_KEY,
+    profileKey(profileId),
+  );
 }
 
 export function dropProfileBlob(profileId: string): void {
   try {
     localStorage.removeItem(profileKey(profileId));
+    writeSettingsSecrets(profileKey(profileId), null);
   } catch {
     return;
   }

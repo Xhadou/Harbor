@@ -224,6 +224,9 @@ if (typeof window !== "undefined") {
   });
   window.addEventListener("harbor:nuvio-profile-changed", () => reloadSession(true));
   window.addEventListener("harbor:nuvio-state-changed", () => reloadSession(true));
+  // The session was read when this module loaded, before the secret store that keeps it had
+  // (`SECRETS_READY` in secret-store.ts).
+  window.addEventListener("harbor:secrets-ready", () => reloadSession(true));
 }
 
 export function currentAuthor(): Author | null {

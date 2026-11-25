@@ -8,6 +8,7 @@ import {
 import { anidbToMal, anilistToMal, kitsuToMal } from "@/lib/providers/anime-mapping";
 import { get } from "@/lib/providers/tmdb/tmdb-client";
 import type { PmdbTarget } from "./types";
+import { withSettingsSecrets } from "@/lib/settings/secret-fields";
 
 export type EpisodeIdentity = {
   season: number;
@@ -60,7 +61,7 @@ function getStoredTmdbKey(): string | undefined {
   try {
     const raw = localStorage.getItem("harbor.settings");
     if (!raw) return undefined;
-    const parsed = JSON.parse(raw);
+    const parsed = withSettingsSecrets(raw, "harbor.settings");
     return typeof parsed?.tmdbKey === "string" && parsed.tmdbKey ? parsed.tmdbKey : undefined;
   } catch {
     return undefined;

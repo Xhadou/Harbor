@@ -371,7 +371,10 @@ function harness(
       },
       "./beta-return": betaReturn,
       "./handoff": handoff,
-      "@/lib/backup": { buildBackup: async () => ({ format: "harbor-backup", data: {} }) },
+      "@/lib/backup": {
+        buildBackup: async () => ({ format: "harbor-backup", data: {} }),
+        DEFAULT_BACKUP_SECTIONS: ["settings"],
+      },
       "@tauri-apps/api/app": {
         async getVersion() {
           return options.version ?? "0.9.121";

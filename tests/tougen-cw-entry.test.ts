@@ -16,6 +16,9 @@ function load(path: string, mocks: Record<string, unknown>): any {
     if (id === "@/lib/metadata-policy" || id === "./metadata-policy")
       return { addonOnlyMetadata: () => false };
     if (id === "./metadata-addons") return { readMetadataAddonOrder: () => [] };
+    // The kept keys live in the app's secret store; here a stored copy is read as it is.
+    if (id === "@/lib/settings/secret-fields")
+      return { withSettingsSecrets: (raw: string | null) => (raw ? JSON.parse(raw) : {}) };
     assert.ok(id in mocks, `Unexpected dependency: ${id}`);
     return mocks[id];
   }, exports);

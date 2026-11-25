@@ -19,33 +19,18 @@ pub fn settings_read(app: tauri::AppHandle) -> Result<Option<String>, String> {
 #[tauri::command]
 pub fn settings_write(app: tauri::AppHandle, content: String) -> Result<(), String> {
     let path = settings_path(&app)?;
-    let tmp = path.with_extension("json.tmp");
-    std::fs::write(&tmp, content.as_bytes()).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())
+    crate::secret_vault::write_private_file(&path, content.as_bytes())
 }
 
-fn secrets_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
-    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    Ok(dir.join("secrets.json"))
-}
-
-#[tauri::command]
+// Off the main thread: a keychain call can wait on the system asking the user.
+#[tauri::command(async)]
 pub fn secrets_read(app: tauri::AppHandle) -> Result<Option<String>, String> {
-    let path = secrets_path(&app)?;
-    match std::fs::read_to_string(&path) {
-        Ok(s) => Ok(Some(s)),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(e.to_string()),
-    }
+    crate::secret_vault::read(&app)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn secrets_write(app: tauri::AppHandle, content: String) -> Result<(), String> {
-    let path = secrets_path(&app)?;
-    let tmp = path.with_extension("json.tmp");
-    std::fs::write(&tmp, content.as_bytes()).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())
+    crate::secret_vault::write(&app, &content)
 }
 
 #[cfg(all(desktop, feature = "music"))]

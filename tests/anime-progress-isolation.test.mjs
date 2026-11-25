@@ -30,6 +30,9 @@ function load(path, dependencies) {
   ).outputText;
   const exports = {};
   new Function("require", "exports", compiled)((id) => {
+    // The kept keys live in the app's secret store; here a stored copy is read as it is.
+    if (id === "@/lib/settings/secret-fields")
+      return { withSettingsSecrets: (raw) => (raw ? JSON.parse(raw) : {}) };
     assert.ok(id in dependencies, `Unexpected dependency: ${id}`);
     return dependencies[id];
   }, exports);

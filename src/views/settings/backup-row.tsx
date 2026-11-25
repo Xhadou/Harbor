@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import {
   applyBackup,
   BACKUP_SECTIONS,
+  DEFAULT_BACKUP_SECTIONS,
   backupKeyCount,
   backupSectionDescription,
   backupSectionLabel,
@@ -173,8 +174,9 @@ function ExportPicker({
   onCancel: () => void;
 }) {
   const t = useT();
+  // Sign-ins and keys are left out until they are ticked: a backup file is plain text.
   const [selected, setSelected] = useState<Set<BackupSectionKey>>(
-    () => new Set(BACKUP_SECTIONS.map((s) => s.key)),
+    () => new Set(DEFAULT_BACKUP_SECTIONS),
   );
 
   const allSelected = selected.size === BACKUP_SECTIONS.length;

@@ -1,6 +1,7 @@
 import { unzip } from "@/lib/unzip";
 import { isRated, normalizeScore, scoreIsValid } from "../types";
 import type { ImportProgress, ImportSourceInput, ImportedRating, RatingsSource } from "../types";
+import { withSettingsSecrets } from "@/lib/settings/secret-fields";
 
 const CHUNK = 200;
 const MAX_TITLE = 300;
@@ -282,7 +283,7 @@ function hasTmdbKey(): boolean {
   try {
     const raw = localStorage.getItem("harbor.settings");
     if (!raw) return false;
-    const key = (JSON.parse(raw) as { tmdbKey?: unknown }).tmdbKey;
+    const key = withSettingsSecrets(raw, "harbor.settings").tmdbKey;
     return typeof key === "string" && key.trim().length > 0;
   } catch {
     return false;

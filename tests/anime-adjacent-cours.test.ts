@@ -191,6 +191,9 @@ function seriesModule() {
     if (id === "./metadata-addons") return { readMetadataAddonOrder: () => [] };
     if (id === "./metadata-sources")
       return { addonKeyFromSource: () => null, normalizeMetadataSourceChain: () => [] };
+    // The kept keys live in the app's secret store; here a stored copy is read as it is.
+    if (id === "@/lib/settings/secret-fields")
+      return { withSettingsSecrets: (raw: string | null) => (raw ? JSON.parse(raw) : {}) };
     assert.ok(Object.hasOwn(mocks, id), `Unexpected dependency: ${id}`);
     return mocks[id];
   }, exports);

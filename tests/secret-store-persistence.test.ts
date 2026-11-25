@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import ts from "typescript";
@@ -14,10 +13,11 @@ const ROSTER = JSON.stringify({
   profiles: [{ id: "p_main", isPrimary: true }, { id: "p_second" }],
 });
 
-function harness({ store: initial = {}, roster = ROSTER } = {}) {
+function harness({ store: initial = {}, roster = ROSTER, shared = null } = {}) {
   const writes = [];
   const timers = [];
-  const state = { ...initial };
+  // Two harnesses given the same `shared` object are two windows over one saved store.
+  const state = shared ?? { ...initial };
   const mocks = {
     "@tauri-apps/api/core": {
       invoke: async (command, args) => {
@@ -198,6 +198,55 @@ test("a disconnect clears the per-profile copies so nothing resurrects it", asyn
       [],
     );
     assert.equal(h.api.readSharedSecret("harbor.simkl.session.v1"), null);
+  } finally {
+    h.restore();
+  }
+});
+
+test("a window's write keeps what another window saved since it loaded", async () => {
+  const saved = {};
+  const a = harness({ shared: saved });
+  const b = harness({ shared: saved });
+  try {
+    await a.api.loadSecrets();
+    await b.api.loadSecrets();
+    b.api.setSecret("harbor.trakt.session.v1", "from-b");
+    await b.api.flushSecrets();
+    // Window A loaded before B signed in; its own write must not take B's sign-in away.
+    a.api.setSecret("harbor.simkl.session.v1", "from-a");
+    await a.api.flushSecrets();
+    assert.deepEqual(saved, {
+      "harbor.trakt.session.v1": "from-b",
+      "harbor.simkl.session.v1": "from-a",
+    });
+    assert.equal(a.api.getSecret("harbor.trakt.session.v1"), "from-b");
+  } finally {
+    a.restore();
+    b.restore();
+  }
+});
+
+test("sign-ins kept in browser storage by older builds count as secrets; their markers do not", () => {
+  const h = harness();
+  try {
+    for (const key of [
+      "harbor.auth.default",
+      "harbor.auth",
+      "harbor.nuvio.state.v1",
+      "harbor.theme-session.p_main",
+      "harbor.iptv.playlists.v1",
+      "harbor.settings-secrets.v1.shared",
+    ]) {
+      assert.equal(h.api.isSecretKey(key), true, key);
+    }
+    for (const key of [
+      "harbor.auth.migrated.v1",
+      "harbor.theme-session.repaired.v2",
+      "harbor.settings",
+      "harbor.authority",
+    ]) {
+      assert.equal(h.api.isSecretKey(key), false, key);
+    }
   } finally {
     h.restore();
   }

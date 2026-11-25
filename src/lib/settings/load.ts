@@ -42,6 +42,8 @@ const RETIRED_GEMINI = new Set([
 ]);
 import { DEFAULT, STORAGE_KEY } from "./defaults";
 import type { Settings } from "./types";
+import { putSecrets, readSettingsSecrets } from "./secret-fields";
+import { SECRETS_READY } from "@/lib/secret-store";
 import { adoptLegacyPlaylists, readPlaylists } from "@/lib/iptv/playlists-store";
 import { sanitizeDisplaySelection } from "@/lib/monitors";
 import { migratePublicRelayUrl } from "@/lib/together/relay-version";
@@ -159,21 +161,39 @@ let cachedKey: string | null = null;
 let cachedRaw: string | null = null;
 let cachedSettings: Settings | null = null;
 
+// A copy read before the secret store had loaded came without its keys.
+if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+  window.addEventListener(SECRETS_READY, () => {
+    cachedSettings = null;
+    cachedRaw = null;
+  });
+}
+
 export function loadStoredSettings(rawKey: string = STORAGE_KEY): Settings {
   const raw = localStorage.getItem(rawKey);
   if (cachedSettings && cachedKey === rawKey && cachedRaw === raw) return cachedSettings;
-  const { settings, cacheable } = parseStoredSettings(raw);
+  const { settings, cacheable } = parseStoredSettings(raw, rawKey);
   cachedKey = rawKey;
   cachedRaw = raw;
   cachedSettings = cacheable ? settings : null;
   return settings;
 }
 
-export function parseStoredSettings(raw: string | null): {
+/**
+ * `blobKey` names the stored copy `raw` came from: its keys and tokens are kept in
+ * the secret store (secret-fields.ts) and are put back here.
+ */
+export function parseStoredSettings(
+  raw: string | null,
+  blobKey?: string,
+): {
   settings: Settings;
   cacheable: boolean;
 } {
   const parsed = parseStoredSettingsRaw(raw);
+  if (blobKey) {
+    putSecrets(parsed.settings as unknown as Record<string, unknown>, readSettingsSecrets(blobKey));
+  }
   const settings = coerceMacSettings(parsed.settings, osClass());
   return settings === parsed.settings ? parsed : { ...parsed, settings };
 }

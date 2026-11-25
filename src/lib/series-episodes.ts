@@ -42,6 +42,7 @@ import { aniZipByAnilist, pickEpisodeTitle } from "./providers/anizip";
 import { fetchTvdbProxyImages, pickTvdbImage } from "./providers/tvdb-proxy";
 import { franchiseRoot } from "./providers/anime-franchise-root";
 import { foreignAnimeProviderSeasons } from "./streams/anime-identity";
+import { withSettingsSecrets } from "@/lib/settings/secret-fields";
 
 async function filterForeignAnimeSeasons(
   metaId: string,
@@ -306,7 +307,10 @@ function episodeSourceOptions(opts: EpisodeSourceOptions) {
   let seasonType = opts.tvdbSeasonType;
   if (!sources || tvdbKey == null || !seasonType) {
     try {
-      const raw = JSON.parse(localStorage.getItem("harbor.settings") ?? "{}") as {
+      const raw = withSettingsSecrets(
+        localStorage.getItem("harbor.settings"),
+        "harbor.settings",
+      ) as {
         metadataSources?: { episodes?: unknown };
         tvdbKey?: unknown;
         tvdbSeasonType?: unknown;
@@ -379,8 +383,9 @@ async function configuredEpisodeSource(
   const { sources: rawSources, tvdbKey, seasonType } = episodeSourceOptions(opts);
   let stored: Partial<MetadataSourceSettings> = {};
   try {
-    stored = JSON.parse(
-      localStorage.getItem("harbor.settings") ?? "{}",
+    stored = withSettingsSecrets(
+      localStorage.getItem("harbor.settings"),
+      "harbor.settings",
     ) as Partial<MetadataSourceSettings>;
   } catch {
     stored = {};

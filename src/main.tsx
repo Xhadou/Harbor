@@ -9,6 +9,7 @@ import { applyOsDataset, isMacDesktop } from "@/lib/platform";
 import { firstScreenPainted } from "@/lib/first-screen";
 import { loadLottie } from "@/lib/lottie-lazy";
 import { loadSecrets } from "@/lib/secret-store";
+import { moveSecretsOutOfStoredSettings } from "@/lib/settings/secret-fields";
 import { getInstallFeatures, loadInstallFeatures } from "@/lib/features/install";
 import { HAS_MUSIC } from "@/lib/features/edition";
 import { initSubtitleCache } from "@/lib/subtitles/subtitle-cache";
@@ -295,6 +296,8 @@ async function mount() {
       ? import("@/lib/music/player").then(({ initializeMusic }) => initializeMusic())
       : Promise.resolve(),
   ]);
+  // Keys an older build left in stored copies of the settings move to the secret store.
+  if (!isAuxWindow && "__TAURI_INTERNALS__" in window) moveSecretsOutOfStoredSettings();
   if (!isHdrOverlay && !isModal && !isCaptions && !isDjDeck) void initSubtitleCache();
   if (!isHdrOverlay && !isModal && !isCaptions && !isPip && !isVideoPip && !isDjDeck)
     startTaskbarProgress();

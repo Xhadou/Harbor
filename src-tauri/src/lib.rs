@@ -34,6 +34,7 @@ mod privacy;
 mod process_output;
 mod proc_guard;
 mod proc_mem;
+mod secret_vault;
 mod settings_store;
 mod stream_proxy;
 mod streams;

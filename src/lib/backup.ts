@@ -25,6 +25,7 @@ export type BackupSectionKey =
   | "addons"
   | "profiles"
   | "sessions"
+  | "apiKeys"
   | "watchlist"
   | "watchProgress"
   | "searchHistory"
@@ -106,7 +107,8 @@ export const BACKUP_SECTIONS: readonly BackupSection[] = [
   {
     key: "sessions",
     label: "Service sign-ins",
-    description: "Your saved Trakt, Simkl, MAL, AniList, and Letterboxd logins.",
+    description:
+      "Your saved Trakt, Simkl, MAL, AniList, Letterboxd, Nuvio, Last.fm and media server logins, and the Harbor account.",
     warning: true,
     patterns: [
       "harbor.trakt.session.v1",
@@ -114,7 +116,23 @@ export const BACKUP_SECTIONS: readonly BackupSection[] = [
       "harbor.mal.session.v1",
       "harbor.anilist.session.v1",
       "harbor.letterboxd.session.v1",
+      "harbor.nuvio.state",
+      "harbor.theme-session",
+      "harbor.lastfm.v1",
+      "harbor.media-server.token.v1",
+      "harbor.plex-auth.device.v1",
+      "harbor.publicmetadb.session.v1",
+      "harbor.sports.api-sports.v1",
+      "harbor.tvdb.token.v1",
     ],
+  },
+  {
+    key: "apiKeys",
+    label: "API keys",
+    description:
+      "The keys and tokens typed into Settings: TMDB, debrid services, subtitles and the rest.",
+    warning: true,
+    patterns: ["harbor.settings-secrets.v1"],
   },
   {
     key: "watchlist",
@@ -234,11 +252,26 @@ export function isSectionKey(value: unknown): value is BackupSectionKey {
 
 /** The section a localStorage key belongs to; "other" is the catch-all. */
 export function sectionOf(key: string): BackupSectionKey {
+  // A key that holds a credential is placed first, whatever broader prefix it also has
+  // (`harbor.theme-session` under Theme, `harbor.settings-secrets.v1` under Settings).
+  for (const section of CREDENTIAL_SECTIONS) {
+    if (section.patterns.some((p) => key.startsWith(p))) return section.key;
+  }
   for (const section of BACKUP_SECTIONS) {
     if (section.patterns.some((p) => key.startsWith(p))) return section.key;
   }
   return "other";
 }
+
+const CREDENTIAL_SECTIONS = BACKUP_SECTIONS.filter((section) => section.warning);
+
+/**
+ * What a backup holds unless sign-ins and keys are asked for. They are kept in the
+ * keychain on purpose; a backup file is plain text wherever it is put.
+ */
+export const DEFAULT_BACKUP_SECTIONS: readonly BackupSectionKey[] = BACKUP_SECTIONS.filter(
+  (section) => !section.warning,
+).map((section) => section.key);
 
 export function backupSectionLabel(key: BackupSectionKey): string {
   return BACKUP_SECTIONS.find((s) => s.key === key)?.label ?? "Cached lookups & misc";

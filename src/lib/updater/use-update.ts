@@ -450,11 +450,12 @@ export async function prepareBetaReturn(version: string): Promise<void> {
 }
 
 async function saveTransitionBackup(): Promise<void> {
-  const [{ buildBackup }, { invoke }] = await Promise.all([
+  const [{ buildBackup, DEFAULT_BACKUP_SECTIONS }, { invoke }] = await Promise.all([
     import("@/lib/backup"),
     import("@tauri-apps/api/core"),
   ]);
-  const backup = await buildBackup();
+  // Sign-ins and keys stay in the keychain across the change; the file is plain text.
+  const backup = await buildBackup([...DEFAULT_BACKUP_SECTIONS]);
   await invoke("handoff_save_backup", { content: JSON.stringify(backup) });
 }
 

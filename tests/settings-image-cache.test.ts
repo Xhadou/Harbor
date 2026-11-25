@@ -51,6 +51,9 @@ function fixture() {
       normalizeLibraryGroups: identity,
       normalizeLibraryGroupSections: identity,
     },
+    // Keys and tokens are kept in the app's secret store; nothing is kept here.
+    "./secret-fields": { putSecrets: () => {}, readSettingsSecrets: () => null },
+    "@/lib/secret-store": { SECRETS_READY: "harbor:secrets-ready" },
   };
   function load(path: string): any {
     const compiled = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {

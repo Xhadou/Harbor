@@ -14,7 +14,7 @@ import {
 
 test("restart recovers the disk copy when quota leaves old browser settings behind", () => {
   localStorage.clear();
-  const old = JSON.stringify({ ...DEFAULT, seekrApiKey: "old-fixture" });
+  const old = JSON.stringify({ ...DEFAULT, posterBaseUrl: "old-fixture" });
   localStorage.setItem(SHARED_KEY, old);
   localStorage.setItem(MIRROR_KEY, old);
   const setItem = localStorage.setItem;
@@ -22,10 +22,10 @@ test("restart recovers the disk copy when quota leaves old browser settings behi
     throw new DOMException("Full", "QuotaExceededError");
   };
   try {
-    const disk = persistEffective({ ...DEFAULT, seekrApiKey: "new-fixture" }, "default", true);
+    const disk = persistEffective({ ...DEFAULT, posterBaseUrl: "new-fixture" }, "default", true);
     assert.equal(localStorage.getItem(SHARED_KEY), old);
     const restored = recoverSettingsFile(disk, "default", true);
-    assert.equal(restored?.seekrApiKey, "new-fixture");
+    assert.equal(restored?.posterBaseUrl, "new-fixture");
     assert.equal(localStorage.getItem(SHARED_KEY), old);
   } finally {
     localStorage.setItem = setItem;
@@ -35,7 +35,7 @@ test("restart recovers the disk copy when quota leaves old browser settings behi
 
 test("disk recovery preserves newer browser edits and isolates unlinked profiles", () => {
   localStorage.clear();
-  const disk = persistEffective({ ...DEFAULT, seekrApiKey: "fixture" }, "alice", false);
+  const disk = persistEffective({ ...DEFAULT, posterBaseUrl: "fixture" }, "alice", false);
   assert.equal(recoverSettingsFile(disk, "bob", false), null);
   assert.equal(recoverSettingsFile(disk, "bob", true), null);
   const newer = { ...JSON.parse(disk), _savedAt: Date.now() + 10000 };
@@ -46,8 +46,8 @@ test("disk recovery preserves newer browser edits and isolates unlinked profiles
 
 test("legacy disk files recover only when browser settings are absent", () => {
   localStorage.clear();
-  const disk = JSON.stringify({ ...DEFAULT, seekrApiKey: "legacy-fixture" });
-  assert.equal(recoverSettingsFile(disk, "default", true)?.seekrApiKey, "legacy-fixture");
+  const disk = JSON.stringify({ ...DEFAULT, posterBaseUrl: "legacy-fixture" });
+  assert.equal(recoverSettingsFile(disk, "default", true)?.posterBaseUrl, "legacy-fixture");
   assert.equal(recoverSettingsFile(disk, "default", true), null);
   assert.equal(recoverSettingsFile("[]", "default", true), null);
   assert.equal(recoverSettingsFile("invalid", "default", true), null);
@@ -57,25 +57,25 @@ test("legacy disk files recover only when browser settings are absent", () => {
 test("an immediate close after settings edits keeps the thumbnail and Seek key", () => {
   localStorage.clear();
   persistEffective(
-    { ...DEFAULT, seekrApiKey: "dummy-seek", spoilerHideThumbnails: false },
+    { ...DEFAULT, posterBaseUrl: "dummy-seek", spoilerHideThumbnails: false },
     "default",
     true,
   );
 
   // No disk-write wait or debounce: this is the state when the window closes.
   const reopened = loadEffective("default", true);
-  assert.equal(reopened.seekrApiKey, "dummy-seek");
+  assert.equal(reopened.posterBaseUrl, "dummy-seek");
   assert.equal(reopened.spoilerHideThumbnails, false);
   localStorage.clear();
 });
 
 test("a failed disk write leaves the newer browser copy as the restart source", () => {
   localStorage.clear();
-  persistEffective({ ...DEFAULT, seekrApiKey: "browser-new" }, "default", true);
+  persistEffective({ ...DEFAULT, posterBaseUrl: "browser-new" }, "default", true);
 
   // No disk file exists after the failed write; recovery has nothing to restore.
   assert.equal(recoverSettingsFile(null, "default", true), null);
-  assert.equal(loadEffective("default", true).seekrApiKey, "browser-new");
+  assert.equal(loadEffective("default", true).posterBaseUrl, "browser-new");
   localStorage.clear();
 });
 
