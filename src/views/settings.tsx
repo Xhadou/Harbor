@@ -697,11 +697,14 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 ref={scrollRef}
                 inert={compact && browseOpen}
                 className="hset-main"
-                data-leave="through"
+                data-leave="at-once"
                 data-hset-wide={wide ? "" : undefined}
               >
                 <div className="hset-content">
-                  <MacSettingsTabs reg={subReg} />
+                  {/* The page that left still holds its tabs for the render that changes page;
+                      the one that arrives puts up its own before anything is painted. Kept, the
+                      strip changes its names with the title instead of leaving and arriving. */}
+                  <MacSettingsTabs reg={subReg ?? subRegRaw} />
                   <Suspense
                     fallback={
                       <div

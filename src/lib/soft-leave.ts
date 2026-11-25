@@ -20,11 +20,12 @@ const MOST_PARTS = 2500;
 /** Unmounted this soon after mounting, it was never really shown (React's check of effects in development does this). */
 const NEVER_SHOWN_MS = 80;
 /**
- * Inside `[data-leave="through"]` the copy goes quickly, and what replaces it
- * waits for it (index.css). Two pages of text in one place, one fading over
- * the other, read as neither: Settings swaps whole pages and tabs this way.
+ * Inside it nothing leaves a copy: what replaces a part arrives on its own.
+ * Two pages of text in one place, one fading over the other, read as neither,
+ * and even a quick fade of the old one is seen as something else first.
+ * Settings swaps whole pages and tabs in its content column.
  */
-const THROUGH_MS = 90;
+const LEAVES_AT_ONCE = '[data-leave="at-once"]';
 
 /**
  * The parts copied in the current commit, each with its copy. A part inside
@@ -106,9 +107,8 @@ export function leaveSoftly(el: HTMLElement, ms: number = LEAVE_MS): void {
   if (!(opacity > 0.05)) return;
   // A copy of a very large part costs more than the fade is worth; what replaces it still fades in.
   if (el.getElementsByTagName("*").length > MOST_PARTS) return;
+  if (el.closest(LEAVES_AT_ONCE)) return;
   for (const left of leftNow.keys()) if (left.contains(el)) return;
-  const through = el.closest('[data-leave="through"]') !== null;
-  const duration = through ? Math.min(ms, THROUGH_MS) : ms;
 
   const ghost = el.cloneNode(true) as HTMLElement;
   ghost.setAttribute("data-ghost", "copy");
@@ -157,12 +157,7 @@ export function leaveSoftly(el: HTMLElement, ms: number = LEAVE_MS): void {
   if (leftNow.size === 0) queueMicrotask(() => leftNow.clear());
   leftNow.set(el, home.outer);
   ghost
-    .animate([{ opacity }, { opacity: 0 }], {
-      duration,
-      // Gone fast enough that what waits for it is never drawn under much of it.
-      easing: through ? "ease-out" : "ease-in",
-      fill: "forwards",
-    })
+    .animate([{ opacity }, { opacity: 0 }], { duration: ms, easing: "ease-in", fill: "forwards" })
     .finished.then(gone, gone);
 }
 
