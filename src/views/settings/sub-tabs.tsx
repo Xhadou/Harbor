@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useLayoutEffect } from "react";
 import { SECTION_TABS } from "./tab-registry";
 
 export type SubTab = { id: string; label: string; icon?: string; dot?: boolean; count?: number };
@@ -40,8 +40,11 @@ export function useSubTabs(tabs: SubTab[], value: string, onChange: (id: string)
   const key = tabs
     .map((tab) => `${tab.id}|${tab.label}|${tab.icon ?? ""}|${tab.dot ? 1 : 0}|${tab.count ?? ""}`)
     .join(",");
-  useEffect(() => {
+  // Before the page is painted: a page whose tabs arrived a frame late was drawn once without
+  // them, then moved down under them. Letting go is a layout effect too, so the page that
+  // leaves clears its tabs before the one that arrives puts up its own.
+  useLayoutEffect(() => {
     setReg({ section, tabs, value, onChange });
   }, [section, key, value, setReg]);
-  useEffect(() => () => setReg(null), [setReg]);
+  useLayoutEffect(() => () => setReg(null), [setReg]);
 }

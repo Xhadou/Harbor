@@ -697,6 +697,7 @@ export function Settings({ visible = true }: { visible?: boolean }) {
                 ref={scrollRef}
                 inert={compact && browseOpen}
                 className="hset-main"
+                data-leave="through"
                 data-hset-wide={wide ? "" : undefined}
               >
                 <div className="hset-content">

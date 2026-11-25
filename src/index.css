@@ -1583,22 +1583,22 @@ html[data-os="macos"] :is(.harbor-scroll, .guide-scroll) {
   animation: harbor-cascade-in 190ms ease-out backwards;
 }
 .harbor-cascade > *:nth-child(1) {
-  animation-delay: 0ms;
+  animation-delay: calc(var(--arrive-wait, 0ms) + 0ms);
 }
 .harbor-cascade > *:nth-child(2) {
-  animation-delay: 18ms;
+  animation-delay: calc(var(--arrive-wait, 0ms) + 18ms);
 }
 .harbor-cascade > *:nth-child(3) {
-  animation-delay: 32ms;
+  animation-delay: calc(var(--arrive-wait, 0ms) + 32ms);
 }
 .harbor-cascade > *:nth-child(4) {
-  animation-delay: 44ms;
+  animation-delay: calc(var(--arrive-wait, 0ms) + 44ms);
 }
 .harbor-cascade > *:nth-child(5) {
-  animation-delay: 54ms;
+  animation-delay: calc(var(--arrive-wait, 0ms) + 54ms);
 }
 .harbor-cascade > *:nth-child(n + 6) {
-  animation-delay: 62ms;
+  animation-delay: calc(var(--arrive-wait, 0ms) + 62ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -9224,6 +9224,14 @@ html[data-os="macos"] [data-arrives="pop"] {
   html[data-os="macos"] [data-arrives] {
     animation: none;
   }
+}
+/* Where a part that leaves goes quickly (src/lib/soft-leave.ts), what replaces
+   it waits until it has mostly gone: a fade through, not one page over another. */
+html[data-os="macos"] [data-leave="through"] {
+  --arrive-wait: 60ms;
+}
+html[data-os="macos"] [data-leave="through"] [data-arrives] {
+  animation-delay: var(--arrive-wait);
 }
 
 /* A fading copy left by a soft exit (src/lib/soft-leave.ts) shows the thing as

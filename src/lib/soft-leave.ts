@@ -19,6 +19,19 @@ const LEAVE_MS = 160;
 const MOST_PARTS = 2500;
 /** Unmounted this soon after mounting, it was never really shown (React's check of effects in development does this). */
 const NEVER_SHOWN_MS = 80;
+/**
+ * Inside `[data-leave="through"]` the copy goes quickly, and what replaces it
+ * waits for it (index.css). Two pages of text in one place, one fading over
+ * the other, read as neither: Settings swaps whole pages and tabs this way.
+ */
+const THROUGH_MS = 90;
+
+/**
+ * The parts copied in the current commit, each with its copy. A part inside
+ * another that leaves at the same moment is already in that one's copy; a
+ * second copy of it would draw it twice.
+ */
+const leftNow = new Map<HTMLElement, HTMLElement>();
 
 /**
  * Whether this is the Mac app. An unmount can come where there is no app to ask
@@ -93,6 +106,9 @@ export function leaveSoftly(el: HTMLElement, ms: number = LEAVE_MS): void {
   if (!(opacity > 0.05)) return;
   // A copy of a very large part costs more than the fade is worth; what replaces it still fades in.
   if (el.getElementsByTagName("*").length > MOST_PARTS) return;
+  for (const left of leftNow.keys()) if (left.contains(el)) return;
+  const through = el.closest('[data-leave="through"]') !== null;
+  const duration = through ? Math.min(ms, THROUGH_MS) : ms;
 
   const ghost = el.cloneNode(true) as HTMLElement;
   ghost.setAttribute("data-ghost", "copy");
@@ -130,8 +146,23 @@ export function leaveSoftly(el: HTMLElement, ms: number = LEAVE_MS): void {
   // A long part scrolled inside its page shows the same slice it showed.
   ghost.scrollTop = el.scrollTop;
   const gone = () => home.outer.remove();
+  // React lets go of a part before the parts inside it, but a copy made the other way round is
+  // replaced all the same.
+  for (const [left, copy] of leftNow) {
+    if (el.contains(left)) {
+      copy.remove();
+      leftNow.delete(left);
+    }
+  }
+  if (leftNow.size === 0) queueMicrotask(() => leftNow.clear());
+  leftNow.set(el, home.outer);
   ghost
-    .animate([{ opacity }, { opacity: 0 }], { duration: ms, easing: "ease-in", fill: "forwards" })
+    .animate([{ opacity }, { opacity: 0 }], {
+      duration,
+      // Gone fast enough that what waits for it is never drawn under much of it.
+      easing: through ? "ease-out" : "ease-in",
+      fill: "forwards",
+    })
     .finished.then(gone, gone);
 }
 

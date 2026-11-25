@@ -233,12 +233,16 @@ export function useMacTabEnter(reg: SubTabReg) {
     // A different page already cascades in; a tab appearing for the first time is not a change.
     if (was.section !== section || was.value === undefined || was.value === value) return;
     if (!isMacDesktop() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    panel.current?.animate(
+    const el = panel.current;
+    if (!el) return;
+    // The tab that left is still fading out of the same place (`data-leave="through"`).
+    const wait = Number.parseFloat(getComputedStyle(el).getPropertyValue("--arrive-wait")) || 0;
+    el.animate(
       [
         { opacity: 0, transform: "translateY(6px)" },
         { opacity: 1, transform: "none" },
       ],
-      { duration: 220, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+      { duration: 220, delay: wait, fill: "backwards", easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
     );
   }, [section, value]);
   return panel;
