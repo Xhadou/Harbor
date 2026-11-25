@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 // @ts-expect-error Node test types are outside browser config.
 import { registerHooks } from "node:module";
+import { passThrough } from "./_module-hooks.ts";
 // @ts-expect-error Node test types are outside browser config.
 import { readFileSync } from "node:fs";
 const endpoint = new URL("../src/lib/config/endpoints.ts", import.meta.url).href;
@@ -15,7 +16,7 @@ const hook = registerHooks({
           shortCircuit: true,
           source: `import.meta.env = {};\n${readFileSync(new URL(url), "utf8")}`,
         }
-      : nextLoad(url, context);
+      : passThrough(url, context, nextLoad);
   },
 });
 const pages = await import("../src/lib/page-collection-rows.ts");

@@ -57,6 +57,11 @@ test(
         "--pause=yes",
         "--keep-open=yes",
         "--sub-visibility=no",
+        // Isolated from the system's media controls and media keys: a pause sent to
+        // whatever is playing (a key press, headphones taken off, another player
+        // starting) otherwise reaches this player mid-test and stops it between cues.
+        "--media-controls=no",
+        "--input-media-keys=no",
         `--input-ipc-server=${pipe}`,
       ],
       { windowsHide: true, stdio: "ignore" },
