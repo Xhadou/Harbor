@@ -9535,6 +9535,13 @@ html[data-os="macos"] .mac-btn-lg {
 html[data-os="macos"] .mac-btn > img {
   block-size: 18px;
 }
+/* A button's glyph and words as one piece, for a button whose face is swapped
+   when its state changes (src/views/detail/mac-title-button.tsx). */
+html[data-os="macos"] .mac-btn-face {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 /* A quiet button at the edge of a column: its text lines up with the column,
    and the fill it shows under the pointer reaches past it. */
 html[data-os="macos"] .mac-btn-edge-start {
